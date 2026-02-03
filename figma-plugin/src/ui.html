@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PC↔모바일 자동화</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      color: #333;
+      background: #fff;
+      padding: 16px;
+      min-width: 320px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      background: #f5f5f5;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: #333;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .tab:hover:not(.active) {
+      color: #333;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: #F24E1E;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #D93D12;
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #e5e5e5;
+    }
+
+    .btn-secondary:hover {
+      background: #ebebeb;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .module-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .module-item:last-child {
+      border-bottom: none;
+    }
+
+    .module-item:hover {
+      background: #f9f9f9;
+    }
+
+    .module-item.selected {
+      background: #FFF5F3;
+    }
+
+    .module-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-right: 10px;
+      accent-color: #F24E1E;
+    }
+
+    .module-info {
+      flex: 1;
+    }
+
+    .module-name {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .module-meta {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .module-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .badge-pc {
+      background: #E3F2FD;
+      color: #1976D2;
+    }
+
+    .badge-mobile {
+      background: #F3E5F5;
+      color: #7B1FA2;
+    }
+
+    .mapping-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .mapping-arrow {
+      color: #999;
+      font-size: 14px;
+    }
+
+    .mapping-select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      font-size: 11px;
+      background: white;
+    }
+
+    .status-bar {
+      padding: 10px 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .status-bar.success {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .status-bar.error {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: #e5e5e5;
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #F24E1E;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .selected-modules {
+      min-height: 100px;
+      border: 2px dashed #e5e5e5;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .selected-module-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      cursor: move;
+    }
+
+    .selected-module-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .drag-handle {
+      color: #999;
+      margin-right: 8px;
+      cursor: grab;
+    }
+
+    .remove-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .remove-btn:hover {
+      color: #F24E1E;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #F24E1E;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .help-text {
+      font-size: 10px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e5e5;
+      margin: 16px 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1" fill="#1976D2"/>
+      <rect x="14" y="3" width="7" height="7" rx="1" fill="#7B1FA2"/>
+      <path d="M10 10L14 14" stroke="#F24E1E" stroke-width="2" stroke-linecap="round"/>
+      <rect x="3" y="14" width="7" height="7" rx="1" fill="#1976D2"/>
+      <rect x="14" y="14" width="7" height="7" rx="1" fill="#7B1FA2"/>
+    </svg>
+    <h1>PC↔모바일 자동화</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="scan">모듈 스캔</button>
+    <button class="tab" data-panel="generate">페이지 생성</button>
+    <button class="tab" data-panel="sync">콘텐츠 동기화</button>
+  </div>
+
+  <!-- 모듈 스캔 패널 -->
+  <div id="panel-scan" class="panel active">
+    <div class="section">
+      <div class="section-title">컴포넌트 스캔</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        현재 파일에서 PC/모바일 모듈 컴포넌트를 자동으로 찾습니다.
+      </p>
+      <button class="btn btn-primary" id="btn-scan">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        모듈 스캔 시작
+      </button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">스캔 결과</div>
+      <div id="scan-status" class="status-bar">
+        스캔을 시작하려면 위 버튼을 클릭하세요.
+      </div>
+      <div id="scanned-modules" class="module-list" style="display: none;">
+        <!-- 스캔된 모듈 목록 -->
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">PC↔모바일 매핑 설정</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        PC 모듈과 대응되는 모바일 모듈을 연결합니다.
+      </p>
+      <div id="mapping-list">
+        <!-- 매핑 항목 -->
+      </div>
+      <button class="btn btn-secondary" id="btn-save-mapping" style="margin-top: 8px;">
+        매핑 저장
+      </button>
+    </div>
+  </div>
+
+  <!-- 페이지 생성 패널 -->
+  <div id="panel-generate" class="panel">
+    <div class="section">
+      <div class="section-title">모듈 선택</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        상세페이지에 포함할 모듈을 선택하세요.
+      </p>
+      <div id="available-modules" class="module-list">
+        <div class="empty-state">먼저 모듈 스캔을 진행해주세요.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">선택된 모듈 순서</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        드래그하여 순서를 변경할 수 있습니다.
+      </p>
+      <div id="selected-modules" class="selected-modules">
+        <div class="empty-state">모듈을 선택해주세요.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">생성 옵션</div>
+      <div class="input-group">
+        <label class="input-label">페이지 이름</label>
+        <input type="text" class="input-field" id="page-name" placeholder="예: 2024 신규과정 상세페이지">
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gen-pc" checked>
+        <label for="gen-pc">PC 버전 생성</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gen-mobile" checked>
+        <label for="gen-mobile">모바일 버전 생성</label>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <button class="btn btn-secondary" id="btn-preview">미리보기</button>
+      <button class="btn btn-primary" id="btn-generate">페이지 생성</button>
+    </div>
+  </div>
+
+  <!-- 콘텐츠 동기화 패널 -->
+  <div id="panel-sync" class="panel">
+    <div class="section">
+      <div class="section-title">동기화 대상</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        현재 선택된 레이어의 콘텐츠를 PC↔모바일 간 동기화합니다.
+      </p>
+      <div id="sync-target" class="status-bar">
+        Figma에서 동기화할 요소를 선택하세요.
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">동기화 옵션</div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="sync-text" checked>
+        <label for="sync-text">텍스트 동기화</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="sync-image" checked>
+        <label for="sync-image">이미지 동기화</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="sync-style">
+        <label for="sync-style">스타일 동기화 (색상, 효과)</label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">동기화 방향</div>
+      <div class="two-col" style="margin-bottom: 12px;">
+        <button class="btn btn-secondary" id="btn-sync-to-mobile">
+          PC → 모바일
+        </button>
+        <button class="btn btn-secondary" id="btn-sync-to-pc">
+          모바일 → PC
+        </button>
+      </div>
+      <button class="btn btn-primary" id="btn-sync-both">
+        양방향 동기화
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title">일괄 동기화</div>
+      <p class="help-text" style="margin-bottom: 12px;">
+        전체 페이지의 모든 매핑된 모듈을 동기화합니다.
+      </p>
+      <button class="btn btn-secondary" id="btn-sync-all">
+        전체 페이지 동기화
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 탭 전환
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    // 상태 관리
+    let scannedModules = [];
+    let moduleMapping = {};
+    let selectedModules = [];
+
+    // 모듈 스캔
+    document.getElementById('btn-scan').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'scan-modules' } }, '*');
+      document.getElementById('scan-status').textContent = '스캔 중...';
+      document.getElementById('scan-status').className = 'status-bar';
+    });
+
+    // 매핑 저장
+    document.getElementById('btn-save-mapping').addEventListener('click', () => {
+      const mappings = {};
+      document.querySelectorAll('.mapping-item').forEach(item => {
+        const pcSelect = item.querySelector('.pc-select');
+        const mobileSelect = item.querySelector('.mobile-select');
+        if (pcSelect && mobileSelect && pcSelect.value && mobileSelect.value) {
+          mappings[pcSelect.value] = mobileSelect.value;
+        }
+      });
+      parent.postMessage({ pluginMessage: { type: 'save-mapping', mapping: mappings } }, '*');
+    });
+
+    // 페이지 생성
+    document.getElementById('btn-generate').addEventListener('click', () => {
+      const pageName = document.getElementById('page-name').value || '새 상세페이지';
+      const generatePC = document.getElementById('gen-pc').checked;
+      const generateMobile = document.getElementById('gen-mobile').checked;
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate-page',
+          pageName,
+          generatePC,
+          generateMobile,
+          modules: selectedModules
+        }
+      }, '*');
+    });
+
+    // 미리보기
+    document.getElementById('btn-preview').addEventListener('click', () => {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'preview-page',
+          modules: selectedModules
+        }
+      }, '*');
+    });
+
+    // 동기화 버튼들
+    document.getElementById('btn-sync-to-mobile').addEventListener('click', () => {
+      const options = getSyncOptions();
+      parent.postMessage({ pluginMessage: { type: 'sync', direction: 'pc-to-mobile', ...options } }, '*');
+    });
+
+    document.getElementById('btn-sync-to-pc').addEventListener('click', () => {
+      const options = getSyncOptions();
+      parent.postMessage({ pluginMessage: { type: 'sync', direction: 'mobile-to-pc', ...options } }, '*');
+    });
+
+    document.getElementById('btn-sync-both').addEventListener('click', () => {
+      const options = getSyncOptions();
+      parent.postMessage({ pluginMessage: { type: 'sync', direction: 'both', ...options } }, '*');
+    });
+
+    document.getElementById('btn-sync-all').addEventListener('click', () => {
+      const options = getSyncOptions();
+      parent.postMessage({ pluginMessage: { type: 'sync-all', ...options } }, '*');
+    });
+
+    function getSyncOptions() {
+      return {
+        syncText: document.getElementById('sync-text').checked,
+        syncImage: document.getElementById('sync-image').checked,
+        syncStyle: document.getElementById('sync-style').checked
+      };
+    }
+
+    // 플러그인 메시지 수신
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      switch (msg.type) {
+        case 'scan-result':
+          handleScanResult(msg.modules);
+          break;
+        case 'selection-change':
+          handleSelectionChange(msg.selection);
+          break;
+        case 'status':
+          showStatus(msg.message, msg.status);
+          break;
+        case 'mapping-loaded':
+          moduleMapping = msg.mapping || {};
+          updateMappingUI();
+          break;
+      }
+    };
+
+    function handleScanResult(modules) {
+      scannedModules = modules;
+      const container = document.getElementById('scanned-modules');
+      const statusBar = document.getElementById('scan-status');
+
+      if (modules.length === 0) {
+        statusBar.textContent = '모듈을 찾을 수 없습니다. 컴포넌트 이름에 /pc_ 또는 /mobile_ 접두사를 사용해주세요.';
+        statusBar.className = 'status-bar error';
+        container.style.display = 'none';
+        return;
+      }
+
+      const pcModules = modules.filter(m => m.type === 'pc');
+      const mobileModules = modules.filter(m => m.type === 'mobile');
+
+      statusBar.textContent = `PC 모듈 ${pcModules.length}개, 모바일 모듈 ${mobileModules.length}개를 찾았습니다.`;
+      statusBar.className = 'status-bar success';
+
+      container.innerHTML = modules.map(m => `
+        <div class="module-item" data-id="${m.id}">
+          <div class="module-info">
+            <div class="module-name">${m.name}</div>
+            <div class="module-meta">${m.category || '미분류'}</div>
+          </div>
+          <span class="module-badge ${m.type === 'pc' ? 'badge-pc' : 'badge-mobile'}">
+            ${m.type === 'pc' ? 'PC' : 'Mobile'}
+          </span>
+        </div>
+      `).join('');
+      container.style.display = 'block';
+
+      // 매핑 UI 업데이트
+      updateMappingUI();
+
+      // 페이지 생성 탭의 모듈 목록도 업데이트
+      updateAvailableModules();
+    }
+
+    function updateMappingUI() {
+      const container = document.getElementById('mapping-list');
+      const pcModules = scannedModules.filter(m => m.type === 'pc');
+      const mobileModules = scannedModules.filter(m => m.type === 'mobile');
+
+      if (pcModules.length === 0) {
+        container.innerHTML = '<div class="empty-state">먼저 모듈 스캔을 진행해주세요.</div>';
+        return;
+      }
+
+      container.innerHTML = pcModules.map(pc => {
+        const mappedMobile = moduleMapping[pc.id] || '';
+        return `
+          <div class="mapping-item">
+            <select class="mapping-select pc-select">
+              <option value="${pc.id}">${pc.name}</option>
+            </select>
+            <span class="mapping-arrow">↔</span>
+            <select class="mapping-select mobile-select">
+              <option value="">모바일 모듈 선택...</option>
+              ${mobileModules.map(m => `
+                <option value="${m.id}" ${m.id === mappedMobile ? 'selected' : ''}>${m.name}</option>
+              `).join('')}
+            </select>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateAvailableModules() {
+      const container = document.getElementById('available-modules');
+      const pcModules = scannedModules.filter(m => m.type === 'pc');
+
+      if (pcModules.length === 0) {
+        container.innerHTML = '<div class="empty-state">먼저 모듈 스캔을 진행해주세요.</div>';
+        return;
+      }
+
+      container.innerHTML = pcModules.map(m => `
+        <div class="module-item" data-id="${m.id}">
+          <input type="checkbox" class="module-checkbox" id="mod-${m.id}">
+          <div class="module-info">
+            <div class="module-name">${m.name}</div>
+            <div class="module-meta">${m.category || '미분류'}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // 체크박스 이벤트
+      container.querySelectorAll('.module-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const moduleId = e.target.closest('.module-item').dataset.id;
+          const module = scannedModules.find(m => m.id === moduleId);
+
+          if (e.target.checked) {
+            selectedModules.push(module);
+          } else {
+            selectedModules = selectedModules.filter(m => m.id !== moduleId);
+          }
+          updateSelectedModules();
+        });
+      });
+    }
+
+    function updateSelectedModules() {
+      const container = document.getElementById('selected-modules');
+
+      if (selectedModules.length === 0) {
+        container.innerHTML = '<div class="empty-state">모듈을 선택해주세요.</div>';
+        return;
+      }
+
+      container.innerHTML = selectedModules.map((m, index) => `
+        <div class="selected-module-item" data-id="${m.id}" draggable="true">
+          <span class="drag-handle">☰</span>
+          <span>${index + 1}. ${m.name}</span>
+          <button class="remove-btn" data-id="${m.id}">✕</button>
+        </div>
+      `).join('');
+
+      // 삭제 버튼 이벤트
+      container.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const moduleId = e.target.dataset.id;
+          selectedModules = selectedModules.filter(m => m.id !== moduleId);
+          document.querySelector(`#mod-${moduleId}`).checked = false;
+          updateSelectedModules();
+        });
+      });
+
+      // 드래그 앤 드롭 (간단한 버전)
+      let draggedItem = null;
+      container.querySelectorAll('.selected-module-item').forEach(item => {
+        item.addEventListener('dragstart', () => draggedItem = item);
+        item.addEventListener('dragover', (e) => e.preventDefault());
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          if (draggedItem !== item) {
+            const allItems = [...container.querySelectorAll('.selected-module-item')];
+            const draggedIdx = allItems.indexOf(draggedItem);
+            const targetIdx = allItems.indexOf(item);
+
+            // 순서 재정렬
+            const [removed] = selectedModules.splice(draggedIdx, 1);
+            selectedModules.splice(targetIdx, 0, removed);
+            updateSelectedModules();
+          }
+        });
+      });
+    }
+
+    function handleSelectionChange(selection) {
+      const container = document.getElementById('sync-target');
+      if (selection && selection.length > 0) {
+        container.textContent = `선택됨: ${selection.map(s => s.name).join(', ')}`;
+        container.className = 'status-bar success';
+      } else {
+        container.textContent = 'Figma에서 동기화할 요소를 선택하세요.';
+        container.className = 'status-bar';
+      }
+    }
+
+    function showStatus(message, status) {
+      const statusBar = document.getElementById('scan-status');
+      statusBar.textContent = message;
+      statusBar.className = 'status-bar ' + (status || '');
+    }
+  </script>
+</body>
+</html>
