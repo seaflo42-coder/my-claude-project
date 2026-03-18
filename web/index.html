@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국 문화유산 AI 이미지 프롬프트 생성기</title>
+<style>
+/* ── 기본 리셋 & 변수 ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0f0f13;
+  --bg2: #1a1a24;
+  --bg3: #252533;
+  --accent: #c9a96e;
+  --accent2: #e8d5a8;
+  --text: #e8e6e1;
+  --text2: #a09e99;
+  --red: #c75c5c;
+  --green: #6dbc7a;
+  --blue: #5c8dc7;
+  --radius: 12px;
+}
+body {
+  font-family: 'Pretendard', -apple-system, 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── 헤더 ── */
+.header {
+  background: linear-gradient(135deg, #1a1520 0%, #20182a 50%, #18151f 100%);
+  border-bottom: 1px solid rgba(201,169,110,0.2);
+  padding: 2rem;
+  text-align: center;
+}
+.header h1 {
+  font-size: 1.8rem;
+  color: var(--accent2);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header p {
+  color: var(--text2);
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+.header .badge {
+  display: inline-block;
+  background: rgba(201,169,110,0.15);
+  color: var(--accent);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(201,169,110,0.2);
+}
+
+/* ── 메인 레이아웃 ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── 단계 표시 ── */
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg2);
+  border-radius: 25px;
+  font-size: 0.85rem;
+  color: var(--text2);
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+.step.active {
+  background: rgba(201,169,110,0.15);
+  color: var(--accent2);
+  border-color: rgba(201,169,110,0.3);
+}
+.step.done {
+  color: var(--green);
+}
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.step.active .step-num { background: var(--accent); color: var(--bg); }
+.step.done .step-num { background: var(--green); color: var(--bg); }
+
+/* ── 섹션 공통 ── */
+.section {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.section.visible { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--accent2);
+}
+
+/* ── 카테고리 탭 ── */
+.category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.cat-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--bg3);
+  background: var(--bg2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.cat-tab:hover { border-color: var(--accent); color: var(--accent); }
+.cat-tab.active {
+  background: rgba(201,169,110,0.15);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+/* ── 문화유산 카드 그리드 ── */
+.heritage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.heritage-card {
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+.heritage-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.heritage-card.selected {
+  border-color: var(--accent);
+  background: rgba(201,169,110,0.08);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.heritage-card .card-type {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(201,169,110,0.15);
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.heritage-card .card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.heritage-card .card-name-en {
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-bottom: 0.5rem;
+}
+.heritage-card .card-meta {
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+.heritage-card .card-era {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--bg3);
+  color: var(--text2);
+  margin-right: 0.25rem;
+}
+.heritage-card .card-desc {
+  font-size: 0.82rem;
+  color: var(--text2);
+  margin-top: 0.75rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── 스타일/모델 선택 ── */
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.option-card {
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+.option-card:hover { border-color: var(--accent); }
+.option-card.selected {
+  border-color: var(--accent);
+  background: rgba(201,169,110,0.08);
+}
+.option-card .opt-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.option-card .opt-name { font-weight: 700; margin-bottom: 0.25rem; }
+.option-card .opt-desc { font-size: 0.8rem; color: var(--text2); }
+
+/* ── 버튼 ── */
+.btn-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+.btn-primary:hover { background: var(--accent2); }
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: var(--bg3);
+  color: var(--text);
+}
+.btn-secondary:hover { background: #303044; }
+.btn-generate {
+  background: linear-gradient(135deg, #c9a96e, #e8d5a8);
+  color: var(--bg);
+  padding: 1rem 3rem;
+  font-size: 1.1rem;
+  border-radius: 10px;
+}
+.btn-generate:hover {
+  box-shadow: 0 6px 20px rgba(201,169,110,0.3);
+  transform: translateY(-1px);
+}
+
+/* ── 결과 영역 ── */
+.results-area {
+  margin-top: 1rem;
+}
+.result-block {
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--bg3);
+  cursor: pointer;
+}
+.result-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.result-header .tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(201,169,110,0.2);
+  color: var(--accent);
+}
+.result-body {
+  padding: 1.25rem;
+}
+.prompt-box {
+  background: var(--bg);
+  border: 1px solid var(--bg3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.prompt-label {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.prompt-text {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--bg3);
+  border: 1px solid rgba(201,169,110,0.3);
+  color: var(--accent);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--accent); color: var(--bg); }
+.copy-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* ── 고증 상세 ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.detail-item {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.detail-item .label {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.3px;
+}
+.detail-item .value {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.detail-item .tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.detail-item .mini-tag {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--bg3);
+  color: var(--text2);
+}
+
+/* ── 전체 다운로드 영역 ── */
+.download-section {
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  text-align: center;
+}
+.download-section h3 {
+  margin-bottom: 1rem;
+  color: var(--accent2);
+}
+
+/* ── 반응형 ── */
+@media (max-width: 600px) {
+  .header h1 { font-size: 1.3rem; }
+  .heritage-grid { grid-template-columns: 1fr; }
+  .option-grid { grid-template-columns: 1fr 1fr; }
+  .container { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>한국 문화유산 AI 이미지 프롬프트 생성기</h1>
+  <p>국가유산청 데이터 기반 · 고증 자동 반영 · 복사해서 바로 사용</p>
+  <span class="badge">heritage.go.kr 기반 데이터</span>
+</div>
+
+<div class="container">
+
+  <!-- 단계 표시 -->
+  <div class="steps">
+    <div class="step active" id="step1-indicator">
+      <span class="step-num">1</span> 문화유산 선택
+    </div>
+    <div class="step" id="step2-indicator">
+      <span class="step-num">2</span> 스타일 선택
+    </div>
+    <div class="step" id="step3-indicator">
+      <span class="step-num">3</span> AI 모델 선택
+    </div>
+    <div class="step" id="step4-indicator">
+      <span class="step-num">4</span> 프롬프트 확인
+    </div>
+  </div>
+
+  <!-- ========== STEP 1: 문화유산 선택 ========== -->
+  <div class="section visible" id="step1">
+    <div class="section-title">어떤 문화유산의 이미지를 만들고 싶으세요?</div>
+
+    <div class="category-tabs" id="categoryTabs"></div>
+    <div class="heritage-grid" id="heritageGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-to-step2" disabled onclick="goStep(2)">
+        다음: 스타일 선택 →
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 2: 스타일 선택 ========== -->
+  <div class="section" id="step2">
+    <div class="section-title">어떤 스타일의 이미지를 만들까요?</div>
+
+    <div class="option-grid" id="styleGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← 뒤로</button>
+      <button class="btn btn-primary" id="btn-to-step3" disabled onclick="goStep(3)">
+        다음: AI 모델 선택 →
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 3: AI 모델 선택 ========== -->
+  <div class="section" id="step3">
+    <div class="section-title">어떤 AI 도구에서 사용할 프롬프트인가요?</div>
+
+    <div class="option-grid" id="modelGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← 뒤로</button>
+      <button class="btn btn-generate" onclick="generatePrompts()">
+        프롬프트 생성하기
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 4: 결과 ========== -->
+  <div class="section" id="step4">
+    <div class="section-title" id="resultTitle">생성된 프롬프트</div>
+
+    <div class="results-area" id="resultsArea"></div>
+
+    <div class="download-section">
+      <h3>전체 프롬프트 저장하기</h3>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn btn-secondary" onclick="downloadTxt()">텍스트 파일 (.txt) 다운로드</button>
+        <button class="btn btn-secondary" onclick="downloadJson()">JSON 파일 다운로드</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← 처음부터 다시</button>
+      <button class="btn btn-primary" onclick="goStep(2)">스타일 바꿔서 다시 생성</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// 문화유산 데이터베이스
+// ══════════════════════════════════════════════
+const HERITAGE_DB = [
+  {
+    id: "sungnyemun",
+    name: "숭례문",
+    nameEn: "Sungnyemun Gate",
+    type: "국보",
+    category: "건축",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "서울특별시",
+    desc: "조선시대 한양도성의 남쪽 정문. 2층 누각 형태의 문루와 석축 기단, 팔작지붕에 다포식 공포, 장엄한 단청.",
+    visual: {
+      style: ["팔작지붕", "겹처마", "공포(bracket system)", "기단(stone platform)", "문루(gate pavilion)"],
+      colors: ["단청 오방색(청·적·황·백·흑)", "기와 회색", "목재 갈색"],
+      materials: ["목재", "기와", "석재", "단청"],
+      atmosphere: "장엄한, 위풍당당한, 조선 왕조의 위엄"
+    }
+  },
+  {
+    id: "geunjeongjeon",
+    name: "경복궁 근정전",
+    nameEn: "Geunjeongjeon Hall, Gyeongbokgung Palace",
+    type: "국보",
+    category: "건축",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "서울특별시",
+    desc: "조선 왕조의 법궁인 경복궁의 정전. 왕의 즉위식과 외국 사신 접견이 이루어진 곳.",
+    visual: {
+      style: ["중층 팔작지붕", "이중 월대(기단)", "답도(踏道)", "드므(화재방지 물항아리)", "어좌(옥좌)"],
+      colors: ["단청 오방색", "금색 용 장식", "홍색 기둥", "회색 화강암 기단"],
+      materials: ["목재", "화강암", "기와", "금박"],
+      atmosphere: "왕실의 권위, 유교적 질서, 장엄한 궁궐 공간"
+    }
+  },
+  {
+    id: "buyongjeong",
+    name: "창덕궁 부용정",
+    nameEn: "Buyongjeong Pavilion, Changdeokgung Palace",
+    type: "보물",
+    category: "건축",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "서울특별시",
+    desc: "창덕궁 후원의 부용지 위에 세워진 정자. 십자형 평면에 이익공 양식, 연못에 비친 모습이 아름답다.",
+    visual: {
+      style: ["십자형 정자", "이익공 양식", "연못 위 누각", "후원 정원"],
+      colors: ["단청 채색", "연못 비취색", "주변 녹음"],
+      materials: ["목재", "석재", "기와"],
+      atmosphere: "고요한, 운치 있는, 선비의 풍류, 자연과 조화"
+    }
+  },
+  {
+    id: "seokguram",
+    name: "석굴암 본존불",
+    nameEn: "Seokguram Grotto Main Buddha",
+    type: "국보",
+    category: "불교",
+    era: "통일신라",
+    eraEn: "Unified Silla (668-935)",
+    location: "경상북도 경주",
+    desc: "토함산 중턱 인공 석굴 안의 본존불. 화강암을 깎아 만든 항마촉지인의 석가여래좌상.",
+    visual: {
+      style: ["항마촉지인(손 모양)", "광배(둥근 후광)", "연화대좌(연꽃 받침)", "석굴 돔 천장"],
+      colors: ["화강암 회백색", "은은한 자연광"],
+      materials: ["화강암"],
+      atmosphere: "숭고한, 명상적, 고요한 불교적 성스러움"
+    }
+  },
+  {
+    id: "bangasayusang",
+    name: "금동미륵보살반가사유상",
+    nameEn: "Gilt-bronze Pensive Maitreya Bodhisattva",
+    type: "국보",
+    category: "불교",
+    era: "삼국시대",
+    eraEn: "Three Kingdoms Period (BC 57-AD 668)",
+    location: "국립중앙박물관",
+    desc: "반가부좌로 깊은 사유에 잠긴 보살상. 부드러운 미소, 유려한 옷주름.",
+    visual: {
+      style: ["반가부좌 자세", "삼산관(머리장식)", "천의(얇은 옷)", "자연스러운 미소"],
+      colors: ["금동색(황금빛 청동)", "녹청색 녹"],
+      materials: ["금동(도금 청동)"],
+      atmosphere: "명상적, 신비로운 미소, 우아한 곡선미"
+    }
+  },
+  {
+    id: "celadon",
+    name: "고려청자 상감운학문매병",
+    nameEn: "Goryeo Celadon Maebyeong with Inlaid Cloud and Crane",
+    type: "국보",
+    category: "도자기·공예",
+    era: "고려",
+    eraEn: "Goryeo Dynasty (918-1392)",
+    location: "국립중앙박물관",
+    desc: "고려청자의 대표작. 매병 형태에 구름과 학 문양을 상감기법으로 시문.",
+    visual: {
+      style: ["매병(梅甁) 형태", "상감기법(inlay)", "운학문(구름+학)", "당초문 띠"],
+      colors: ["비색(翡色, jade-green)", "백토 상감 흰색", "자토 상감 검은색"],
+      materials: ["도자기", "비색 유약"],
+      atmosphere: "우아한, 고려의 세련된 귀족 미학"
+    }
+  },
+  {
+    id: "moonjar",
+    name: "조선백자 달항아리",
+    nameEn: "Joseon White Porcelain Moon Jar",
+    type: "국보",
+    category: "도자기·공예",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "국립중앙박물관",
+    desc: "보름달처럼 크고 둥근 형태. 순백의 유약, 약간의 비대칭이 주는 자연스러운 아름다움.",
+    visual: {
+      style: ["완전한 구형(보름달)", "약간의 비대칭", "무문(장식 없음)", "넉넉한 크기"],
+      colors: ["순백색(유백색)", "약간의 회청색 빛"],
+      materials: ["백자", "순백 유약"],
+      atmosphere: "담백한, 소박한, 조선 선비의 미학, 달빛 같은 온화함"
+    }
+  },
+  {
+    id: "janggyeongpanjeon",
+    name: "팔만대장경 장경판전",
+    nameEn: "Janggyeongpanjeon, Haeinsa Temple",
+    type: "국보/세계유산",
+    category: "건축",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "경상남도 합천",
+    desc: "해인사의 팔만대장경 보관 건물. 자연 환기 시스템으로 700년간 경판을 보존.",
+    visual: {
+      style: ["긴 목조 건물", "크기가 다른 창문(환기용)", "경판 보관 선반", "산중 사찰"],
+      colors: ["고목 갈색", "기와 회색", "주변 녹음"],
+      materials: ["목재", "기와", "대장경 목판"],
+      atmosphere: "경건한, 고즈넉한, 지혜의 보고, 산사의 고요함"
+    }
+  },
+  {
+    id: "royal-wedding",
+    name: "조선 궁중 혼례",
+    nameEn: "Joseon Royal Wedding Ceremony",
+    type: "무형유산",
+    category: "생활·풍속",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "궁궐",
+    desc: "왕실의 가례. 붉은 원삼과 족두리, 활옷을 입은 왕비와 곤룡포의 왕.",
+    visual: {
+      style: ["원삼(圓衫)", "족두리", "활옷", "곤룡포", "가마", "대례상", "청사홍사 초"],
+      colors: ["홍색(원삼)", "남색(치마)", "금색 자수", "청색·홍색 초"],
+      materials: ["비단", "금사자수", "칠보장식"],
+      atmosphere: "화려한, 장엄한, 왕실의 격식, 경사스러운"
+    }
+  },
+  {
+    id: "hanbok",
+    name: "한복 (여성 전통 한복)",
+    nameEn: "Hanbok - Traditional Korean Women's Dress",
+    type: "무형유산",
+    category: "생활·풍속",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "전국",
+    desc: "저고리와 치마로 구성된 여성 한복. 짧은 저고리의 직선미와 풍성한 치마의 곡선미가 조화.",
+    visual: {
+      style: ["저고리(짧은 상의)", "치마(긴 하의)", "고름(매듭끈)", "동정(흰 깃)", "버선(흰 버선)"],
+      colors: ["색동(오방색 줄무늬)", "연두·분홍·노랑 배색", "흰색 동정"],
+      materials: ["비단(명주)", "모시", "삼베"],
+      atmosphere: "우아한, 단아한, 한국 여성의 곡선미"
+    }
+  },
+  {
+    id: "sarangbang",
+    name: "조선 선비의 사랑방",
+    nameEn: "Joseon Scholar's Sarangbang Study Room",
+    type: "생활문화",
+    category: "생활·풍속",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "전국 한옥",
+    desc: "선비의 서재. 문방사우, 서안, 병풍, 소나무 분재 등으로 꾸민 격조 높은 공간.",
+    visual: {
+      style: ["한옥 온돌방", "서안(낮은 책상)", "문방사우", "사방탁자(책장)", "먹그림 병풍", "한지 창호"],
+      colors: ["한지 미색", "목재 갈색", "먹색", "옅은 자연색"],
+      materials: ["한지", "목재(소나무·오동나무)", "돌(벼루)", "먹"],
+      atmosphere: "고즈넉한, 학문적, 검소하면서 격조 높은, 선비의 풍류"
+    }
+  },
+  {
+    id: "hanok-village",
+    name: "한옥마을 풍경",
+    nameEn: "Traditional Hanok Village Scenery",
+    type: "문화경관",
+    category: "건축",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "전주, 경주, 안동 등",
+    desc: "기와지붕이 물결치듯 이어지는 한옥마을. 돌담길, 장독대, 대청마루.",
+    visual: {
+      style: ["기와지붕 곡선", "돌담길", "장독대", "대청마루", "안마당", "굴뚝"],
+      colors: ["기와 회흑색", "흙담 황토색", "장독 갈색", "하늘색"],
+      materials: ["기와", "흙", "돌", "목재", "한지"],
+      atmosphere: "정겨운, 평화로운, 한국적 향수, 사계절의 아름다움"
+    }
+  },
+  {
+    id: "goguryeo-mural",
+    name: "고구려 무용총 벽화",
+    nameEn: "Goguryeo Muyongchong Tomb Mural",
+    type: "국보",
+    category: "회화·벽화",
+    era: "고구려",
+    eraEn: "Goguryeo Kingdom (BC 37-AD 668)",
+    location: "국내 모사본",
+    desc: "고구려 고분벽화. 사냥하는 무사, 춤추는 인물, 사신도 등 역동적 장면.",
+    visual: {
+      style: ["사냥 장면", "무용 장면", "사신도(四神圖)", "연회 장면", "역동적 구도"],
+      colors: ["주홍색", "황토색", "먹색", "녹색", "청색"],
+      materials: ["석회 벽면", "광물 안료"],
+      atmosphere: "역동적, 힘찬, 고구려의 진취적 기상"
+    }
+  },
+  {
+    id: "silla-crown",
+    name: "신라 금관",
+    nameEn: "Silla Gold Crown",
+    type: "국보",
+    category: "도자기·공예",
+    era: "신라",
+    eraEn: "Silla Kingdom (BC 57-AD 935)",
+    location: "국립경주박물관",
+    desc: "순금 금관. 나뭇가지(出)와 사슴뿔 모양 장식, 곡옥과 금 드리개.",
+    visual: {
+      style: ["출자형(出字形) 세움장식", "사슴뿔 장식", "곡옥 달림장식", "금실 드리개"],
+      colors: ["순금색", "비취색(곡옥)", "은빛"],
+      materials: ["순금", "비취(곡옥)", "금실"],
+      atmosphere: "화려한, 신비로운, 신라 왕실의 권위"
+    }
+  },
+  {
+    id: "baekje-burner",
+    name: "백제 금동대향로",
+    nameEn: "Baekje Gilt-bronze Incense Burner",
+    type: "국보",
+    category: "도자기·공예",
+    era: "백제",
+    eraEn: "Baekje Kingdom (BC 18-AD 660)",
+    location: "국립부여박물관",
+    desc: "용이 받치고 봉황이 올라앉은 향로. 뚜껑에 산악 신선세계 표현.",
+    visual: {
+      style: ["용(받침)", "봉황(꼭대기)", "산악 신선세계(뚜껑)", "연꽃잎(몸체)", "74개 산봉우리"],
+      colors: ["금동색(황금빛)", "녹청색(녹)", "세밀한 세부 묘사"],
+      materials: ["금동(도금 청동)"],
+      atmosphere: "신비로운, 정교한, 백제의 섬세한 예술"
+    }
+  },
+  {
+    id: "armor",
+    name: "조선 갑옷 무장",
+    nameEn: "Joseon Dynasty Armored Warrior",
+    type: "군사문화",
+    category: "생활·풍속",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "전국",
+    desc: "조선시대 무관의 갑옷 차림. 두정갑, 투구, 환도, 활과 화살통.",
+    visual: {
+      style: ["두정갑(studded armor)", "철 투구", "목가리개", "환도(칼)", "각궁(활)", "전립(모자)"],
+      colors: ["철 은회색", "가죽 갈색", "홍색 전포(겉옷)"],
+      materials: ["철", "가죽", "비단", "대나무(활)"],
+      atmosphere: "위풍당당한, 무인의 기상, 전투 준비된"
+    }
+  },
+  {
+    id: "market",
+    name: "조선 시장 풍경",
+    nameEn: "Joseon Traditional Market Scene",
+    type: "생활문화",
+    category: "생활·풍속",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "전국",
+    desc: "조선시대 오일장. 보부상, 엿장수, 떡전, 포목전 등이 늘어선 활기찬 시장.",
+    visual: {
+      style: ["초가 가게", "보부상(등짐 장수)", "떡살·엿가위", "가마솥", "멍석"],
+      colors: ["황토색 흙바닥", "짚 노란색", "다양한 식재료 색"],
+      materials: ["짚", "목재", "흙", "무명천"],
+      atmosphere: "활기찬, 정겨운, 서민 생활의 활력"
+    }
+  },
+  {
+    id: "dolhareubang",
+    name: "제주 돌하르방",
+    nameEn: "Jeju Dolhareubang Stone Statue",
+    type: "민속문화재",
+    category: "불교",
+    era: "조선",
+    eraEn: "Joseon Dynasty (1392-1897)",
+    location: "제주특별자치도",
+    desc: "제주도 성문 앞 수호신 석상. 큰 눈, 주먹코, 양손을 배에 올린 특유의 자세.",
+    visual: {
+      style: ["벙거지 모자", "튀어나온 큰 눈", "주먹코", "배 위에 올린 두 손", "투박한 조각"],
+      colors: ["현무암 검회색", "이끼 녹색"],
+      materials: ["현무암(제주 화산석)"],
+      atmosphere: "수호자의 위엄, 소박한 해학, 제주의 바람과 돌"
+    }
+  }
+];
+
+// 스타일 옵션
+const STYLES = [
+  { id: "photo", icon: "📷", name: "사실적 사진", desc: "실제 사진처럼 사실적인 이미지" },
+  { id: "painting", icon: "🎨", name: "전통 한국화", desc: "수묵·채색 한국 전통 화풍" },
+  { id: "illust", icon: "✏️", name: "세밀 일러스트", desc: "깨끗하고 정교한 일러스트" },
+  { id: "3d", icon: "💎", name: "3D 렌더링", desc: "입체적 3D 그래픽 스타일" },
+];
+
+// AI 모델 옵션
+const MODELS = [
+  { id: "midjourney", icon: "🟣", name: "Midjourney", desc: "Discord에서 /imagine에 붙여넣기" },
+  { id: "dalle", icon: "🟢", name: "DALL-E (ChatGPT)", desc: "ChatGPT에 그대로 입력" },
+  { id: "sd", icon: "🔵", name: "Stable Diffusion", desc: "WebUI Prompt란에 붙여넣기" },
+  { id: "general", icon: "⚪", name: "범용", desc: "아무 AI 모델에나 사용 가능" },
+];
+
+// 시대 배경 정보
+const ERA_CONTEXT = {
+  "고구려": "강렬하고 역동적인 기상. 벽화 중심. 기마 문화.",
+  "백제": "부드럽고 섬세한 곡선미. 온화한 예술 세계.",
+  "신라": "화려한 금속공예. 금관, 귀걸이 등 호화로운 장신구.",
+  "통일신라": "불교미술의 전성기. 세련된 불교 조각.",
+  "고려": "청자와 불화의 시대. 귀족적 세련미.",
+  "조선": "유교 문화. 검소함 속의 격조. 백자, 한옥, 궁궐 건축.",
+  "삼국시대": "고구려·백제·신라 각각의 개성 있는 문화.",
+};
+
+
+// ══════════════════════════════════════════════
+// 상태 관리
+// ══════════════════════════════════════════════
+let selectedHeritage = null;
+let selectedStyles = [];
+let selectedModels = [];
+let generatedPrompts = [];
+
+
+// ══════════════════════════════════════════════
+// 프롬프트 생성 엔진
+// ══════════════════════════════════════════════
+
+function genPhotoPrompt(item) {
+  const v = item.visual;
+  return [
+    `${item.nameEn}, ${item.eraEn}`,
+    `featuring: ${v.style.slice(0,4).join(", ")}`,
+    `color palette: ${v.colors.join(", ")}`,
+    `materials: ${v.materials.join(", ")}`,
+    v.atmosphere,
+    "photorealistic, highly detailed, 8K resolution, dramatic natural lighting"
+  ].join(", ");
+}
+
+function genPaintingPrompt(item) {
+  const v = item.visual;
+  return [
+    `${item.nameEn}, ${item.eraEn}`,
+    "depicted in traditional Korean painting (Hanguk-hwa) style",
+    `elements: ${v.style.slice(0,3).join(", ")}`,
+    `color tones: ${v.colors.slice(0,2).join(", ")}`,
+    "ink wash and mineral pigment on hanji paper, visible brush strokes",
+    "contemplative, artistic, traditional East Asian aesthetic"
+  ].join(", ");
+}
+
+function genIllustPrompt(item) {
+  const v = item.visual;
+  return [
+    `${item.nameEn}, ${item.eraEn}`,
+    `detailed illustration showing: ${v.style.join(", ")}`,
+    `palette: ${v.colors.join(", ")}`,
+    `materials depicted: ${v.materials.join(", ")}`,
+    v.atmosphere,
+    "editorial illustration, clean lines, rich detail, cultural accuracy"
+  ].join(", ");
+}
+
+function gen3dPrompt(item) {
+  const v = item.visual;
+  return [
+    `${item.nameEn}, ${item.eraEn}`,
+    `3D render with: ${v.style.slice(0,4).join(", ")}`,
+    `realistic materials: ${v.materials.join(", ")}`,
+    `color: ${v.colors.slice(0,2).join(", ")}`,
+    "cinematic lighting, physically based rendering, octane render, museum quality"
+  ].join(", ");
+}
+
+function genKoreanPrompt(item, styleName) {
+  const v = item.visual;
+  const styleMap = {
+    "사실적 사진": "사실적 사진 스타일, 고해상도 8K, 자연광",
+    "전통 한국화": "전통 한국화 스타일, 한지 위 수묵채색, 붓터치",
+    "세밀 일러스트": "세밀한 일러스트레이션, 정확한 고증, 깨끗한 선",
+    "3D 렌더링": "3D 렌더링, 사실적 재질 표현, 시네마틱 조명"
+  };
+  return [
+    `한국 ${item.category}: ${item.name}`,
+    `시대: ${item.era} (${item.eraEn})`,
+    `주요 요소: ${v.style.join(", ")}`,
+    `색감: ${v.colors.join(", ")}`,
+    `재질: ${v.materials.join(", ")}`,
+    `분위기: ${v.atmosphere}`,
+    `스타일: ${styleMap[styleName] || styleName}`,
+    "고증에 충실한 역사적 표현"
+  ].join(". ");
+}
+
+function wrapForModel(prompt, modelId) {
+  switch (modelId) {
+    case "midjourney":
+      return prompt + " --ar 16:9 --q 2 --style raw --v 6";
+    case "dalle":
+      return `Create a historically accurate, detailed image: ${prompt}. Ensure period-appropriate Korean historical accuracy.`;
+    case "sd":
+      return prompt + ", masterpiece, best quality, ultra detailed, sharp focus";
+    default:
+      return prompt;
+  }
+}
+
+const STYLE_FN = { photo: genPhotoPrompt, painting: genPaintingPrompt, illust: genIllustPrompt, "3d": gen3dPrompt };
+const STYLE_NAMES = { photo: "사실적 사진", painting: "전통 한국화", illust: "세밀 일러스트", "3d": "3D 렌더링" };
+
+
+// ══════════════════════════════════════════════
+// UI 렌더링
+// ══════════════════════════════════════════════
+
+function init() {
+  renderCategories();
+  renderHeritage("전체");
+  renderStyles();
+  renderModels();
+}
+
+function renderCategories() {
+  const cats = ["전체", ...new Set(HERITAGE_DB.map(h => h.category))];
+  const el = document.getElementById("categoryTabs");
+  el.innerHTML = cats.map(c =>
+    `<div class="cat-tab ${c==='전체'?'active':''}" onclick="filterCategory('${c}')">${c}</div>`
+  ).join("");
+}
+
+function filterCategory(cat) {
+  document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.textContent === cat));
+  renderHeritage(cat);
+}
+
+function renderHeritage(cat) {
+  const items = cat === "전체" ? HERITAGE_DB : HERITAGE_DB.filter(h => h.category === cat);
+  const grid = document.getElementById("heritageGrid");
+  grid.innerHTML = items.map(h => `
+    <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
+      <span class="card-type">${h.type}</span>
+      <div class="card-name">${h.name}</div>
+      <div class="card-name-en">${h.nameEn}</div>
+      <div class="card-meta">
+        <span class="card-era">${h.era}</span>
+        <span class="card-era">${h.location}</span>
+      </div>
+      <div class="card-desc">${h.desc}</div>
+    </div>
+  `).join("");
+}
+
+function selectHeritage(id) {
+  selectedHeritage = HERITAGE_DB.find(h => h.id === id);
+  document.querySelectorAll(".heritage-card").forEach(c =>
+    c.classList.toggle("selected", c.querySelector(".card-name-en")?.textContent === selectedHeritage.nameEn)
+  );
+  document.getElementById("btn-to-step2").disabled = false;
+}
+
+function renderStyles() {
+  const grid = document.getElementById("styleGrid");
+  grid.innerHTML = STYLES.map(s => `
+    <div class="option-card" onclick="toggleStyle('${s.id}')" id="style-${s.id}">
+      <div class="opt-icon">${s.icon}</div>
+      <div class="opt-name">${s.name}</div>
+      <div class="opt-desc">${s.desc}</div>
+    </div>
+  `).join("");
+}
+
+function toggleStyle(id) {
+  const idx = selectedStyles.indexOf(id);
+  if (idx >= 0) selectedStyles.splice(idx, 1);
+  else selectedStyles.push(id);
+  STYLES.forEach(s => document.getElementById(`style-${s.id}`).classList.toggle("selected", selectedStyles.includes(s.id)));
+  document.getElementById("btn-to-step3").disabled = selectedStyles.length === 0;
+}
+
+function renderModels() {
+  const grid = document.getElementById("modelGrid");
+  grid.innerHTML = MODELS.map(m => `
+    <div class="option-card" onclick="toggleModel('${m.id}')" id="model-${m.id}">
+      <div class="opt-icon">${m.icon}</div>
+      <div class="opt-name">${m.name}</div>
+      <div class="opt-desc">${m.desc}</div>
+    </div>
+  `).join("");
+}
+
+function toggleModel(id) {
+  const idx = selectedModels.indexOf(id);
+  if (idx >= 0) selectedModels.splice(idx, 1);
+  else selectedModels.push(id);
+  MODELS.forEach(m => document.getElementById(`model-${m.id}`).classList.toggle("selected", selectedModels.includes(m.id)));
+}
+
+
+// ══════════════════════════════════════════════
+// 단계 이동
+// ══════════════════════════════════════════════
+
+function goStep(n) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("visible"));
+  document.getElementById(`step${n}`).classList.add("visible");
+
+  document.querySelectorAll(".step").forEach((s, i) => {
+    s.classList.remove("active", "done");
+    if (i + 1 < n) s.classList.add("done");
+    if (i + 1 === n) s.classList.add("active");
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+// ══════════════════════════════════════════════
+// 프롬프트 생성
+// ══════════════════════════════════════════════
+
+function generatePrompts() {
+  if (!selectedHeritage) return;
+  const item = selectedHeritage;
+  const models = selectedModels.length > 0 ? selectedModels : ["general"];
+  generatedPrompts = [];
+
+  // 결과 제목
+  document.getElementById("resultTitle").textContent = `${item.name} — 생성된 프롬프트`;
+
+  const area = document.getElementById("resultsArea");
+  let html = "";
+
+  // 고증 상세 정보
+  html += `<div class="result-block">
+    <div class="result-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'block'">
+      <h3>📋 ${item.name} 고증 정보</h3>
+      <span class="tag">${item.type} · ${item.era}</span>
+    </div>
+    <div class="result-body">
+      <p style="margin-bottom:1rem;color:var(--text2);font-size:0.9rem;">${item.desc}</p>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="label">시대</div>
+          <div class="value">${item.era} (${item.eraEn})</div>
+          ${ERA_CONTEXT[item.era] ? `<div class="value" style="margin-top:0.3rem;font-size:0.78rem;color:var(--text2)">${ERA_CONTEXT[item.era]}</div>` : ""}
+        </div>
+        <div class="detail-item">
+          <div class="label">양식 · 구조</div>
+          <div class="tag-list">${item.visual.style.map(s => `<span class="mini-tag">${s}</span>`).join("")}</div>
+        </div>
+        <div class="detail-item">
+          <div class="label">색상 팔레트</div>
+          <div class="tag-list">${item.visual.colors.map(c => `<span class="mini-tag">${c}</span>`).join("")}</div>
+        </div>
+        <div class="detail-item">
+          <div class="label">재질 · 소재</div>
+          <div class="tag-list">${item.visual.materials.map(m => `<span class="mini-tag">${m}</span>`).join("")}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // 스타일 × 모델 별 프롬프트 생성
+  for (const styleId of selectedStyles) {
+    const styleName = STYLE_NAMES[styleId];
+    const baseFn = STYLE_FN[styleId];
+    const basePrompt = baseFn(item);
+    const korPrompt = genKoreanPrompt(item, styleName);
+
+    for (const modelId of models) {
+      const model = MODELS.find(m => m.id === modelId);
+      const finalPrompt = wrapForModel(basePrompt, modelId);
+      const promptId = `prompt-${styleId}-${modelId}`;
+      const korId = `prompt-${styleId}-${modelId}-ko`;
+
+      generatedPrompts.push({
+        style: styleName,
+        model: model.name,
+        promptEn: finalPrompt,
+        promptKo: korPrompt
+      });
+
+      html += `<div class="result-block">
+        <div class="result-header">
+          <h3>${styleName} — ${model.name}</h3>
+          <span class="tag">${model.icon} ${model.name}</span>
+        </div>
+        <div class="result-body">
+          <div class="prompt-box">
+            <div class="prompt-label">영문 프롬프트 (복사해서 AI에 입력하세요)</div>
+            <div class="prompt-text" id="${promptId}">${finalPrompt}</div>
+            <button class="copy-btn" onclick="copyPrompt('${promptId}', this)">복사</button>
+          </div>
+          <div class="prompt-box">
+            <div class="prompt-label">한글 프롬프트 (한글 지원 모델용)</div>
+            <div class="prompt-text" id="${korId}">${korPrompt}</div>
+            <button class="copy-btn" onclick="copyPrompt('${korId}', this)">복사</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  area.innerHTML = html;
+  goStep(4);
+}
+
+
+// ══════════════════════════════════════════════
+// 복사 & 다운로드
+// ══════════════════════════════════════════════
+
+function copyPrompt(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "복사됨!";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "복사";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+}
+
+function downloadTxt() {
+  if (!selectedHeritage || generatedPrompts.length === 0) return;
+  let txt = `${selectedHeritage.name} (${selectedHeritage.nameEn})\n`;
+  txt += `${selectedHeritage.type} | ${selectedHeritage.era} | ${selectedHeritage.category}\n`;
+  txt += "=".repeat(60) + "\n\n";
+
+  for (const p of generatedPrompts) {
+    txt += `[${p.style} — ${p.model} — 영문]\n${p.promptEn}\n\n`;
+    txt += `[${p.style} — ${p.model} — 한글]\n${p.promptKo}\n\n`;
+    txt += "-".repeat(40) + "\n\n";
+  }
+
+  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${selectedHeritage.name}_프롬프트.txt`;
+  a.click();
+}
+
+function downloadJson() {
+  if (!selectedHeritage || generatedPrompts.length === 0) return;
+  const data = {
+    heritage: {
+      name: selectedHeritage.name,
+      nameEn: selectedHeritage.nameEn,
+      type: selectedHeritage.type,
+      era: selectedHeritage.era,
+      category: selectedHeritage.category,
+      visual: selectedHeritage.visual
+    },
+    prompts: generatedPrompts
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${selectedHeritage.name}_프롬프트.json`;
+  a.click();
+}
+
+// 초기화
+init();
+</script>
+</body>
+</html>
