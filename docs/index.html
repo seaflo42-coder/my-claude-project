@@ -147,6 +147,60 @@ body {
   color: var(--accent2);
 }
 
+/* ── 검색창 ── */
+.search-box {
+  position: relative;
+  margin-bottom: 1rem;
+}
+.search-box input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input::placeholder { color: var(--text2); }
+.search-box input:focus { border-color: var(--accent); }
+.search-box .search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+/* ── 더보기 버튼 ── */
+.load-more-wrap {
+  text-align: center;
+  margin-top: 1rem;
+}
+.load-more-btn {
+  padding: 0.6rem 2rem;
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: 25px;
+  color: var(--text2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.load-more-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.item-count {
+  text-align: center;
+  color: var(--text2);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
 /* ── 문화유산 카드 그리드 ── */
 .heritage-grid {
   display: grid;
@@ -447,7 +501,15 @@ body {
     <div class="section-title">어떤 문화유산의 이미지를 만들고 싶으세요?</div>
 
     <div class="category-tabs" id="categoryTabs"></div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="문화유산 이름, 시대, 지역으로 검색..." oninput="onSearchInput()">
+    </div>
     <div class="heritage-grid" id="heritageGrid"></div>
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+      <button class="load-more-btn" onclick="loadMore()">더보기</button>
+      <div class="item-count" id="itemCount"></div>
+    </div>
 
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-to-step2" disabled onclick="goStep(2)">
@@ -763,6 +825,10 @@ let selectedHeritage = null;
 let selectedStyles = [];
 let selectedModels = [];
 let generatedPrompts = [];
+let currentCategory = "전체";
+let searchQuery = "";
+const PAGE_SIZE = 8;
+let visibleCount = PAGE_SIZE;
 
 
 // ══════════════════════════════════════════════
@@ -863,7 +929,7 @@ const STYLE_NAMES = { photo: "사실적 사진", painting: "전통 한국화", i
 
 function init() {
   renderCategories();
-  renderHeritage("전체");
+  renderHeritage();
   renderStyles();
   renderModels();
 }
@@ -877,14 +943,32 @@ function renderCategories() {
 }
 
 function filterCategory(cat) {
+  currentCategory = cat;
+  visibleCount = PAGE_SIZE;
   document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.textContent === cat));
-  renderHeritage(cat);
+  renderHeritage();
 }
 
-function renderHeritage(cat) {
-  const items = cat === "전체" ? HERITAGE_DB : HERITAGE_DB.filter(h => h.category === cat);
+function getFilteredItems() {
+  let items = currentCategory === "전체" ? HERITAGE_DB : HERITAGE_DB.filter(h => h.category === currentCategory);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    items = items.filter(h =>
+      h.name.toLowerCase().includes(q) ||
+      h.nameEn.toLowerCase().includes(q) ||
+      h.era.includes(q) ||
+      h.location.includes(q) ||
+      h.desc.includes(q)
+    );
+  }
+  return items;
+}
+
+function renderHeritage() {
+  const items = getFilteredItems();
+  const visible = items.slice(0, visibleCount);
   const grid = document.getElementById("heritageGrid");
-  grid.innerHTML = items.map(h => `
+  grid.innerHTML = visible.map(h => `
     <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
       <span class="card-type">${h.type}</span>
       <div class="card-name">${h.name}</div>
@@ -896,6 +980,28 @@ function renderHeritage(cat) {
       <div class="card-desc">${h.desc}</div>
     </div>
   `).join("");
+
+  const wrap = document.getElementById("loadMoreWrap");
+  const countEl = document.getElementById("itemCount");
+  if (items.length > visibleCount) {
+    wrap.style.display = "block";
+    countEl.textContent = `${visibleCount} / ${items.length}개 표시 중`;
+  } else {
+    wrap.style.display = items.length > 0 ? "block" : "none";
+    countEl.textContent = items.length > 0 ? `전체 ${items.length}개` : "";
+    wrap.querySelector(".load-more-btn").style.display = items.length > visibleCount ? "inline-block" : "none";
+  }
+}
+
+function loadMore() {
+  visibleCount += PAGE_SIZE;
+  renderHeritage();
+}
+
+function onSearchInput() {
+  searchQuery = document.getElementById("searchInput").value.trim();
+  visibleCount = PAGE_SIZE;
+  renderHeritage();
 }
 
 function selectHeritage(id) {
