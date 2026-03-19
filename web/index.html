@@ -772,6 +772,7 @@ let generatedPrompts = [];
 function genPhotoPrompt(item) {
   const v = item.visual;
   return [
+    "award winning photography",
     `${item.nameEn}, ${item.eraEn}`,
     `featuring: ${v.style.slice(0,4).join(", ")}`,
     `color palette: ${v.colors.join(", ")}`,
@@ -840,7 +841,7 @@ function wrapForModel(prompt, modelId, styleId) {
   const is3d = styleId === "3d";
   switch (modelId) {
     case "midjourney":
-      return prompt + (is3d ? " --ar 16:9 --q 2 --style raw --v 6 --no photograph, photo, realistic skin" : " --ar 16:9 --q 2 --style raw --v 6");
+      return prompt + (is3d ? " --ar 16:9 --style raw --v 6 --no photograph, photo, realistic skin --q 2" : " --ar 16:9 --style raw --v 6 --q 2");
     case "dalle":
       return is3d
         ? `Create a 3D rendered digital art image (NOT a photograph): ${prompt}. Use smooth 3D shading and volumetric lighting like Blender or Cinema 4D output.`
