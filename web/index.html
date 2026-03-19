@@ -808,11 +808,11 @@ function genIllustPrompt(item) {
 function gen3dPrompt(item) {
   const v = item.visual;
   return [
-    `${item.nameEn}, ${item.eraEn}`,
-    `3D render with: ${v.style.slice(0,4).join(", ")}`,
-    `realistic materials: ${v.materials.join(", ")}`,
-    `color: ${v.colors.slice(0,2).join(", ")}`,
-    "cinematic lighting, physically based rendering, octane render, museum quality"
+    `3D rendered scene of ${item.nameEn}, ${item.eraEn}`,
+    `modeled elements: ${v.style.slice(0,4).join(", ")}`,
+    `surface textures: ${v.materials.join(", ")}`,
+    `color scheme: ${v.colors.slice(0,2).join(", ")}`,
+    "Blender 3D, Cinema 4D style, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph"
   ].join(", ");
 }
 
@@ -822,7 +822,7 @@ function genKoreanPrompt(item, styleName) {
     "사실적 사진": "사실적 사진 스타일, 고해상도 8K, 자연광",
     "전통 한국화": "전통 한국화 스타일, 한지 위 수묵채색, 붓터치",
     "세밀 일러스트": "세밀한 일러스트레이션, 정확한 고증, 깨끗한 선",
-    "3D 렌더링": "3D 렌더링, 사실적 재질 표현, 시네마틱 조명"
+    "3D 렌더링": "3D 디지털 아트, Blender/C4D 스타일, 볼류메트릭 라이팅, 부드러운 쉐이딩, 사진이 아닌 3D 렌더링"
   };
   return [
     `한국 ${item.category}: ${item.name}`,
@@ -836,14 +836,17 @@ function genKoreanPrompt(item, styleName) {
   ].join(". ");
 }
 
-function wrapForModel(prompt, modelId) {
+function wrapForModel(prompt, modelId, styleId) {
+  const is3d = styleId === "3d";
   switch (modelId) {
     case "midjourney":
-      return prompt + " --ar 16:9 --q 2 --style raw --v 6";
+      return prompt + (is3d ? " --ar 16:9 --q 2 --style raw --v 6 --no photograph, photo, realistic skin" : " --ar 16:9 --q 2 --style raw --v 6");
     case "dalle":
-      return `Create a historically accurate, detailed image: ${prompt}. Ensure period-appropriate Korean historical accuracy.`;
+      return is3d
+        ? `Create a 3D rendered digital art image (NOT a photograph): ${prompt}. Use smooth 3D shading and volumetric lighting like Blender or Cinema 4D output.`
+        : `Create a historically accurate, detailed image: ${prompt}. Ensure period-appropriate Korean historical accuracy.`;
     case "sd":
-      return prompt + ", masterpiece, best quality, ultra detailed, sharp focus";
+      return prompt + (is3d ? ", 3d render, blender, c4d, octane render, smooth shading, digital art, (photograph:0.1)" : ", masterpiece, best quality, ultra detailed, sharp focus");
     default:
       return prompt;
   }
@@ -1013,7 +1016,7 @@ function generatePrompts() {
 
     for (const modelId of models) {
       const model = MODELS.find(m => m.id === modelId);
-      const finalPrompt = wrapForModel(basePrompt, modelId);
+      const finalPrompt = wrapForModel(basePrompt, modelId, styleId);
       const promptId = `prompt-${styleId}-${modelId}`;
       const korId = `prompt-${styleId}-${modelId}-ko`;
 
