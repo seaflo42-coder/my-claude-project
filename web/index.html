@@ -737,7 +737,7 @@ const HERITAGE_DB = [
   {id:"daegeum",name:"대금 연주",nameEn:"Daegeum Bamboo Flute",type:"무형유산",category:"음악·무용",era:"삼국~조선",eraEn:"Three Kingdoms–Joseon (57 BC-1897)",location:"전국",desc:"대나무로 만든 횡적을 불어 맑고 깊은 소리를 내는 전통 관악기 연주.",visual:{style:["대금","연주자","갈대 청","한복 차림","자연 배경"],colors:["대나무 황갈색","갈대청 연두색","한복 흰색"],materials:["대나무","갈대","한복","옻칠"],atmosphere:"맑은, 청량한, 자연과 어우러지는 소리"}},
   {id:"haegeum",name:"해금 연주",nameEn:"Haegeum Two-string Fiddle",type:"무형유산",category:"음악·무용",era:"고려~조선",eraEn:"Goryeo–Joseon (918-1897)",location:"전국",desc:"두 줄의 명주실을 활로 문질러 다채로운 음색을 내는 전통 찰현악기 연주.",visual:{style:["해금","활대","연주자 좌식","한옥 배경","병풍"],colors:["나무 밝은 갈색","명주실 흰색","한복 연보라"],materials:["대나무","명주실","말총 활","소나무"],atmosphere:"애절한, 구슬픈, 서정적 여운"}},
   {id:"janggu",name:"장구 연주",nameEn:"Janggu Hourglass Drum",type:"무형유산",category:"음악·무용",era:"삼국~조선",eraEn:"Three Kingdoms–Joseon (57 BC-1897)",location:"전국",desc:"모래시계 모양의 양면북을 채와 손으로 두드려 장단을 만드는 전통 타악기 연주.",visual:{style:["장구","궁채","열채","연주자","놀이마당"],colors:["나무 붉은 갈색","가죽 미색","끈 다홍색"],materials:["오동나무","소가죽","말가죽","노끈"],atmosphere:"흥겨운, 역동적인, 장단의 조화"}},
-  {id:"samulnori",name:"사물놀이",nameEn:"Samulnori Percussion",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"꽹과리·징·장구·북 네 가지 타악기로 연주하는 전통 풍물 합주 공연.",visual:{style:["꽹과리","징","장구","북","상모 돌리기","무대"],colors:["한복 흰색·다홍색","악기 금색·갈색","상모 흰색"],materials:["놋쇠","소가죽","나무","상모"],atmosphere:"폭발적인, 신명나는, 집단 에너지"}},
+  {id:"samulnori",name:"사물놀이",nameEn:"Samulnori Percussion Ensemble",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"꽹과리·징·장구·북 네 가지 타악기로 연주하는 전통 풍물 합주 공연. 휘모리 장단의 절정에서 폭발하는 집단적 신명.",visual:{style:["꽹과리","징","장구","북","상모 돌리기","열두발상모","놀이마당","관객 호응"],colors:["한복 흰색·다홍색","악기 금색·갈색","상모 흰색","얼굴 붉은 상기"],materials:["놋쇠","소가죽","나무","상모","땀","먼지"],atmosphere:"폭발적인, 신명나는, 집단 에너지, 휘모리 절정, 트랜스 상태의 몰입"}},
   {id:"seungmu",name:"승무",nameEn:"Seungmu Monk's Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"흰 장삼과 고깔을 쓰고 긴 소매를 휘날리며 추는 전통 독무.",visual:{style:["장삼","고깔","긴 소매","북","독무 무대"],colors:["장삼 흰색","고깔 흰색","북 갈색·빨강"],materials:["장삼","고깔","북","한지"],atmosphere:"고고한, 절제된 아름다움, 선과 곡선의 조화"}},
   {id:"cheoyongmu",name:"처용무",nameEn:"Cheoyongmu Mask Dance",type:"무형유산/세계유산",category:"음악·무용",era:"통일신라~조선",eraEn:"Unified Silla–Joseon (668-1897)",location:"궁중",desc:"다섯 방위의 처용 탈을 쓰고 악귀를 물리치는 의미의 궁중 의식무.",visual:{style:["처용 탈","오방색 의상","다섯 무용수","궁중 무대","의식 대형"],colors:["오방색 청·백·적·흑·황","탈 붉은색","금색 장식"],materials:["나무 탈","비단","금박","오방색 천"],atmosphere:"장엄한, 벽사의 기운, 오색 화려함"}},
   {id:"buchaechum",name:"부채춤",nameEn:"Buchaechum Fan Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"화려한 꽃부채를 들고 군무로 다양한 형상을 만들어내는 전통 여성 무용.",visual:{style:["꽃부채","한복 차림","군무 대형","꽃 형상","무대 조명"],colors:["분홍·연두 부채","한복 분홍·노랑","무대 청색"],materials:["부채","비단","한복","모란꽃 장식"],atmosphere:"화사한, 우아한, 여성적 아름다움"}},
@@ -835,72 +835,156 @@ let visibleCount = PAGE_SIZE;
 // 프롬프트 생성 엔진
 // ══════════════════════════════════════════════
 
+// 공연·퍼포먼스 계열 판별
+const PERFORMANCE_IDS = new Set([
+  "samulnori","janggu","pansori","talchum","ganggangsullae",
+  "buchaechum","cheoyongmu","seungmu","arirang"
+]);
+function isPerformance(item) {
+  return PERFORMANCE_IDS.has(item.id) || item.category === "음악·무용";
+}
+
+// 공연 계열용 에너지 키워드
+function getEnergyContext(item) {
+  const energyMap = {
+    "samulnori": {
+      en: "explosive collective energy, ecstatic group trance, performers drenched in sweat, sangmo ribbons spinning wildly in the air, audience clapping and shouting along, bodies moving in rhythmic unison, dust rising from stomping feet, raw percussive power, festival atmosphere at its peak",
+      ko: "폭발적 집단 신명, 땀범벅의 연주자들, 상모가 미친듯이 회전, 관객이 어깨춤을 추며 호응, 온몸으로 장단을 타는 에너지, 먼지 날리는 발구름, 축제의 절정"
+    },
+    "janggu": {
+      en: "dynamic rhythmic performance, performer's passionate expression, powerful arm movements striking the drum, body swaying with the rhythm, energetic jangdan beat, vibrant stage presence",
+      ko: "역동적 장단, 연주자의 열정적 표정, 힘찬 팔동작, 몸 전체로 리듬을 타는 모습, 에너지 넘치는 무대"
+    },
+    "pansori": {
+      en: "powerful vocal projection, singer's intense emotional expression, dramatic gestures with fan, deep guttural tones, audience shouting chuimsae encouragement, raw human emotion",
+      ko: "폭발적 성량, 소리꾼의 격한 감정 표현, 부채를 든 극적 몸짓, 관객의 추임새, 날것의 인간적 감동"
+    },
+    "talchum": {
+      en: "wild satirical dance, exaggerated mask expressions, chaotic joyful movement, crowd laughing and cheering, irreverent energy, carnival atmosphere",
+      ko: "신나는 풍자 탈놀이, 과장된 탈의 표정, 관객의 웃음과 환호, 통쾌한 해학, 축제 마당의 열기"
+    },
+    "ganggangsullae": {
+      en: "large circle of women dancing under full moonlight, spinning faster and faster, joyful singing echoing, flowing white hanbok in motion, collective feminine energy, moonlit celebration",
+      ko: "보름달 아래 빙글빙글 도는 여성들, 점점 빨라지는 회전, 노랫소리 울려퍼짐, 나부끼는 흰 한복, 집단적 흥겨움"
+    },
+    "buchaechum": {
+      en: "vibrant fan formations blooming like flowers, synchronized group choreography, colorful fans creating dynamic patterns, graceful yet powerful collective movement",
+      ko: "활짝 피어나는 부채꽃 군무, 화려한 색감의 역동적 대형 변화, 우아하면서도 힘있는 집단 움직임"
+    }
+  };
+  return energyMap[item.id] || {
+    en: "dynamic live performance energy, performers fully engaged, audience interaction, vibrant movement and sound",
+    ko: "역동적 공연 에너지, 몰입한 연주자, 관객 호응, 활기찬 움직임과 소리"
+  };
+}
+
 function genPhotoPrompt(item) {
   const v = item.visual;
-  return [
+  const perf = isPerformance(item);
+  const base = [
     "award winning photography",
     `${item.nameEn}, ${item.eraEn}`,
     `featuring: ${v.style.slice(0,4).join(", ")}`,
     `color palette: ${v.colors.join(", ")}`,
     `materials: ${v.materials.join(", ")}`,
     v.atmosphere,
-    "photorealistic, highly detailed, 8K resolution, dramatic natural lighting"
-  ].join(", ");
+  ];
+  if (perf) {
+    const energy = getEnergyContext(item);
+    base.push(energy.en);
+    base.push("action shot, motion blur on fast movements, sharp focus on performers' expressions, wide angle capturing full scene and crowd, photojournalistic energy, sweat droplets visible");
+  } else {
+    base.push("photorealistic, highly detailed, 8K resolution, dramatic natural lighting");
+  }
+  return base.join(", ");
 }
 
 function genPaintingPrompt(item) {
   const v = item.visual;
-  return [
+  const perf = isPerformance(item);
+  const base = [
     `${item.nameEn}, ${item.eraEn}`,
-    "depicted in traditional Korean painting (Hanguk-hwa) style",
-    `elements: ${v.style.slice(0,3).join(", ")}`,
-    `color tones: ${v.colors.slice(0,2).join(", ")}`,
-    "ink wash and mineral pigment on hanji paper, visible brush strokes",
-    "contemplative, artistic, traditional East Asian aesthetic"
-  ].join(", ");
+  ];
+  if (perf) {
+    const energy = getEnergyContext(item);
+    base.push("depicted in dynamic Korean folk painting (minhwa) style with bold expressive brushwork");
+    base.push(`elements: ${v.style.slice(0,3).join(", ")}`);
+    base.push(`color tones: ${v.colors.slice(0,2).join(", ")}`);
+    base.push(energy.en);
+    base.push("energetic ink splashes, swirling motion lines, vibrant mineral pigments, sense of rhythm and movement captured in every brushstroke");
+  } else {
+    base.push("depicted in traditional Korean painting (Hanguk-hwa) style");
+    base.push(`elements: ${v.style.slice(0,3).join(", ")}`);
+    base.push(`color tones: ${v.colors.slice(0,2).join(", ")}`);
+    base.push("ink wash and mineral pigment on hanji paper, visible brush strokes");
+    base.push("contemplative, artistic, traditional East Asian aesthetic");
+  }
+  return base.join(", ");
 }
 
 function genIllustPrompt(item) {
   const v = item.visual;
-  return [
+  const perf = isPerformance(item);
+  const base = [
     `${item.nameEn}, ${item.eraEn}`,
     `detailed illustration showing: ${v.style.join(", ")}`,
     `palette: ${v.colors.join(", ")}`,
     `materials depicted: ${v.materials.join(", ")}`,
     v.atmosphere,
-    "editorial illustration, clean lines, rich detail, cultural accuracy"
-  ].join(", ");
+  ];
+  if (perf) {
+    const energy = getEnergyContext(item);
+    base.push(energy.en);
+    base.push("dynamic composition with diagonal energy lines, exaggerated motion, expressive character poses, festival illustration style, rich detail, cultural accuracy");
+  } else {
+    base.push("editorial illustration, clean lines, rich detail, cultural accuracy");
+  }
+  return base.join(", ");
 }
 
 function gen3dPrompt(item) {
   const v = item.visual;
-  return [
+  const perf = isPerformance(item);
+  const base = [
     `3D rendered scene of ${item.nameEn}, ${item.eraEn}`,
     `modeled elements: ${v.style.slice(0,4).join(", ")}`,
     `surface textures: ${v.materials.join(", ")}`,
     `color scheme: ${v.colors.slice(0,2).join(", ")}`,
-    "Blender 3D, Cinema 4D style, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph"
-  ].join(", ");
+  ];
+  if (perf) {
+    const energy = getEnergyContext(item);
+    base.push(energy.en);
+    base.push("Blender 3D, Cinema 4D style, octane render, dynamic camera angle, particle effects for dust and sweat, motion blur, volumetric stage lighting with warm tones, 3D digital art, NOT a photograph");
+  } else {
+    base.push("Blender 3D, Cinema 4D style, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph");
+  }
+  return base.join(", ");
 }
 
 function genKoreanPrompt(item, styleName) {
   const v = item.visual;
+  const perf = isPerformance(item);
   const styleMap = {
     "사실적 사진": "사실적 사진 스타일, 고해상도 8K, 자연광",
     "전통 한국화": "전통 한국화 스타일, 한지 위 수묵채색, 붓터치",
     "세밀 일러스트": "세밀한 일러스트레이션, 정확한 고증, 깨끗한 선",
     "3D 렌더링": "3D 디지털 아트, Blender/C4D 스타일, 볼류메트릭 라이팅, 부드러운 쉐이딩, 사진이 아닌 3D 렌더링"
   };
-  return [
+  const base = [
     `한국 ${item.category}: ${item.name}`,
     `시대: ${item.era} (${item.eraEn})`,
     `주요 요소: ${v.style.join(", ")}`,
     `색감: ${v.colors.join(", ")}`,
     `재질: ${v.materials.join(", ")}`,
     `분위기: ${v.atmosphere}`,
-    `스타일: ${styleMap[styleName] || styleName}`,
-    "고증에 충실한 역사적 표현"
-  ].join(". ");
+  ];
+  if (perf) {
+    const energy = getEnergyContext(item);
+    base.push(`에너지: ${energy.ko}`);
+  }
+  base.push(`스타일: ${styleMap[styleName] || styleName}`);
+  base.push(perf ? "공연의 역동적 에너지와 관객의 호응을 생생하게 표현" : "고증에 충실한 역사적 표현");
+  return base.join(". ");
 }
 
 function wrapForModel(prompt, modelId, styleId) {
