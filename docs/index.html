@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국 문화유산 AI 이미지 프롬프트 생성기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── 기본 리셋 & 디자인 토큰 (K-Heritage Modern) ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  /* Color Tokens */
+  --color-ground:       #F4EFE6;
+  --color-ground-deep:  #EDE5D8;
+  --color-ink:          #1A1814;
+  --color-ink-mid:      #3D3830;
+  --color-ink-soft:     #7A7068;
+  --color-ink-ghost:    #C4BBB0;
+  --color-accent:       #1A6B5A;
+  --color-accent-light: #E8F2EF;
+  --color-accent-warm:  #B5391C;
+  --color-surface:      #FFFFFF;
+  --color-border:       #D9D0C5;
+  /* Legacy aliases */
+  --bg: var(--color-ground);
+  --bg2: var(--color-surface);
+  --bg3: var(--color-ground-deep);
+  --accent: var(--color-accent);
+  --accent2: var(--color-ink);
+  --text: var(--color-ink);
+  --text2: var(--color-ink-soft);
+  --red: var(--color-accent-warm);
+  --green: #3d8b5e;
+  --blue: #3a6fa0;
+  /* Typography */
+  --font-display: 'Noto Serif KR', serif;
+  --font-body:    'Noto Sans KR', sans-serif;
+  --size-xs: 0.75rem; --size-sm: 0.875rem; --size-base: 1rem;
+  --size-md: 1.125rem; --size-lg: 1.5rem; --size-xl: 2rem;
+  /* Spacing */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  /* Radius */
+  --radius-sm: 2px; --radius-md: 4px; --radius-lg: 8px; --radius-full: 9999px;
+  --radius: var(--radius-lg);
+}
+body {
+  font-family: var(--font-body);
+  background: var(--color-ground);
+  color: var(--color-ink);
+  line-height: 1.7;
+  min-height: 100vh;
+  position: relative;
+}
+/* 한지 grain 텍스처 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ── 헤더 ── */
+.header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-12) var(--space-8);
+  text-align: center;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: var(--size-xl);
+  color: var(--color-ink);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.header p {
+  color: var(--color-ink-soft);
+  margin-top: var(--space-2);
+  font-size: var(--size-sm);
+}
+.header .badge {
+  display: inline-block;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--size-xs);
+  margin-top: var(--space-3);
+  border: 1px solid transparent;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+}
+
+/* ── 메인 레이아웃 ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+/* ── 단계 표시 ── */
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  font-size: var(--size-sm);
+  color: var(--color-ink-soft);
+  border: 1px solid var(--color-border);
+  transition: all 0.3s;
+}
+.step.active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.step.done {
+  color: var(--green);
+  border-color: var(--green);
+}
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-ground-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--size-xs);
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+.step.active .step-num { background: var(--color-accent); color: var(--color-surface); }
+.step.done .step-num { background: var(--green); color: var(--color-surface); }
+
+/* ── 섹션 공통 ── */
+.section {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.section.visible { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--size-lg);
+  font-weight: 700;
+  margin-bottom: var(--space-6);
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+}
+
+/* ── 카테고리 탭 ── */
+.category-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+.cat-tab {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font-size: var(--size-sm);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.cat-tab:hover { border-color: var(--color-ink); color: var(--color-ink); }
+.cat-tab.active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-surface);
+}
+
+/* ── 검색창 ── */
+.search-box {
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+.search-box input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4) var(--space-3) 2.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-ink);
+  font-size: var(--size-sm);
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input::placeholder { color: var(--color-ink-ghost); }
+.search-box input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-light); }
+.search-box .search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-ink-ghost);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+/* ── 더보기 버튼 ── */
+.load-more-wrap {
+  text-align: center;
+  margin-top: var(--space-4);
+}
+.load-more-btn {
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-ink-soft);
+  font-size: var(--size-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.load-more-btn:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+.item-count {
+  text-align: center;
+  color: var(--color-ink-ghost);
+  font-size: var(--size-xs);
+  margin-top: var(--space-2);
+}
+
+/* ── 문화유산 카드 그리드 ── */
+.heritage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+.heritage-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+.heritage-card:hover {
+  border-color: var(--color-ink-ghost);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 24px rgba(26,24,20,0.08);
+}
+.heritage-card.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+.heritage-card .card-type {
+  display: inline-block;
+  font-size: var(--size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+}
+.heritage-card .card-name {
+  font-family: var(--font-display);
+  font-size: var(--size-md);
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+}
+.heritage-card .card-name-en {
+  font-size: var(--size-xs);
+  color: var(--color-ink-ghost);
+  margin-bottom: var(--space-2);
+}
+.heritage-card .card-meta {
+  font-size: var(--size-xs);
+  color: var(--color-ink-soft);
+}
+.heritage-card .card-era {
+  display: inline-block;
+  font-size: var(--size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-ground-deep);
+  color: var(--color-ink-mid);
+  margin-right: var(--space-1);
+}
+.heritage-card .card-desc {
+  font-size: var(--size-sm);
+  color: var(--color-ink-soft);
+  margin-top: var(--space-3);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── 스타일/모델 선택 ── */
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.option-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+.option-card:hover { border-color: var(--color-ink); }
+.option-card.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+.option-card .opt-icon { font-size: 2rem; margin-bottom: var(--space-2); }
+.option-card .opt-name { font-family: var(--font-display); font-weight: 700; margin-bottom: var(--space-1); color: var(--color-ink); }
+.option-card .opt-desc { font-size: var(--size-xs); color: var(--color-ink-soft); }
+
+/* ── 버튼 ── */
+.btn-row {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  flex-wrap: wrap;
+}
+.btn {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-size: var(--size-sm);
+  font-weight: 500;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.btn-primary:hover { background: var(--color-accent); }
+.btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink-soft);
+  border: 1px solid var(--color-border);
+}
+.btn-secondary:hover { border-color: var(--color-ink); color: var(--color-ink); }
+.btn-generate {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  padding: var(--space-4) var(--space-12);
+  font-size: var(--size-md);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+.btn-generate:hover {
+  box-shadow: 0 4px 16px rgba(26,107,90,0.25);
+  transform: translateY(-1px);
+}
+
+/* ── 결과 영역 ── */
+.results-area {
+  margin-top: var(--space-4);
+}
+.result-block {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+}
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-ground-deep);
+  cursor: pointer;
+}
+.result-header h3 {
+  font-family: var(--font-display);
+  font-size: var(--size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.result-header .tag {
+  font-size: var(--size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.result-body {
+  padding: var(--space-6);
+}
+.prompt-box {
+  background: var(--color-ground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  position: relative;
+}
+.prompt-label {
+  font-size: var(--size-xs);
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.prompt-text {
+  font-size: var(--size-sm);
+  line-height: 1.7;
+  color: var(--color-ink);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.copy-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink-soft);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--size-xs);
+  font-weight: 500;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--color-ink); color: var(--color-surface); border-color: var(--color-ink); }
+.copy-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* ── 고증 상세 ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.detail-item {
+  background: var(--color-ground);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+.detail-item .label {
+  font-size: var(--size-xs);
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.detail-item .value {
+  font-size: var(--size-sm);
+  color: var(--color-ink);
+  line-height: 1.5;
+}
+.detail-item .tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.detail-item .mini-tag {
+  font-size: var(--size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-ground-deep);
+  color: var(--color-ink-mid);
+}
+
+/* ── 전체 다운로드 영역 ── */
+.download-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-top: var(--space-8);
+  text-align: center;
+}
+.download-section h3 {
+  font-family: var(--font-display);
+  margin-bottom: var(--space-4);
+  color: var(--color-ink);
+}
+
+/* ── 반응형 ── */
+@media (max-width: 600px) {
+  .header h1 { font-size: var(--size-lg); }
+  .header { padding: var(--space-8) var(--space-4); }
+  .heritage-grid { grid-template-columns: 1fr; }
+  .option-grid { grid-template-columns: 1fr 1fr; }
+  .container { padding: var(--space-4); }
+  .steps { gap: var(--space-1); }
+  .step { font-size: var(--size-xs); padding: var(--space-1) var(--space-3); }
+}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>한국 문화유산 AI 이미지 프롬프트 생성기</h1>
+  <p>국가유산청 데이터 기반 · 고증 자동 반영 · 복사해서 바로 사용</p>
+</div>
+
+<div class="container">
+
+  <!-- 단계 표시 -->
+  <div class="steps">
+    <div class="step active" id="step1-indicator">
+      <span class="step-num">1</span> 문화유산 선택
+    </div>
+    <div class="step" id="step2-indicator">
+      <span class="step-num">2</span> 스타일 선택
+    </div>
+    <div class="step" id="step3-indicator">
+      <span class="step-num">3</span> AI 모델 선택
+    </div>
+    <div class="step" id="step4-indicator">
+      <span class="step-num">4</span> 프롬프트 확인
+    </div>
+  </div>
+
+  <!-- ========== STEP 1: 문화유산 선택 ========== -->
+  <div class="section visible" id="step1">
+    <div class="section-title">어떤 문화유산의 이미지를 만들고 싶으세요?</div>
+
+    <div class="category-tabs" id="categoryTabs"></div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="문화유산 이름, 시대, 지역으로 검색..." oninput="onSearchInput()">
+    </div>
+    <div class="heritage-grid" id="heritageGrid"></div>
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+      <button class="load-more-btn" onclick="loadMore()">더보기</button>
+      <div class="item-count" id="itemCount"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-to-step2" disabled onclick="goStep(2)">
+        다음: 스타일 선택 →
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 2: 스타일 선택 ========== -->
+  <div class="section" id="step2">
+    <div class="section-title">어떤 스타일의 이미지를 만들까요?</div>
+
+    <div class="option-grid" id="styleGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← 뒤로</button>
+      <button class="btn btn-primary" id="btn-to-step3" disabled onclick="goStep(3)">
+        다음: AI 모델 선택 →
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 3: AI 모델 선택 ========== -->
+  <div class="section" id="step3">
+    <div class="section-title">어떤 AI 도구에서 사용할 프롬프트인가요?</div>
+
+    <div class="option-grid" id="modelGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← 뒤로</button>
+      <button class="btn btn-generate" onclick="generatePrompts()">
+        프롬프트 생성하기
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 4: 결과 ========== -->
+  <div class="section" id="step4">
+    <div class="section-title" id="resultTitle">생성된 프롬프트</div>
+
+    <div class="results-area" id="resultsArea"></div>
+
+    <div class="download-section">
+      <h3>전체 프롬프트 저장하기</h3>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn btn-secondary" onclick="downloadTxt()">텍스트 파일 (.txt) 다운로드</button>
+        <button class="btn btn-secondary" onclick="downloadJson()">JSON 파일 다운로드</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← 처음부터 다시</button>
+      <button class="btn btn-primary" onclick="goStep(2)">스타일 바꿔서 다시 생성</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// 문화유산 데이터베이스
+// ══════════════════════════════════════════════
+// 문화유산 데이터베이스 (200개)
+// ══════════════════════════════════════════════
+const HERITAGE_DB = [
+  // ═══ 건축 (Architecture) — 35개 ═══
+  {id:"sungnyemun",name:"숭례문",nameEn:"Sungnyemun Gate",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"조선시대 한양도성의 남쪽 정문.",visual:{style:["팔작지붕","겹처마","공포","기단","문루"],colors:["단청 오방색","기와 회색","목재 갈색"],materials:["목재","기와","석재","단청"],atmosphere:"장엄한, 위풍당당한, 조선 왕조의 위엄"}},
+  {id:"geunjeongjeon",name:"경복궁 근정전",nameEn:"Geunjeongjeon Hall",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"경복궁의 정전으로 왕의 즉위식과 조회가 열리던 곳.",visual:{style:["중층 팔작지붕","이중 월대","답도","드므","잡상"],colors:["단청 오방색","화강암 백색","기와 회흑색"],materials:["목재","화강암","기와","단청","금속"],atmosphere:"왕실의 위엄, 장대한, 조선 궁궐의 중심"}},
+  {id:"buyongjeong",name:"창덕궁 부용정",nameEn:"Buyongjeong Pavilion",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"창덕궁 후원 부용지 옆에 위치한 아름다운 정자.",visual:{style:["십자형 평면","초익공","겹처마","팔작지붕","누마루"],colors:["단청 청록색","목재 갈색","연못 녹색","기와 회색"],materials:["목재","기와","석재","단청"],atmosphere:"고요한, 풍류의, 자연과 조화로운 선비의 풍경"}},
+  {id:"janggyeongpanjeon",name:"팔만대장경 장경판전",nameEn:"Janggyeongpanjeon Hall",type:"국보/세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상남도 합천군",desc:"해인사에 위치한 팔만대장경 보관 전각으로 과학적 환기 구조가 돋보임.",visual:{style:["맞배지붕","살창","환기구","긴 행각","기단"],colors:["목재 갈색","기와 회색","벽체 백색"],materials:["목재","기와","석재","흙벽"],atmosphere:"경건한, 지혜로운, 천년 보존의 신비"}},
+  {id:"hanok-village",name:"한옥마을 풍경",nameEn:"Hanok Village Scenery",type:"문화경관",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전라북도 전주시",desc:"전통 한옥이 밀집한 마을로 조선시대 생활상을 보여줌.",visual:{style:["기와지붕 곡선","처마","대문","담장","골목길"],colors:["기와 회흑색","황토색 벽","목재 갈색","백색 회벽"],materials:["목재","기와","황토","석재","한지"],atmosphere:"정겨운, 소박한, 전통적인 일상의 따뜻함"}},
+  {id:"gwanghwamun",name:"광화문",nameEn:"Gwanghwamun Gate",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"경복궁의 정문으로 조선 왕조의 법궁 정문.",visual:{style:["중층 우진각지붕","석축 홍예문","삼문","문루","잡상"],colors:["단청 오방색","화강암 백색","기와 회흑색"],materials:["화강암","목재","기와","단청","금속"],atmosphere:"당당한, 위풍있는, 조선 왕도의 정면"}},
+  {id:"gyeonghoeru",name:"경회루",nameEn:"Gyeonghoeru Pavilion",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"경복궁 내 인공 연못 위에 세워진 대규모 누각으로 국가 연회 장소.",visual:{style:["이층 누각","팔작지붕","48개 석주","인공 연못","난간"],colors:["단청 오방색","연못 녹색","화강암 백색","기와 회색"],materials:["목재","화강암","기와","단청"],atmosphere:"화려한, 장대한, 물 위에 떠 있는 듯한 웅장함"}},
+  {id:"hyangwonjeong",name:"향원정",nameEn:"Hyangwonjeong Pavilion",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"경복궁 후원 향원지 가운데 섬 위에 세워진 육각형 정자.",visual:{style:["육각형 평면","이층 누각","취향교","겹처마","팔작지붕"],colors:["단청 청록색","연못 녹색","목재 적갈색","기와 회색"],materials:["목재","기와","석재","단청"],atmosphere:"낭만적인, 고즈넉한, 물 위의 고요한 아름다움"}},
+  {id:"injeongjeon",name:"창덕궁 인정전",nameEn:"Injeongjeon Hall",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"창덕궁의 정전으로 왕의 즉위식과 외국 사신 접견 장소.",visual:{style:["중층 팔작지붕","월대","답도","조정","품계석"],colors:["단청 오방색","박석 회백색","기와 회흑색"],materials:["목재","화강암","기와","단청","금속"],atmosphere:"절제된 위엄, 유교적 격식, 왕실의 품격"}},
+  {id:"myeongjeongjeon",name:"창경궁 명정전",nameEn:"Myeongjeongjeon Hall",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"창경궁의 정전으로 현존하는 조선 궁궐 정전 중 가장 오래된 건물.",visual:{style:["단층 팔작지붕","월대","공포","어간","기단"],colors:["단청 오방색","화강암 백색","기와 회흑색"],materials:["목재","화강암","기와","단청"],atmosphere:"소박한 위엄, 고풍스러운, 조선 초기의 검소함"}},
+  {id:"seokjojeon",name:"덕수궁 석조전",nameEn:"Seokjojeon Hall",type:"사적",category:"건축",era:"대한제국",eraEn:"Korean Empire (1897-1910)",location:"서울특별시",desc:"대한제국 시기 서양식으로 건축된 석조 궁전 건물.",visual:{style:["신고전주의","이오닉 열주","박공","발코니","좌우대칭"],colors:["화강암 백회색","지붕 녹청색","창틀 백색"],materials:["화강암","대리석","철골","유리","동판"],atmosphere:"근대적 위엄, 동서양 융합, 대한제국의 개혁 의지"}},
+  {id:"jongmyo",name:"종묘",nameEn:"Jongmyo Shrine",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"조선 왕실의 역대 왕과 왕비의 신위를 모신 유교 사당.",visual:{style:["맞배지붕","긴 수평 행각","정전","영녕전","월대"],colors:["단청 적갈색","기와 회흑색","박석 회색","목재 암갈색"],materials:["목재","기와","화강암","단청"],atmosphere:"엄숙한, 경건한, 유교적 제례의 장엄함"}},
+  {id:"hwaseong",name:"수원화성",nameEn:"Hwaseong Fortress",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경기도 수원시",desc:"정조가 축성한 성곽으로 동서양 축성술이 결합된 군사 건축.",visual:{style:["성벽","치성","공심돈","봉돈","장안문","팔달문"],colors:["석재 회백색","벽돌 적갈색","기와 회흑색"],materials:["석재","벽돌","목재","기와"],atmosphere:"견고한, 과학적인, 정조의 효심과 개혁 정신"}},
+  {id:"hwahongmun",name:"수원화성 화홍문",nameEn:"Hwahongmun Gate",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경기도 수원시",desc:"수원화성의 북수문으로 수원천 위에 세워진 수문.",visual:{style:["홍예문","누각","팔작지붕","7개 수문","석축"],colors:["단청 오방색","석재 회백색","물 청색","기와 회색"],materials:["석재","목재","기와","단청"],atmosphere:"시원한, 물소리가 들리는, 성곽과 물의 조화"}},
+  {id:"namhansanseong",name:"남한산성",nameEn:"Namhansanseong Fortress",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경기도 광주시",desc:"조선시대 유사시 임시 수도 역할을 한 산성.",visual:{style:["포곡식 산성","성벽","성문","장대","옹성"],colors:["석재 회갈색","숲 녹색","기와 회흑색"],materials:["석재","목재","기와","흙"],atmosphere:"비장한, 역사적 무게감, 산세와 어우러진 방어 건축"}},
+  {id:"gongsanseong",name:"공산성",nameEn:"Gongsanseong Fortress",type:"세계유산",category:"건축",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"충청남도 공주시",desc:"백제 웅진 시기의 왕성으로 금강변 산성.",visual:{style:["포곡식 산성","토성과 석성","성문","치","공북루"],colors:["석재 회갈색","숲 녹색","금강 청색","토성 황갈색"],materials:["석재","흙","목재","기와"],atmosphere:"고대 왕국의 기상, 금강과 어우러진 장엄함"}},
+  {id:"bulguksa",name:"불국사",nameEn:"Bulguksa Temple",type:"세계유산",category:"건축",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주시",desc:"통일신라 시대 불교 예술의 정수를 보여주는 사찰.",visual:{style:["석축 기단","청운교 백운교","다보탑","석가탑","대웅전"],colors:["석재 회백색","단청 오방색","기와 회흑색","자연 녹색"],materials:["화강암","목재","기와","단청"],atmosphere:"불교적 이상세계, 정교한, 통일신라의 찬란한 예술혼"}},
+  {id:"muryangsujeon",name:"부석사 무량수전",nameEn:"Muryangsujeon Hall of Buseoksa",type:"국보",category:"건축",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"경상북도 영주시",desc:"고려시대 주심포 양식의 대표적 목조 건축물.",visual:{style:["맞배지붕","주심포","배흘림기둥","공포","측면 풍판"],colors:["목재 적갈색","기와 회흑색","벽체 백색"],materials:["목재","기와","석재","흙벽"],atmosphere:"고아한, 단아한, 고려시대 목조 건축의 정수"}},
+  {id:"geungnakjeon",name:"봉정사 극락전",nameEn:"Geungnakjeon Hall of Bongjeongsa",type:"국보",category:"건축",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"경상북도 안동시",desc:"한국에서 가장 오래된 목조 건축물로 추정되는 고려시대 불전.",visual:{style:["맞배지붕","주심포","배흘림기둥","측면 풍판","단층"],colors:["목재 암갈색","기와 회흑색","벽체 백색"],materials:["목재","기와","석재","흙벽"],atmosphere:"고졸한, 소박한 아름다움, 천년 세월의 깊이"}},
+  {id:"gakhwangjeon",name:"화엄사 각황전",nameEn:"Gakhwangjeon Hall of Hwaeomsa",type:"국보",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전라남도 구례군",desc:"화엄사의 본전으로 이중 지붕의 장대한 목조 건축.",visual:{style:["중층 팔작지붕","다포식 공포","이중 구조","넓은 기단","활주"],colors:["단청 오방색","기와 회흑색","석재 회백색"],materials:["목재","기와","화강암","단청"],atmosphere:"장대한, 불교적 장엄함, 지리산과 어우러진 웅장함"}},
+  {id:"tongdosa",name:"통도사",nameEn:"Tongdosa Temple",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상남도 양산시",desc:"부처의 진신사리를 모신 불보종찰로 대웅전에 불상이 없는 독특한 사찰.",visual:{style:["팔작지붕","금강계단","대웅전","범종루","일주문"],colors:["단청 오방색","석재 회백색","기와 회흑색","숲 녹색"],materials:["목재","화강암","기와","단청"],atmosphere:"불보종찰의 성스러움, 고요한, 깊은 신앙의 공간"}},
+  {id:"songgwangsa",name:"송광사",nameEn:"Songgwangsa Temple",type:"보물",category:"건축",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"전라남도 순천시",desc:"승보종찰로 16명의 국사를 배출한 사찰.",visual:{style:["팔작지붕","대웅전","약사전","삼청교","우화각"],colors:["단청 청록색","목재 갈색","기와 회흑색","계곡 청색"],materials:["목재","기와","석재","단청"],atmosphere:"수행의 기운, 청정한, 고려 불교의 깊은 전통"}},
+  {id:"hahoe-village",name:"안동 하회마을",nameEn:"Hahoe Folk Village",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 안동시",desc:"낙동강이 마을을 감싸 도는 씨족 마을로 양반 문화의 보고.",visual:{style:["기와집","초가집","담장","골목길","서낭당"],colors:["기와 회흑색","초가 황금색","흙담 황토색","강 청색"],materials:["목재","기와","짚","흙","석재"],atmosphere:"유교적 전통, 강과 마을의 조화, 양반 문화의 품격"}},
+  {id:"yangdong-village",name:"경주 양동마을",nameEn:"Yangdong Folk Village",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 경주시",desc:"조선시대 양반 씨족 마을로 다양한 전통 가옥이 보존됨.",visual:{style:["기와집","초가집","담장","사랑채","안채","사당"],colors:["기와 회흑색","황토 벽 갈색","목재 갈색","산 녹색"],materials:["목재","기와","흙","석재","짚"],atmosphere:"고풍스러운, 산세에 안긴 마을, 조선 양반의 삶"}},
+  {id:"dosan-seowon",name:"도산서원",nameEn:"Dosan Seowon",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 안동시",desc:"퇴계 이황을 배향한 서원으로 한국 유교 건축의 대표.",visual:{style:["맞배지붕","강학 공간","사당","누각","마당","담장"],colors:["목재 갈색","기와 회흑색","벽체 백색","자연 녹색"],materials:["목재","기와","석재","흙벽"],atmosphere:"학문의 향기, 검소하고 단아한, 선비 정신의 공간"}},
+  {id:"byeongsan-seowon",name:"병산서원",nameEn:"Byeongsan Seowon",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 안동시",desc:"류성룡을 배향한 서원으로 만대루의 경관이 뛰어남.",visual:{style:["맞배지붕","만대루","개방형 누각","강학당","사당"],colors:["목재 갈색","기와 회흑색","병산 녹색","낙동강 청색"],materials:["목재","기와","석재","흙벽"],atmosphere:"자연을 품은 건축, 개방적 풍류, 서원 건축의 백미"}},
+  {id:"sosu-seowon",name:"소수서원",nameEn:"Sosu Seowon",type:"세계유산",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 영주시",desc:"한국 최초의 사액서원으로 안향을 배향.",visual:{style:["맞배지붕","강학당","사당","장서각","죽계천","소나무숲"],colors:["목재 갈색","기와 회흑색","벽체 백색","숲 녹색"],materials:["목재","기와","석재","흙벽"],atmosphere:"학문의 시원, 소나무숲에 둘러싸인 고요한 배움터"}},
+  {id:"heunginjimun",name:"흥인지문",nameEn:"Heunginjimun Gate",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"한양도성의 동쪽 정문으로 동대문이라 불림.",visual:{style:["팔작지붕","옹성","홍예문","문루","겹처마"],colors:["단청 오방색","석재 회백색","기와 회흑색"],materials:["석재","목재","기와","단청"],atmosphere:"도성의 동쪽 관문, 웅장한, 옹성의 견고함"}},
+  {id:"cheomseongdae",name:"첨성대",nameEn:"Cheomseongdae Observatory",type:"국보",category:"건축",era:"신라",eraEn:"Silla Kingdom (57 BC-935 AD)",location:"경상북도 경주시",desc:"선덕여왕 때 건립된 동아시아 최고의 천문 관측대.",visual:{style:["원통형 석조","정자석","창문","상부 정자형","곡선미"],colors:["화강암 황갈색","하늘 청색","주변 초원 녹색"],materials:["화강암","석재"],atmosphere:"과학적 신비, 신라의 지혜, 하늘을 향한 고대의 열망"}},
+  {id:"gyeongju-seokbinggo",name:"경주 석빙고",nameEn:"Gyeongju Seokbinggo",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경상북도 경주시",desc:"얼음을 저장하기 위해 석재로 만든 반지하 냉장 시설.",visual:{style:["반지하 아치 구조","환기구","석축","봉분형 외관","출입구"],colors:["석재 회갈색","잔디 녹색","내부 암흑색"],materials:["화강암","석재","흙"],atmosphere:"과학적 지혜, 소박하지만 정교한, 선조의 냉장 기술"}},
+  {id:"mireuksaji-pagoda",name:"익산 미륵사지 석탑",nameEn:"Mireuksaji Stone Pagoda",type:"국보",category:"건축",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"전라북도 익산시",desc:"백제 최대의 석탑으로 목탑에서 석탑으로의 전환을 보여주는 귀중한 유적.",visual:{style:["석탑","목탑 양식 모방","기단","탑신","옥개석"],colors:["화강암 회백색","석재 황갈색","하늘 청색"],materials:["화강암","석재"],atmosphere:"백제의 장대한 불교 문화, 고대 석조 기술의 정수"}},
+  {id:"jeongnimsa-pagoda",name:"정림사지 오층석탑",nameEn:"Jeongnimsa Five-story Stone Pagoda",type:"국보",category:"건축",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"충청남도 부여군",desc:"백제의 대표적 석탑으로 단아하고 세련된 백제 양식의 정수.",visual:{style:["오층석탑","낮은 기단","얇은 옥개석","부드러운 곡선","체감률"],colors:["화강암 회백색","석재 담황색","주변 녹색"],materials:["화강암","석재"],atmosphere:"단아한, 세련된 백제 미학, 절제된 아름다움"}},
+  {id:"donggung-wolji",name:"안압지/동궁과 월지",nameEn:"Donggung Palace and Wolji Pond",type:"사적",category:"건축",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주시",desc:"통일신라 왕궁의 별궁과 인공 연못으로 야경이 아름다움.",visual:{style:["누각","인공 연못","섬","호안석축","회랑"],colors:["연못 심청색","야경 금빛 반영","단청 오방색","석재 회색"],materials:["석재","목재","기와","단청"],atmosphere:"환상적인 야경, 물에 비친 신라의 영화, 몽환적 아름다움"}},
+  {id:"bosingak",name:"보신각",nameEn:"Bosingak Bell Pavilion",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울특별시",desc:"한양 도성의 시각을 알리던 종루로 제야의 종 타종 장소.",visual:{style:["팔작지붕","누각","종","겹처마","공포","기단"],colors:["단청 오방색","범종 청동색","기와 회흑색"],materials:["목재","기와","청동","석재","단청"],atmosphere:"시간의 울림, 도성의 중심, 새해를 여는 종소리"}},
+  {id:"ojukheon",name:"강릉 오죽헌",nameEn:"Ojukheon House",type:"보물",category:"건축",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"강원도 강릉시",desc:"율곡 이이가 태어난 곳으로 검은 대나무가 유명한 조선시대 상류 주택.",visual:{style:["맞배지붕","익공","온돌방","대청마루","오죽 울타리"],colors:["목재 갈색","기와 회흑색","오죽 흑녹색","벽체 백색"],materials:["목재","기와","석재","흙벽"],atmosphere:"선비의 고결함, 검은 대나무의 기품, 조선 상류 주거의 격조"}},
+  // ═══ 불교 (Buddhist) — 30개 ═══
+  {id:"seokguram",name:"석굴암 본존불",nameEn:"Seokguram Grotto Main Buddha",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주",desc:"토함산 중턱 인공 석굴 안의 본존불.",visual:{style:["항마촉지인","광배","연화대좌","석굴 돔 천장"],colors:["화강암 회백색","은은한 자연광"],materials:["화강암"],atmosphere:"숭고한, 명상적, 고요한 불교적 성스러움"}},
+  {id:"gilt-bronze-pensive-bodhisattva",name:"금동미륵보살반가사유상",nameEn:"Gilt-bronze Pensive Bodhisattva",type:"국보",category:"불교",era:"삼국시대",eraEn:"Three Kingdoms Period (57 BC-668 AD)",location:"서울 국립중앙박물관",desc:"한 다리를 꼬고 사유하는 자세의 금동 미륵보살상.",visual:{style:["반가사유","보관","미소","유려한 곡선","얇은 천의"],colors:["금동 황금빛","녹청 파티나","은은한 광택"],materials:["금동","청동"],atmosphere:"자비로운, 사색적, 초월적 미소의 명상적 고요"}},
+  {id:"dabotap",name:"불국사 다보탑",nameEn:"Dabotap Pagoda",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주",desc:"불국사 경내의 화려하고 독창적인 석탑.",visual:{style:["팔각형 기단","사각 난간","사자상","복잡한 층단 구조","장식적 석조"],colors:["화강암 회백색","풍화된 담갈색"],materials:["화강암"],atmosphere:"화려한, 정교한, 독창적인 신라 석조 미학"}},
+  {id:"seokgatap",name:"불국사 석가탑",nameEn:"Seokgatap Pagoda",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주",desc:"불국사 경내 단아하고 균형 잡힌 삼층석탑.",visual:{style:["삼층석탑","이중 기단","단정한 옥개석","상륜부","간결한 비례"],colors:["화강암 회백색","은은한 담회색"],materials:["화강암"],atmosphere:"단아한, 균형 잡힌, 절제된 신라 석탑의 정수"}},
+  {id:"emille-bell",name:"성덕대왕신종",nameEn:"Sacred Bell of King Seongdeok (Emille Bell)",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주 국립경주박물관",desc:"한국 최대의 범종으로 비천상과 연꽃 문양이 새겨진 신라 걸작.",visual:{style:["비천상 부조","연꽃 문양","용뉴","당좌","음통"],colors:["청동 암갈색","녹청 파티나","은은한 금속 광택"],materials:["청동"],atmosphere:"장엄한, 울림 있는, 천상의 여운이 감도는 숭엄함"}},
+  {id:"palsangjeon",name:"법주사 팔상전",nameEn:"Palsangjeon Hall, Beopjusa",type:"국보",category:"불교",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"충청북도 보은",desc:"한국 유일의 목조 오층 불전으로 석가모니 팔상을 봉안.",visual:{style:["목조 오층 건물","팔작지붕","단청","공포 구조","처마곡선"],colors:["단청 오색","목재 갈색","기와 암회색","금빛 장식"],materials:["목재","기와","단청 안료"],atmosphere:"웅장한, 화려한, 한국 목조 건축의 위엄"}},
+  {id:"buseoksa-clay-buddha",name:"부석사 소조여래좌상",nameEn:"Clay Seated Buddha, Buseoksa",type:"국보",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"경상북도 영주",desc:"부석사 무량수전의 소조 아미타여래좌상.",visual:{style:["결가부좌","항마촉지인","소조 기법","나발","육계"],colors:["흙빛 황토색","금박 흔적","은은한 갈색"],materials:["점토","나무 골조","금박"],atmosphere:"온화한, 자비로운, 고려 불교 신앙의 따뜻한 경건함"}},
+  {id:"gwanchoksa-maitreya",name:"관촉사 석조미륵보살입상",nameEn:"Stone Maitreya, Gwanchoksa",type:"보물",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"충청남도 논산",desc:"높이 18m의 거대한 석조 미륵보살 입상으로 은진미륵이라 불림.",visual:{style:["거대 입상","보관","두 손 지물","토속적 얼굴","압도적 규모"],colors:["화강암 회백색","이끼 녹색","풍화 갈색"],materials:["화강암"],atmosphere:"토속적, 압도적, 민간 신앙이 깃든 거대한 위압감"}},
+  {id:"tripitaka-koreana",name:"팔만대장경 목판",nameEn:"Tripitaka Koreana Woodblocks",type:"국보/세계유산",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"경상남도 합천 해인사",desc:"8만여 장의 대장경 목판으로 세계 가장 완전한 불교 경전 집성.",visual:{style:["목판 각자","정교한 한문 서체","판가 수납 구조","장경판전 통풍 설계"],colors:["목판 암갈색","먹 검정","자연 경년 변색"],materials:["산벚나무","옻","먹"],atmosphere:"경건한, 방대한, 고려 호국 불교의 간절한 원력"}},
+  {id:"goryeo-suwoolgwaneumdo",name:"고려 수월관음도",nameEn:"Goryeo Water-Moon Avalokitesvara Painting",type:"국보",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"서울 (다수 해외 소장)",desc:"물가 바위에 앉은 관음보살을 투명한 사라로 표현한 고려 불화의 걸작.",visual:{style:["수월관음","투명 사라","버들가지 정병","선재동자","암좌"],colors:["금니 금빛","석록 녹색","석청 청색","주홍 붉은색"],materials:["비단","금니","석채 안료","먹"],atmosphere:"우아한, 투명한, 초월적 자비의 아름다움"}},
+  {id:"seosan-maae-buddha",name:"서산 마애삼존불",nameEn:"Seosan Rock-carved Buddha Triad",type:"국보",category:"불교",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"충청남도 서산",desc:"백제 미소로 유명한 바위에 새긴 삼존불 마애불.",visual:{style:["삼존불 구도","마애 부조","은은한 미소","보주 지물","반가사유"],colors:["사암 황갈색","이끼 녹색","햇빛에 따른 명암 변화"],materials:["사암 암벽"],atmosphere:"온화한, 미소 짓는, 백제 미소의 따뜻한 자비"}},
+  {id:"namsan-rock-buddha",name:"경주 남산 마애불",nameEn:"Gyeongju Namsan Rock Buddha",type:"보물",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주 남산",desc:"경주 남산 곳곳에 새겨진 마애불 군으로 노천 불교 박물관.",visual:{style:["마애 부조","자연 암벽 일체","산중 노천","다양한 불상 형식"],colors:["화강암 회백색","이끼 녹색","숲그늘 명암"],materials:["화강암 자연 암벽"],atmosphere:"자연과 하나 된, 소박한, 산중 수행의 고요함"}},
+  {id:"gilt-bronze-medicine-buddha",name:"금동약사여래좌상",nameEn:"Gilt-bronze Seated Medicine Buddha",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"서울 국립중앙박물관",desc:"약합을 든 약사여래의 금동 좌상.",visual:{style:["결가부좌","약합 지물","나발","광배","연화대좌"],colors:["금동 황금빛","녹청 파티나","은은한 광택"],materials:["금동","청동"],atmosphere:"치유의, 자비로운, 중생 구제의 서원이 담긴 온화함"}},
+  {id:"iron-vairocana-buddha",name:"철조비로자나불좌상",nameEn:"Iron Seated Vairocana Buddha",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"서울 국립중앙박물관",desc:"지권인을 취한 철제 비로자나불 좌상.",visual:{style:["지권인","결가부좌","나발","육계","당당한 체구"],colors:["철 흑갈색","산화 적갈색","무광택 중후함"],materials:["철"],atmosphere:"묵직한, 견고한, 진리를 상징하는 법신불의 위엄"}},
+  {id:"cheolgamseonsa-stupa",name:"쌍봉사 철감선사탑",nameEn:"Cheolgamseonsa Stupa, Ssangbongsa",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"전라남도 화순",desc:"팔각원당형 승탑으로 정교한 부조 장식이 돋보이는 걸작.",visual:{style:["팔각원당형","사천왕 부조","연꽃 문양","옥개석","기단부 장식"],colors:["화강암 회백색","풍화 담갈색","이끼 녹색"],materials:["화강암"],atmosphere:"정교한, 기품 있는, 선종 고승의 고결한 수행 세계"}},
+  {id:"silsangsa-pagoda",name:"실상사 백장암 삼층석탑",nameEn:"Silsangsa Baekjangam Three-story Stone Pagoda",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"전라북도 남원",desc:"독특한 부조 장식이 새겨진 삼층석탑으로 불교 설화가 표현됨.",visual:{style:["삼층석탑","불교 설화 부조","사천왕상","비천상","기단 부조"],colors:["화강암 회백색","풍화 갈색","이끼 녹색"],materials:["화강암"],atmosphere:"설화적, 서사적, 불교 이야기가 새겨진 독창적 석탑"}},
+  {id:"gilt-bronze-avalokitesvara",name:"금동관음보살좌상",nameEn:"Gilt-bronze Seated Avalokitesvara",type:"보물",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"서울 국립중앙박물관",desc:"화려한 보관과 영락 장식의 고려시대 금동 관음보살 좌상.",visual:{style:["보관","영락 장식","유려한 천의","연화대좌","결가부좌"],colors:["금동 황금빛","녹청 파티나","세부 금빛 장식"],materials:["금동","청동"],atmosphere:"화려한, 우아한, 고려 귀족 불교의 세련된 미감"}},
+  {id:"silver-inlaid-incense-burner",name:"은입사 향완",nameEn:"Silver-inlaid Bronze Incense Burner",type:"국보",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"서울 국립중앙박물관",desc:"은입사 기법으로 문양을 장식한 고려시대 불교 의식용 향완.",visual:{style:["은입사 문양","연꽃 보상화","당초문","원형 완 형태","구연부 장식"],colors:["청동 암갈색","은입사 은백색","녹청 파티나"],materials:["청동","은"],atmosphere:"정교한, 격조 높은, 고려 금속 공예의 극치"}},
+  {id:"beomeosa-main-hall",name:"범어사 대웅전",nameEn:"Beomeosa Main Hall (Daeungjeon)",type:"보물",category:"불교",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"부산광역시 금정구",desc:"금정산 범어사의 중심 법당으로 조선 후기 건축미를 보여줌.",visual:{style:["다포식 공포","팔작지붕","단청","배흘림기둥","닫집"],colors:["단청 오색","목재 갈색","기와 암회색","금빛 불단"],materials:["목재","기와","단청 안료","금박"],atmosphere:"장엄한, 산사의, 금정산 자연과 어우러진 법당의 경건함"}},
+  {id:"hwaeomsa-four-lion-pagoda",name:"화엄사 사사자삼층석탑",nameEn:"Four Lion Three-story Stone Pagoda, Hwaeomsa",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"전라남도 구례",desc:"네 마리 사자가 탑신을 받치고 있는 독특한 석탑.",visual:{style:["사자 석상 네 마리","삼층석탑","차 공양 인물상","연화 기단","상륜부"],colors:["화강암 회백색","풍화 담갈색","이끼 녹색"],materials:["화강암"],atmosphere:"독창적, 생동감 있는, 사자의 호위를 받는 성스러운 탑"}},
+  {id:"gameunsa-pagoda",name:"감은사지 삼층석탑",nameEn:"Gameunsa Temple Site Three-story Stone Pagoda",type:"국보",category:"불교",era:"통일신라",eraEn:"Unified Silla (668-935)",location:"경상북도 경주",desc:"동서 쌍탑으로 통일신라 초기 석탑의 전형을 보여주는 대형 석탑.",visual:{style:["삼층석탑 쌍탑","이중 기단","우주와 탱주","장대한 규모","옥개석"],colors:["화강암 회백색","하늘 배경 대비","풍화 담갈색"],materials:["화강암"],atmosphere:"장대한, 호국적, 통일신라 호국 불교의 웅장한 기상"}},
+  {id:"jeonghyesa-13-story-pagoda",name:"정혜사지 십삼층석탑",nameEn:"Jeonghyesa Temple Site 13-story Stone Pagoda",type:"국보",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"경상북도 경주",desc:"높이 솟은 13층의 석탑으로 고려시대 다층석탑의 대표작.",visual:{style:["십삼층 다층탑","세장한 비례","점감하는 옥개","단층 기단","상륜부"],colors:["화강암 회백색","하늘 배경 수직 실루엣"],materials:["화강암"],atmosphere:"수직적, 세장한, 하늘을 향한 고려 불교의 상승 지향"}},
+  {id:"wongaksa-10-story-pagoda",name:"원각사지 십층석탑",nameEn:"Wongaksa Temple Site 10-story Stone Pagoda",type:"국보",category:"불교",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울 종로구 탑골공원",desc:"대리석으로 만든 화려한 십층석탑으로 조선 초기 걸작.",visual:{style:["십층 다층탑","대리석 정교한 부조","용과 사자 조각","아치형 창","기단 불교 설화"],colors:["대리석 백색","정교한 부조 음영","풍화 회색"],materials:["대리석"],atmosphere:"화려한, 정교한, 도심 속 조선 불교 석조 예술의 절정"}},
+  {id:"daeheungsa-rock-buddha",name:"대흥사 북미륵암 마애여래좌상",nameEn:"Daeheungsa Bukmireugam Rock-carved Seated Buddha",type:"보물",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"전라남도 해남",desc:"두륜산 암벽에 새겨진 마애여래좌상으로 고려 마애불의 수작.",visual:{style:["마애 부조","결가부좌","원형 두광","자연 암벽 일체","온화한 얼굴"],colors:["암벽 회갈색","이끼 녹색","자연광 명암"],materials:["자연 암벽"],atmosphere:"산중의, 은밀한, 두륜산 깊은 곳의 수행 정진"}},
+  {id:"jikji",name:"직지심체요절",nameEn:"Jikji (Anthology of Great Buddhist Priests' Zen Teachings)",type:"세계기록유산",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"충청북도 청주 (프랑스 국립도서관 소장)",desc:"현존 세계 최고(最古)의 금속활자 인쇄본으로 선불교 핵심 가르침 수록.",visual:{style:["금속활자 인쇄","한문 세로 서체","고서 장정","선종 어록 형식"],colors:["한지 미색","먹 검정","경년 변색 갈색"],materials:["한지","먹","금속활자"],atmosphere:"혁신적, 선구적, 고려 인쇄 문화의 세계사적 의의"}},
+  {id:"muwisa-mural",name:"무위사 극락전 아미타여래벽화",nameEn:"Muwisa Paradise Hall Amitabha Buddha Mural",type:"국보",category:"불교",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전라남도 강진",desc:"극락전 내벽의 아미타여래 후불벽화로 조선 초기 불화의 걸작.",visual:{style:["후불벽화","아미타여래","협시보살","천인","구름 문양"],colors:["토안료 적갈색","석록 녹색","먹선 검정","퇴색된 채색"],materials:["흙벽","토안료","먹","금니"],atmosphere:"고즈넉한, 퇴색된 아름다움, 조선 초기 불교 미술의 소박한 경건"}},
+  {id:"geumsansa-mireukjeon",name:"금산사 미륵전",nameEn:"Geumsansa Mireukjeon (Maitreya Hall)",type:"보물",category:"불교",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전라북도 김제",desc:"내부에 거대 미륵불을 봉안한 삼층 목조 불전.",visual:{style:["삼층 목조 건물","팔작지붕","단청","거대 미륵불 봉안","공포 구조"],colors:["단청 오색","목재 갈색","기와 암회색","내부 금빛"],materials:["목재","기와","단청 안료","금박"],atmosphere:"웅장한, 미륵 신앙의, 거대 미륵불을 품은 삼층 법당의 장엄"}},
+  {id:"magoksa",name:"마곡사",nameEn:"Magoksa Temple",type:"보물",category:"불교",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"충청남도 공주",desc:"태화산 자락의 천년 고찰로 다양한 시대의 전각이 공존.",visual:{style:["산사 가람 배치","오층석탑","대광보전","계곡 옆 입지","다양한 시대 전각"],colors:["자연 녹음","기와 암회색","단청 오색","계곡 물빛"],materials:["목재","기와","화강암","단청 안료"],atmosphere:"고즈넉한, 산사의, 계절마다 변하는 천년 고찰의 평화"}},
+  {id:"seonamsa",name:"선암사",nameEn:"Seonamsa Temple",type:"보물",category:"불교",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"전라남도 순천",desc:"조계산 자락 천년 고찰로 승선교와 자연 경관이 아름다운 사찰.",visual:{style:["승선교 무지개다리","산사 가람 배치","대웅전","삼층석탑","자연 조경"],colors:["자연 녹음","계곡 물빛","기와 암회색","단청 오색"],materials:["목재","기와","화강암","단청 안료"],atmosphere:"서정적, 자연 친화적, 사계절 아름다운 호남 산사의 운치"}},
+  {id:"woljeongsa-9-story-pagoda",name:"월정사 팔각구층석탑",nameEn:"Woljeongsa Octagonal Nine-story Stone Pagoda",type:"국보",category:"불교",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"강원도 평창",desc:"팔각 평면의 구층석탑으로 앞에 공양하는 보살상이 함께 있는 고려 석탑.",visual:{style:["팔각 평면","구층석탑","공양 보살 석상","연화 기단","상륜부"],colors:["화강암 회백색","전나무 숲 녹색","풍화 담갈색"],materials:["화강암"],atmosphere:"고요한, 숲속의, 오대산 전나무 숲에 둘러싸인 고려 석탑의 정취"}},
+  // ═══ 도자기·공예 (Ceramics & Crafts) — 25개 ═══
+  {id:"celadon",name:"고려청자 상감운학문매병",nameEn:"Goryeo Celadon Maebyeong with Inlaid Cloud and Crane",type:"국보",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"고려청자의 대표작.",visual:{style:["매병 형태","상감기법","운학문","당초문"],colors:["비색 jade-green","백토 흰색","자토 검은색"],materials:["도자기","비색 유약"],atmosphere:"우아한, 고려의 세련된 귀족 미학"}},
+  {id:"moon-jar",name:"조선백자 달항아리",nameEn:"Joseon White Porcelain Moon Jar",type:"국보",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"조선 백자의 상징적 걸작.",visual:{style:["둥근 구형","풍만한 곡선","무문 표면","대칭적 형태"],colors:["유백색 milky-white","미색 ivory","담회색 light-gray"],materials:["백자","백토","투명 유약"],atmosphere:"담백하고 순수한, 조선 선비의 절제된 아름다움"}},
+  {id:"silla-gold-crown",name:"신라 금관",nameEn:"Silla Gold Crown",type:"국보",category:"도자기·공예",era:"신라",eraEn:"Silla Kingdom (57 BC-935 AD)",location:"국립경주박물관",desc:"신라 왕실의 화려한 금관.",visual:{style:["출자형 장식","나뭇가지 형태","곡옥 장식","수하식 드리개","세움 장식"],colors:["황금색 gold","비취색 jade-green","은백색 silver-white"],materials:["금","곡옥","유리구슬","금실"],atmosphere:"찬란하고 신비로운, 신라 왕권의 위엄과 영광"}},
+  {id:"baekje-incense-burner",name:"백제 금동대향로",nameEn:"Baekje Gilt-bronze Incense Burner",type:"국보",category:"도자기·공예",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"국립부여박물관",desc:"백제 공예 기술의 정수.",visual:{style:["봉황 장식","연꽃 받침","산악 형태","신선 세계 묘사","용 받침대"],colors:["금동색 gilt-bronze","녹청색 patina-green","암갈색 dark-brown"],materials:["청동","금도금","주조 기법"],atmosphere:"신비롭고 장엄한, 백제의 이상 세계를 담은 예술혼"}},
+  {id:"buncheong-flask",name:"분청사기 철화 풀꽃문 장군",nameEn:"Buncheong Iron-painted Flask with Grass and Flower Design",type:"보물",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"분청사기의 자유분방한 미감을 보여주는 걸작.",visual:{style:["장군 형태","철화 기법","풀꽃문","자유로운 필치","귀달린 손잡이"],colors:["회백색 grayish-white","흑갈색 dark-brown","담청색 pale-blue"],materials:["분청사기","백토 분장","철화 안료"],atmosphere:"소박하고 자유로운, 민중적 활력이 넘치는 해학미"}},
+  {id:"blue-white-plum-jar",name:"청화백자 매죽문 항아리",nameEn:"Blue-and-White Porcelain Jar with Plum and Bamboo Design",type:"국보",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"조선 청화백자의 대표작.",visual:{style:["항아리 형태","청화 안료","매화문","대나무문","사군자 문양"],colors:["백색 white","청색 cobalt-blue","담청색 light-blue"],materials:["백자","코발트 청화 안료","투명 유약"],atmosphere:"고결하고 기품 있는, 선비 정신이 깃든 격조 높은 아름다움"}},
+  {id:"najeonchilgi",name:"나전칠기",nameEn:"Goryeo Mother-of-pearl Lacquerware",type:"국보",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"고려 나전칠기의 정교한 공예 기술.",visual:{style:["나전 상감","국화당초문","대모 장식","칠기 표면","세밀한 문양"],colors:["흑칠색 lacquer-black","무지개빛 iridescent","은백색 pearl-white","호박색 amber"],materials:["옻칠","자개","대모","나무 심재"],atmosphere:"화려하면서도 깊은, 고려 귀족 문화의 극치"}},
+  {id:"embroidered-screen",name:"자수 병풍",nameEn:"Embroidered Folding Screen",type:"보물",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립고궁박물관",desc:"궁중 자수의 정교함을 보여주는 병풍.",visual:{style:["병풍 형태","궁중 자수","화조문","십장생문","금사 자수"],colors:["오색 five-colors","금색 gold","적색 crimson","청록색 teal"],materials:["비단","금사","견사","나무 틀"],atmosphere:"화사하고 격조 높은, 궁중의 품격과 장수 기원의 염원"}},
+  {id:"maedeup-norigae",name:"매듭 노리개",nameEn:"Maedeup Norigae Ornament",type:"무형유산",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립민속박물관",desc:"전통 매듭과 장신구의 결합.",visual:{style:["삼작 노리개","매듭 기법","술 장식","나비매듭","도래매듭"],colors:["다홍색 crimson","자주색 purple","남색 indigo","옥색 jade"],materials:["명주실","옥","산호","밀화","금속 장식"],atmosphere:"섬세하고 여성적인, 조선 여인의 단아한 멋과 기품"}},
+  {id:"jogakbo",name:"조각보",nameEn:"Jogakbo Patchwork Wrapping Cloth",type:"생활공예",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립민속박물관",desc:"조각 천을 이어 만든 보자기 공예.",visual:{style:["패치워크","기하학적 구성","홈질 기법","색동 배치","비대칭 구도"],colors:["오방색 five-directional-colors","분홍색 pink","연두색 yellow-green","하늘색 sky-blue"],materials:["명주","모시","삼베","면"],atmosphere:"소박하면서도 현대적인, 규방 여인의 창의적 조형 감각"}},
+  {id:"metal-type",name:"금속활자",nameEn:"Metal Movable Type",type:"세계유산",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"세계 최초의 금속활자 인쇄술.",visual:{style:["활자 형태","역상 글자","정밀 주조","활자판 배열"],colors:["청동색 bronze","흑색 ink-black","은회색 silver-gray"],materials:["청동","구리","주석","밀랍 주조"],atmosphere:"혁신적이고 기념비적인, 인류 지식 혁명의 시발점"}},
+  {id:"angbuilgu",name:"앙부일구",nameEn:"Angbuilgu Sundial",type:"국보",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립고궁박물관",desc:"조선 세종 시대의 과학적 해시계.",visual:{style:["반구형 오목면","시각선","절기선","영침 그림자","받침대"],colors:["청동색 bronze","녹청색 verdigris","암회색 dark-gray"],materials:["청동","주조 기법","석재 받침"],atmosphere:"정밀하고 과학적인, 세종 시대 과학 정신의 결정체"}},
+  {id:"cheugugi",name:"측우기",nameEn:"Cheugugi Rain Gauge",type:"국보",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"기상청",desc:"세계 최초의 표준화된 우량계.",visual:{style:["원통형","석대 받침","눈금 표시","간결한 구조"],colors:["청동색 bronze","석재 회색 stone-gray","녹청색 patina"],materials:["청동","석재","주철"],atmosphere:"간결하고 실용적인, 백성을 위한 과학 정신의 상징"}},
+  {id:"geobukseon",name:"거북선 모형",nameEn:"Geobukseon Turtle Ship Model",type:"군사유산",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"해군사관학교박물관",desc:"이순신 장군의 거북선 축소 모형.",visual:{style:["거북 등껍질","용머리 선수","철갑 구조","노 구멍","포문 배치"],colors:["흑갈색 dark-brown","철색 iron-gray","적색 red","금색 gold"],materials:["목재","철판","구리","삼베"],atmosphere:"위압적이고 혁신적인, 호국 정신과 군사 창의성의 상징"}},
+  {id:"gaya-gold-crown",name:"가야 금관",nameEn:"Gaya Gold Crown",type:"보물",category:"도자기·공예",era:"가야",eraEn:"Gaya Confederacy (42-562 AD)",location:"국립김해박물관",desc:"가야 왕족의 금관.",visual:{style:["풀꽃 장식","세움 장식","얇은 금판","타출 기법","영락 장식"],colors:["황금색 gold","은색 silver","연녹색 pale-green"],materials:["금","은","경옥","금실"],atmosphere:"화사하고 생동감 있는, 가야 문화의 독자적 미의식"}},
+  {id:"gaya-plate-armor",name:"가야 판갑옷",nameEn:"Gaya Plate Armor",type:"보물",category:"도자기·공예",era:"가야",eraEn:"Gaya Confederacy (42-562 AD)",location:"국립김해박물관",desc:"가야의 철 제련 기술을 보여주는 판갑옷.",visual:{style:["종장판갑","철판 연결","리벳 고정","경갑 부속","투구 세트"],colors:["철색 iron-gray","적갈색 rust-brown","암흑색 dark-black"],materials:["철판","가죽끈","리벳","단조 철"],atmosphere:"강인하고 무장적인, 철의 왕국 가야의 군사적 위용"}},
+  {id:"muryeong-crown",name:"무령왕 금제관식",nameEn:"King Muryeong Gold Crown Ornament",type:"국보",category:"도자기·공예",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"국립공주박물관",desc:"무령왕릉 출토 금제 관식.",visual:{style:["인동당초문","화염 형태","투조 기법","대칭 구도","섬세한 금세공"],colors:["순금색 pure-gold","적갈색 reddish-brown","녹색 green"],materials:["금","금실","세공 도구"],atmosphere:"세련되고 국제적인, 백제 왕실의 우아한 기품"}},
+  {id:"silla-glass-cup",name:"신라 유리잔",nameEn:"Silla Glass Cup",type:"보물",category:"도자기·공예",era:"신라",eraEn:"Silla Kingdom (57 BC-935 AD)",location:"국립경주박물관",desc:"실크로드를 통한 서역 교류의 증거.",visual:{style:["로마식 형태","봉황 장식잔","얇은 유리벽","굽 달린 잔","투명 질감"],colors:["담청색 pale-blue","연녹색 light-green","투명 transparent"],materials:["유리","서역 유리 원료"],atmosphere:"이국적이고 신비로운, 동서 교류의 로망과 경이로움"}},
+  {id:"silver-inlaid-incense",name:"고려 은입사 청동향로",nameEn:"Goryeo Silver-inlaid Bronze Incense Burner",type:"국보",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"은입사 기법이 돋보이는 고려 향로.",visual:{style:["향로 형태","은입사 기법","당초문","보상화문","뚜껑 장식"],colors:["청동색 bronze","은색 silver","녹청색 patina-green"],materials:["청동","은","입사 기법","주조"],atmosphere:"정교하고 숭고한, 고려 불교 의례의 경건한 분위기"}},
+  {id:"blue-white-dragon-jar",name:"백자 청화 용문 항아리",nameEn:"Blue-and-White Porcelain Jar with Dragon Design",type:"국보",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"왕실 전용 용문 청화백자.",visual:{style:["대형 항아리","청화 용문","여의주 문양","구름문","왕실 문양"],colors:["백색 white","농청색 deep-cobalt","담청색 light-blue"],materials:["백자","코발트 안료","투명 유약"],atmosphere:"위엄 있고 왕실적인, 조선 왕실의 권위와 장엄함"}},
+  {id:"bronze-kundika",name:"청동 은입사 포류수금문 정병",nameEn:"Bronze Kundika with Silver-inlaid Willow and Waterfowl Design",type:"국보",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"고려 금속 공예의 최고봉.",visual:{style:["정병 형태","은입사 기법","포류수금문","세장한 목","연판문 장식"],colors:["흑청동색 dark-bronze","은색 silver","녹청색 verdigris","암갈색 dark-brown"],materials:["청동","은","입사 기법","주조 기법"],atmosphere:"고요하고 시적인, 고려 문인의 풍류와 자연 사랑"}},
+  {id:"gilt-bronze-canopy",name:"금동 용두보당",nameEn:"Gilt-bronze Dragon-head Canopy Ornament",type:"국보",category:"도자기·공예",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"국립중앙박물관",desc:"불교 의식에 사용된 금동 보당.",visual:{style:["용두 장식","보당 구조","풍탁 장식","연화문","투조 기법","화려한 장엄"],colors:["금동색 gilt-bronze","녹청색 patina","적동색 copper-red"],materials:["청동","금도금","주조","투조 세공"],atmosphere:"장엄하고 신성한, 고려 불교 예술의 극치"}},
+  {id:"baekje-avalokitesvara",name:"백제 금동관음보살입상",nameEn:"Baekje Gilt-bronze Standing Avalokitesvara Bodhisattva",type:"국보",category:"도자기·공예",era:"백제",eraEn:"Baekje Kingdom (18 BC-660 AD)",location:"국립부여박물관",desc:"백제 불교 조각의 걸작.",visual:{style:["보살 입상","보관 장식","천의 주름","연꽃 대좌","백제 미소","유려한 곡선"],colors:["금동색 gilt-bronze","녹청색 patina-green","암갈색 dark-brown"],materials:["청동","금도금","주조 기법","밀랍 주조"],atmosphere:"자비롭고 온화한, 백제 미소의 따뜻한 인간미"}},
+  {id:"jagaejang",name:"자개장",nameEn:"Mother-of-pearl Inlaid Wardrobe",type:"보물",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립민속박물관",desc:"조선 시대 나전칠기 가구의 대표작.",visual:{style:["이층장 형태","나전 상감","십장생문","포도당초문","경첩 장식"],colors:["흑칠색 lacquer-black","무지개빛 iridescent","은백색 pearl-white","호박색 amber"],materials:["오동나무","옻칠","자개","경첩 금속"],atmosphere:"고풍스럽고 화려한, 조선 사대부가의 격조 높은 생활미"}},
+  {id:"hwача",name:"화차",nameEn:"Hwаcha Fire Cart",type:"군사유산",category:"도자기·공예",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전쟁기념관",desc:"다연장 로켓 발사 장치.",visual:{style:["수레 형태","다연장 발사대","신기전 장착","목재 프레임","바퀴 구조"],colors:["목재색 wood-brown","철색 iron-gray","흑색 charcoal-black","적색 red"],materials:["목재","철","화약","대나무 신기전","가죽"],atmosphere:"혁신적이고 압도적인, 조선 군사 과학의 독창적 발명 정신"}},
+  // ═══ 회화·벽화 (Painting & Murals) — 25개 ═══
+  {id:"goguryeo-mural",name:"고구려 무용총 벽화",nameEn:"Goguryeo Muyongchong Tomb Mural",type:"국보",category:"회화·벽화",era:"고구려",eraEn:"Goguryeo Kingdom (BC 37-AD 668)",location:"국내 모사본",desc:"고구려 고분벽화. 사냥하는 무사, 춤추는 인물 등 역동적 장면.",visual:{style:["사냥 장면","무용 장면","사신도","역동적 구도"],colors:["주홍색","황토색","먹색","녹색"],materials:["석회 벽면","광물 안료"],atmosphere:"역동적, 힘찬, 고구려의 진취적 기상"}},
+  {id:"kim-hongdo-ssireum",name:"김홍도 씨름도",nameEn:"Kim Hong-do Wrestling Scene",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"김홍도의 풍속화 대표작. 씨름 경기에 열중하는 군중과 선수들의 생동감 넘치는 장면.",visual:{style:["풍속화","군중 묘사","원형 구도","해학적 표현"],colors:["담채색","먹색","황토색"],materials:["종이","먹","담채"],atmosphere:"유쾌한, 서민적, 생동감 넘치는 조선의 일상"}},
+  {id:"kim-hongdo-seodang",name:"김홍도 서당도",nameEn:"Kim Hong-do Village School",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"서당에서 훈장 앞에 선 아이가 울고 있는 장면을 해학적으로 그린 풍속화.",visual:{style:["풍속화","실내 장면","해학적 묘사","인물 군상"],colors:["먹색","담채색","연갈색"],materials:["종이","먹","담채"],atmosphere:"해학적, 따뜻한, 정겨운 서당 풍경"}},
+  {id:"shin-yunbok-miindo",name:"신윤복 미인도",nameEn:"Shin Yun-bok Portrait of a Beauty",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"간송미술관",desc:"조선 후기 여인의 아름다움을 섬세하게 표현한 신윤복의 대표적 미인도.",visual:{style:["미인도","섬세한 선묘","우아한 자태","한복 묘사"],colors:["연분홍","먹색","옥색","백색"],materials:["비단","먹","채색 안료"],atmosphere:"우아한, 단아한, 조선 여인의 고고한 아름다움"}},
+  {id:"shin-yunbok-dano",name:"신윤복 단오풍정",nameEn:"Shin Yun-bok Dano Festival",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"간송미술관",desc:"단오날 여인들이 시냇가에서 머리 감고 그네 뛰는 풍속을 그린 풍속화.",visual:{style:["풍속화","야외 장면","여인 군상","계절 풍경","그네 장면"],colors:["연녹색","분홍색","먹색","청색"],materials:["종이","먹","채색 안료"],atmosphere:"화사한, 생기로운, 단오절의 풍류와 낭만"}},
+  {id:"jeong-seon-inwangjesaekdo",name:"정선 인왕제색도",nameEn:"Jeong Seon Inwangjesaekdo",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"삼성미술관 리움",desc:"비 갠 뒤 인왕산의 장쾌한 풍경을 실경으로 그린 진경산수화의 걸작.",visual:{style:["진경산수","먹의 농담","바위 질감","안개 표현","대담한 구도"],colors:["먹색","담묵색","회색","백색"],materials:["종이","먹"],atmosphere:"장엄한, 웅장한, 비 갠 뒤 산의 기운생동"}},
+  {id:"an-gyeon-mongyudowondo",name:"안견 몽유도원도",nameEn:"An Gyeon Dream Journey to Peach Blossom Land",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"일본 덴리대학교",desc:"안평대군의 꿈속 도원경을 그린 조선 초기 산수화의 최고 걸작.",visual:{style:["이상향 산수","몽환적 구도","두루마리 형식","층층이 펼쳐진 산봉우리"],colors:["담묵색","연청색","먹색","담녹색"],materials:["비단","먹","담채"],atmosphere:"몽환적, 이상향의 평화로움, 유토피아적 아름다움"}},
+  {id:"minhwa-magpie-tiger",name:"민화 까치호랑이",nameEn:"Minhwa Magpie and Tiger",type:"민화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"각지 소장",desc:"호랑이와 까치를 해학적으로 그린 민화. 벽사와 길상의 의미를 담고 있다.",visual:{style:["민화","해학적 호랑이","까치 묘사","소나무 배경"],colors:["황토색","먹색","녹색","주홍색"],materials:["종이","먹","채색 안료"],atmosphere:"해학적, 익살스러운, 서민적 유머와 벽사의 바람"}},
+  {id:"sipjangsaengdo",name:"십장생도",nameEn:"Ten Longevity Symbols",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립고궁박물관",desc:"해·산·물·돌·소나무·달·불로초·거북·학·사슴 등 장수를 상징하는 열 가지 소재를 그린 궁중 장식화.",visual:{style:["장식화","상징적 소재","병풍 형식","이상적 자연 경관","반복 패턴"],colors:["청록색","금색","주홍색","녹색"],materials:["비단","금박","채색 안료","나무 병풍틀"],atmosphere:"장수와 복을 기원하는 화려하고 격조 높은 궁중의 품격"}},
+  {id:"hwajodo",name:"화조도",nameEn:"Painting of Flowers and Birds",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립고궁박물관",desc:"꽃과 새를 화려하게 그린 궁중 장식화. 부부 화합과 자연의 아름다움을 상징.",visual:{style:["화조화","정밀 묘사","대칭 구도","장식적 표현"],colors:["분홍색","청색","녹색","황금색"],materials:["비단","채색 안료","금분"],atmosphere:"화사한, 격조 높은, 자연의 풍요와 조화"}},
+  {id:"chaekgeori-byeongpung",name:"책거리 병풍",nameEn:"Chaekgeori Scholar's Objects Screen",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"책과 문방구, 도자기 등 학자의 서재 물건을 정물화처럼 그린 병풍 그림.",visual:{style:["정물화","트롱프뢰유","서재 소품","역원근법","병풍 형식"],colors:["갈색","청색","백색","주홍색"],materials:["종이","채색 안료","나무 병풍틀"],atmosphere:"지적인, 정교한, 학문을 향한 조선 선비의 열망"}},
+  {id:"irworobongdo",name:"일월오봉도",nameEn:"Sun Moon and Five Peaks Screen",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립고궁박물관",desc:"해와 달, 다섯 봉우리, 소나무, 파도를 그린 왕좌 뒤 궁중 장식화. 왕권을 상징.",visual:{style:["궁중 장식화","좌우 대칭","상징적 구도","강렬한 색채","왕권 상징"],colors:["청색","주홍색","녹색","금색"],materials:["비단","채색 안료","금박","나무 병풍틀"],atmosphere:"장엄한, 위엄 있는, 왕조의 권위와 우주적 질서"}},
+  {id:"shin-saimdang-chochungdo",name:"신사임당 초충도",nameEn:"Shin Saimdang Insects and Plants",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"풀과 벌레를 섬세하게 사생한 신사임당의 대표작. 자연에 대한 깊은 관찰력이 돋보인다.",visual:{style:["초충도","정밀 사생","자연 관찰","서정적 표현"],colors:["연녹색","갈색","담홍색","먹색"],materials:["종이","먹","채색 안료"],atmosphere:"섬세한, 자연에 대한 따뜻한 시선, 고요한 아름다움"}},
+  {id:"eohaedo",name:"어해도",nameEn:"Painting of Fish",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"물고기와 수초, 게 등 수중 생물을 그린 그림. 풍요와 입신출세를 상징.",visual:{style:["어해화","수중 장면","사실적 묘사","장식적 구도"],colors:["청색","먹색","담채색","주홍색"],materials:["종이","먹","채색 안료"],atmosphere:"생동감 있는, 풍요로운, 자연 속 수중 세계의 활력"}},
+  {id:"song-siyeol-chosang",name:"송시열 초상",nameEn:"Portrait of Song Si-yeol",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"조선 후기 대유학자 송시열의 초상화. 전신사조 기법으로 인물의 정신까지 담아냈다.",visual:{style:["초상화","전신사조","정면 묘사","심의 차림"],colors:["먹색","백색","담갈색"],materials:["비단","먹","채색 안료"],atmosphere:"경건한, 학자의 기품, 조선 유학의 정신적 깊이"}},
+  {id:"jang-seungeop-gimyeongjeoljido",name:"장승업 기명절지도",nameEn:"Jang Seung-eop Still Life",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"간송미술관",desc:"청동기, 도자기, 꽃과 과일 등을 호방하게 그린 기명절지화의 대표작.",visual:{style:["기명절지화","호방한 필치","정물 묘사","수묵담채"],colors:["먹색","담채색","주홍색","녹색"],materials:["종이","먹","담채"],atmosphere:"호방한, 자유분방한, 조선 말기 화가의 기개와 풍류"}},
+  {id:"kang-sehwang-yeongtongdonggu",name:"강세황 영통동구도",nameEn:"Kang Se-hwang Yeongtongdonggu",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"영통동 계곡의 실경을 남종화법으로 그린 산수화. 문인화가 강세황의 대표작.",visual:{style:["실경산수","남종화법","계곡 풍경","담백한 필치"],colors:["먹색","담묵색","연청색"],materials:["종이","먹","담채"],atmosphere:"담백한, 고아한, 문인의 자연 속 유유자적한 풍취"}},
+  {id:"gangseodaemyo-sasindo",name:"고구려 강서대묘 사신도",nameEn:"Gangseodaemyo Four Guardian Murals",type:"국보",category:"회화·벽화",era:"고구려",eraEn:"Goguryeo Kingdom (BC 37-AD 668)",location:"남포시 강서구역",desc:"고구려 후기 고분벽화. 청룡·백호·주작·현무 사신도가 벽면에 힘차게 그려져 있다.",visual:{style:["사신도","청룡·백호·주작·현무","역동적 곡선","고분벽화"],colors:["청색","주홍색","백색","먹색"],materials:["석회 벽면","광물 안료","석실 벽체"],atmosphere:"신비로운, 힘찬, 우주적 수호의 기운과 고구려의 웅혼함"}},
+  {id:"goryeo-bulhwa-amitanaeyeongdo",name:"고려 불화 아미타내영도",nameEn:"Goryeo Amitabha Welcoming Painting",type:"국보",category:"회화·벽화",era:"고려",eraEn:"Goryeo Dynasty (918-1392)",location:"일본 소장",desc:"아미타불이 극락에서 망자를 맞이하러 내려오는 장면을 그린 고려 불화의 걸작.",visual:{style:["불화","내영도","금니 세선","연화좌 묘사","보살 군상"],colors:["금색","주홍색","감청색","녹색"],materials:["비단","금니","채색 안료","교착제"],atmosphere:"경건한, 숭고한, 극락정토의 자비로운 광휘"}},
+  {id:"yun-duseo-jahwasang",name:"윤두서 자화상",nameEn:"Yun Du-seo Self-Portrait",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"해남 녹우당",desc:"윤두서가 자신의 얼굴을 사실적으로 그린 자화상. 강렬한 눈빛과 정밀한 수염 표현이 압도적이다.",visual:{style:["자화상","극사실 묘사","강렬한 시선","정밀한 수염 표현"],colors:["먹색","담갈색","살색"],materials:["종이","먹"],atmosphere:"강렬한, 내면을 관통하는 시선, 조선 지식인의 자의식"}},
+  {id:"jeong-seon-geumgangjondo",name:"정선 금강전도",nameEn:"Jeong Seon Complete View of Geumgangsan",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"삼성미술관 리움",desc:"금강산 일만이천봉을 원형 구도로 조망한 진경산수화의 대표 걸작.",visual:{style:["진경산수","원형 구도","수직 준법","전경 조망","일만이천봉 표현"],colors:["먹색","담묵색","담청색"],materials:["종이","먹","담채"],atmosphere:"장대한, 숭고한, 금강산의 신령스러운 기운과 장쾌한 조망"}},
+  {id:"yi-am-hwajogujado",name:"이암 화조구자도",nameEn:"Yi Am Flowers Birds Puppies",type:"보물",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"꽃과 새, 강아지를 함께 그린 조선 초기 화조화. 자연 속 동물의 천진한 모습이 돋보인다.",visual:{style:["화조영모화","강아지 묘사","꽃과 새","자연 속 동물","서정적 장면"],colors:["먹색","담채색","연분홍","연녹색"],materials:["비단","먹","담채"],atmosphere:"천진한, 따뜻한, 자연 속 생명의 정겨운 교감"}},
+  {id:"kim-jeonghui-sehando",name:"김정희 세한도",nameEn:"Kim Jeong-hui Sehandо Winter Scene",type:"국보",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"국립중앙박물관",desc:"추사 김정희가 유배지에서 제자의 변함없는 의리에 감사하며 그린 문인화의 정수.",visual:{style:["문인화","절제된 구도","마른 붓질","소나무와 잣나무"],colors:["먹색","담묵색"],materials:["종이","먹"],atmosphere:"고고한, 절제된, 역경 속 변치 않는 절개와 선비의 지조"}},
+  {id:"minhwa-hojakdo",name:"민화 호작도",nameEn:"Minhwa Tiger and Magpie",type:"민화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"각지 소장",desc:"호랑이와 까치를 익살스럽게 그린 민화. 나쁜 기운을 쫓고 기쁜 소식을 전하는 의미를 담는다.",visual:{style:["민화","익살스러운 호랑이","까치","소나무 아래 장면"],colors:["황토색","먹색","주홍색","녹색"],materials:["종이","먹","채색 안료"],atmosphere:"익살스러운, 토속적, 서민의 소박한 소망과 유머"}},
+  {id:"joseon-gunggwol-byeokhwa",name:"조선 궁궐 장식벽화",nameEn:"Joseon Palace Decorative Murals",type:"궁중회화",category:"회화·벽화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경복궁·창덕궁",desc:"조선 궁궐 내부를 장식한 벽화. 꽃과 새, 상서로운 동물 등을 화려하게 그려 궁궐의 위엄을 높였다.",visual:{style:["궁중 장식화","벽면 채색","상서로운 문양","건축 장식","화려한 채색"],colors:["단청색","주홍색","녹색","금색"],materials:["석회 벽면","채색 안료","금분","아교"],atmosphere:"화려한, 위엄 있는, 조선 왕실의 격조와 상서로운 기운"}},
+  // ═══ 생활·풍속 (Life & Customs) — 35개 ═══
+  {id:"royal-wedding",name:"조선 궁중 혼례",nameEn:"Joseon Royal Wedding Ceremony",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"궁궐",desc:"왕실의 가례.",visual:{style:["원삼","족두리","활옷","곤룡포","가마"],colors:["홍색","남색","금색 자수"],materials:["비단","금사자수","칠보장식"],atmosphere:"화려한, 장엄한, 왕실의 격식"}},
+  {id:"hanbok-women",name:"한복 여성 전통 한복",nameEn:"Women's Traditional Hanbok",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"여성의 전통 한복 차림새.",visual:{style:["저고리","치마","댕기","노리개","버선"],colors:["분홍색","연두색","옥색","자주색"],materials:["비단","모시","옥노리개","은장도"],atmosphere:"단아한, 고운, 여성적 기품"}},
+  {id:"sarangbang",name:"조선 선비의 사랑방",nameEn:"Joseon Scholar's Sarangbang Study",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"한옥",desc:"선비가 학문과 교류를 나누던 사랑방.",visual:{style:["문방사우","서안","병풍","사방탁자","돗자리"],colors:["먹색","백색","목재색","담황색"],materials:["한지","먹","나무","도자기","벼루"],atmosphere:"고요한, 학문적인, 선비의 격조"}},
+  {id:"joseon-armor",name:"조선 갑옷 무장",nameEn:"Joseon Military Armor",type:"군사문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"군영",desc:"조선 군사의 갑옷과 무장.",visual:{style:["두정갑","투구","환도","활과 화살","등패"],colors:["철색","흑색","홍색","금색"],materials:["철판","가죽","면직","놋쇠","명주끈"],atmosphere:"위엄 있는, 무인의 기개, 전투적 긴장감"}},
+  {id:"joseon-market",name:"조선 시장 풍경",nameEn:"Joseon Traditional Market Scene",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 장터",desc:"오일장을 중심으로 한 전통 시장 풍경.",visual:{style:["좌판","보따리","엽전","저울","가마니"],colors:["황토색","갈색","남색","백색"],materials:["짚","나무","질그릇","광목천"],atmosphere:"활기찬, 북적이는, 서민적 정취"}},
+  {id:"dolhareubang",name:"제주 돌하르방",nameEn:"Jeju Dol Hareubang Stone Grandfather",type:"민속문화재",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"제주",desc:"제주 성문 앞에 세운 수호석상.",visual:{style:["벙거지 모자","부릅뜬 눈","큰 코","두 손 배 위"],colors:["현무암 회색","이끼 녹색","흙갈색"],materials:["현무암","돌조각"],atmosphere:"소박한, 수호적인, 해학적 미소"}},
+  {id:"ssireum",name:"씨름",nameEn:"Ssireum Wrestling",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"샅바를 잡고 겨루는 전통 레슬링.",visual:{style:["샅바","맨몸","모래판","심판","구경꾼"],colors:["모래색","피부색","남색 샅바","흰색"],materials:["모래","삼베 샅바","짚방석"],atmosphere:"역동적인, 힘겨루기, 남성적 호쾌함"}},
+  {id:"geune",name:"그네뛰기",nameEn:"Geune Swing Game",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"단오 명절에 여성들이 즐기던 그네놀이.",visual:{style:["그네줄","한복 치마","나무 틀","높이 솟는 자태"],colors:["연분홍","연두색","하늘색","백색"],materials:["삼줄","나무","꽃장식"],atmosphere:"경쾌한, 봄바람 같은, 여성적 활력"}},
+  {id:"ganggangsullae",name:"강강술래",nameEn:"Ganggangsullae Circle Dance",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전라남도",desc:"보름달 아래 여성들이 손잡고 도는 원무.",visual:{style:["원형 대열","손잡기","한복 치마","보름달","횃불"],colors:["백색","남색","달빛 은색"],materials:["면 한복","짚불","달빛"],atmosphere:"신비로운, 공동체적 화합, 달빛 아래 환희"}},
+  {id:"jultagi",name:"줄타기",nameEn:"Jultagi Tightrope Walking",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"줄 위에서 재담과 곡예를 펼치는 전통 공연.",visual:{style:["외줄","부채","재담꾼","악사","삿갓"],colors:["홍색","백색","청색","황색"],materials:["삼줄","대나무 부채","악기"],atmosphere:"아슬아슬한, 해학적인, 흥겨운 마당놀이"}},
+  {id:"yutnori",name:"윷놀이",nameEn:"Yutnori Board Game",type:"전통놀이",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"윷가락을 던져 말을 움직이는 전통 보드 놀이.",visual:{style:["윷가락","윷판","말","앉은 자세","편 가르기"],colors:["목재색","백색","흑색"],materials:["나무 윷가락","종이 윷판","돌 말"],atmosphere:"흥겨운, 가족적 화목, 승부의 열기"}},
+  {id:"yeon-nalligi",name:"연날리기",nameEn:"Yeon-nalligi Kite Flying",type:"전통놀이",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"정월 대보름까지 연을 날리며 액을 보내는 풍속.",visual:{style:["방패연","가오리연","얼레","연실","겨울 하늘"],colors:["홍색","청색","백색","흑색"],materials:["대나무","한지","명주실","풀"],atmosphere:"시원한, 겨울 바람 속 자유로움, 소원을 담은"}},
+  {id:"tuho",name:"투호",nameEn:"Tuho Arrow Throwing Game",type:"전통놀이",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"궁궐·사대부가",desc:"항아리에 화살을 던져 넣는 궁중 놀이.",visual:{style:["투호 항아리","화살","자리 배치","유건","도포"],colors:["청동색","홍색","백색","녹색"],materials:["청동 항아리","대나무 화살","자리"],atmosphere:"점잖은, 절제된 경쟁, 선비적 유희"}},
+  {id:"dado",name:"다도",nameEn:"Dado Korean Tea Ceremony",type:"무형유산",category:"생활·풍속",era:"고려~조선",eraEn:"Goryeo-Joseon (918-1897)",location:"사찰·사대부가",desc:"차를 달이고 나누는 전통 다례 의식.",visual:{style:["다관","찻잔","다식","다포","좌선 자세"],colors:["옥녹색","백자색","갈색","담황색"],materials:["도자기","대나무 차시","면보","녹차"],atmosphere:"고요한, 명상적인, 차향 가득한 정적"}},
+  {id:"gwageo",name:"과거시험",nameEn:"Gwageo Civil Service Examination",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"궁궐·성균관",desc:"인재를 선발하던 국가 과거 시험.",visual:{style:["시험장","유생 복장","시권","벼루","어사화"],colors:["백색","남색","홍색","먹색"],materials:["한지","먹","붓","벼루","돗자리"],atmosphere:"긴장된, 학문적 열정, 출세의 열망"}},
+  {id:"seodang",name:"서당 풍경",nameEn:"Seodang Village School",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 마을",desc:"훈장이 아이들을 가르치던 전통 서당.",visual:{style:["훈장","동자","천자문","회초리","방석"],colors:["백색","남색","먹색","목재색"],materials:["한지","먹","붓","나무 책상"],atmosphere:"정겨운, 훈육적인, 동심과 학문의 시작"}},
+  {id:"rice-planting",name:"농경 모내기",nameEn:"Rice Planting Scene",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 논",desc:"공동체가 함께하는 모내기 농경 풍경.",visual:{style:["삿갓","모판","논","소","쟁기"],colors:["녹색","흙갈색","하늘색","백색"],materials:["짚 삿갓","나무 쟁기","볏모"],atmosphere:"노동의 활기, 공동체적 협동, 풍요로운 대지"}},
+  {id:"autumn-harvest",name:"추수 풍경",nameEn:"Autumn Harvest Scene",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 논밭",desc:"가을 들녘의 추수 풍경.",visual:{style:["낫","볏단","지게","타작","가마니"],colors:["황금색","갈색","주황색","하늘색"],materials:["볏짚","나무 지게","낫","도리깨"],atmosphere:"풍요로운, 감사하는, 수확의 기쁨"}},
+  {id:"blacksmith",name:"대장간",nameEn:"Traditional Blacksmith Workshop",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"쇠를 달구어 연장을 만드는 전통 대장간.",visual:{style:["풀무","모루","망치","집게","화로"],colors:["붉은 불빛","철흑색","숯검정","주황색"],materials:["철","숯","나무 풀무","돌 모루","가죽"],atmosphere:"뜨거운, 노동의 역동성, 불꽃 튀는 장인정신"}},
+  {id:"bobusang",name:"보부상",nameEn:"Bobusang Traveling Merchant",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"등짐과 봇짐을 지고 다니며 물건을 파는 행상.",visual:{style:["지게","봇짐","삿갓","짚신","패랭이"],colors:["갈색","남색","백색","황토색"],materials:["나무 지게","광목보","짚","엽전"],atmosphere:"고단한, 길 위의 삶, 서민 경제의 활력"}},
+  {id:"dopo-hanbok",name:"남성 한복 도포",nameEn:"Men's Dopo Hanbok",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"선비가 외출 시 착용하던 남성 겉옷 도포.",visual:{style:["도포","갓","대님","버선","부채"],colors:["옥색","백색","회색","남색"],materials:["모시","명주","말총 갓","대나무 부채"],atmosphere:"단정한, 선비의 기품, 유교적 절도"}},
+  {id:"gisaeng-hanbok",name:"기생 한복",nameEn:"Gisaeng Hanbok Attire",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 교방",desc:"기생의 화려한 한복 차림과 장신구.",visual:{style:["전모","긴 저고리","풍성한 치마","가체","비녀"],colors:["자주색","홍색","연두색","금색"],materials:["비단","산호 비녀","옥가락지","은노리개"],atmosphere:"화려한, 예술적 재능, 여성미의 극치"}},
+  {id:"folk-wedding",name:"전통 민간 혼례",nameEn:"Traditional Folk Wedding Ceremony",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 마을",desc:"초례청에서 올리는 민간 전통 혼례식.",visual:{style:["초례상","기러기","표주박","사모관대","원삼"],colors:["홍색","청색","백색","금색"],materials:["나무 기러기","표주박","초","대추와 밤"],atmosphere:"경사스러운, 마을 공동체의 축복, 전통적 엄숙"}},
+  {id:"hoegap",name:"회갑잔치",nameEn:"Hoegap 60th Birthday Feast",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"환갑을 맞아 자녀가 올리는 잔칫상.",visual:{style:["큰상","헌수","절","화려한 옷","잔치 음식"],colors:["홍색","금색","백색","청색"],materials:["목기 상","놋그릇","비단 옷","과일 탑"],atmosphere:"경축의, 효도의 마음, 가족적 온기"}},
+  {id:"daeboreum",name:"정월대보름",nameEn:"Jeongwol Daeboreum Full Moon Festival",type:"세시풍속",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"음력 정월 보름의 달맞이와 쥐불놀이.",visual:{style:["달맞이","쥐불놀이","오곡밥","부럼 깨기","지신밟기"],colors:["보름달 은색","불꽃 주황","어둠 남색"],materials:["짚","깡통","오곡","견과류"],atmosphere:"신비로운, 한 해의 기원, 불꽃 속 축제"}},
+  {id:"chuseok",name:"추석 풍경",nameEn:"Chuseok Autumn Festival Scene",type:"세시풍속",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"한가위 명절의 차례와 풍성한 풍경.",visual:{style:["송편","차례상","성묘","강강술래","보름달"],colors:["백색","녹색","황금색","달빛 은색"],materials:["쌀가루","솔잎","햇과일","놋제기"],atmosphere:"풍요로운, 감사의, 가족 화합과 보름달의 정취"}},
+  {id:"seollal",name:"설날 세배",nameEn:"Seollal New Year Bow",type:"세시풍속",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"새해 아침 어른께 올리는 세배와 덕담.",visual:{style:["세배","한복","세뱃돈","떡국","복주머니"],colors:["색동","홍색","백색","금색"],materials:["비단 한복","놋그릇","세뱃돈 봉투","떡"],atmosphere:"경건한, 새해의 희망, 가족적 온정"}},
+  {id:"funeral-procession",name:"장례 상여 행렬",nameEn:"Traditional Funeral Procession",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"상여를 메고 장지로 향하는 전통 장례 행렬.",visual:{style:["상여","만장","상복","꽃장식","상여꾼"],colors:["백색","흑색","삼베색","적색 장식"],materials:["나무 상여","삼베","만장 천","꽃 조화"],atmosphere:"엄숙한, 애도의, 이승과 저승 사이의 경건"}},
+  {id:"mudang-gut",name:"무당 굿",nameEn:"Mudang Gut Shamanic Ritual",type:"무형유산",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"무당이 신과 소통하며 치유와 기원을 행하는 굿.",visual:{style:["무복","신칼","부채","방울","제물상"],colors:["오방색","홍색","백색","청색","황색"],materials:["무복 비단","놋방울","신칼","한지 지전"],atmosphere:"신비로운, 황홀경의, 영적 교감과 치유"}},
+  {id:"ondol",name:"온돌",nameEn:"Ondol Underfloor Heating System",type:"생활문화",category:"생활·풍속",era:"고려~조선",eraEn:"Goryeo-Joseon (918-1897)",location:"전국",desc:"아궁이 불로 바닥을 데우는 전통 난방 구조.",visual:{style:["아궁이","구들장","굴뚝","방바닥","이불"],colors:["흙갈색","돌회색","불빛 주황","장판 황색"],materials:["구들돌","진흙","장판지","짚"],atmosphere:"따스한, 아늑한, 겨울밤의 포근함"}},
+  {id:"jangdokdae",name:"장독대",nameEn:"Jangdokdae Traditional Jar Platform",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 한옥",desc:"된장 간장 고추장 등을 담아 숙성하는 장독대.",visual:{style:["옹기 항아리","소반","뚜껑","돌담","햇볕"],colors:["옹기 갈색","흙색","고추장 붉은색","하늘색"],materials:["옹기","짚","돌","소금","메주"],atmosphere:"소박한, 발효의 깊은 맛, 어머니의 정성"}},
+  {id:"chogajip",name:"초가집",nameEn:"Chogajip Thatched Roof House",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 농촌",desc:"볏짚으로 지붕을 인 서민 가옥.",visual:{style:["초가지붕","흙담","마당","나무기둥","우물"],colors:["짚노랑","흙갈색","녹색","하늘색"],materials:["볏짚","흙벽","나무","돌"],atmosphere:"소박한, 정겨운 농촌, 서민적 온기"}},
+  {id:"scholar-boat",name:"선비 뱃놀이",nameEn:"Scholar's Boat Excursion",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"강·호수",desc:"선비들이 풍류를 즐기며 시를 읊던 뱃놀이.",visual:{style:["나룻배","갓","거문고","술잔","시첩"],colors:["수면 청색","백색","목재색","녹색"],materials:["나무배","명주","거문고","도자 술잔"],atmosphere:"풍류적인, 자연 속 여유, 시적 감흥"}},
+  {id:"washing-place",name:"빨래터",nameEn:"Washing Place by Stream",type:"생활문화",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 개울가",desc:"여인들이 개울가에서 빨래하며 이야기 나누던 곳.",visual:{style:["빨래방망이","다듬잇돌","광목","개울","바구니"],colors:["백색","물색 청록","갈색","연녹색"],materials:["나무 방망이","돌","광목천","대나무 바구니"],atmosphere:"정겨운, 공동체적 유대, 물소리와 웃음소리"}},
+  {id:"lantern-festival",name:"관등놀이",nameEn:"Gwandeung Lantern Festival",type:"세시풍속",category:"생활·풍속",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"사월 초파일 연등을 밝혀 소원을 비는 등불 축제.",visual:{style:["연등","수박등","잉어등","용등","거리 행렬"],colors:["홍색","황색","녹색","오방색"],materials:["한지","대나무","초","비단실"],atmosphere:"환한, 소원을 담은, 밤거리의 화려한 빛축제"}},
+  // ═══ 음악·무용 (Music & Dance) — 20개 ═══
+  {id:"pansori",name:"판소리",nameEn:"Pansori Epic Chant",type:"무형유산/세계유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"한 명의 소리꾼이 고수의 북장단에 맞춰 이야기를 노래하는 전통 공연예술.",visual:{style:["소리꾼","고수","북","부채","병풍 앞 무대"],colors:["한복 흰색·남색","북 갈색","부채 다색"],materials:["북","부채","한복","대나무"],atmosphere:"비장한, 구성진, 한국적 한과 흥"}},
+  {id:"gayageum",name:"가야금 연주",nameEn:"Gayageum Performance",type:"무형유산",category:"음악·무용",era:"가야~조선",eraEn:"Gaya–Joseon (42-1897)",location:"전국",desc:"12현 또는 25현의 가야금을 손가락으로 뜯고 튕겨 연주하는 전통 현악기 공연.",visual:{style:["가야금","연주자 정좌","한복 차림","무대 조명","병풍"],colors:["오동나무 밝은 갈색","명주실 흰색","한복 연분홍"],materials:["오동나무","명주실","한복","좌석 방석"],atmosphere:"청아한, 고요한, 섬세한 울림"}},
+  {id:"geomungo",name:"거문고 연주",nameEn:"Geomungo Performance",type:"무형유산",category:"음악·무용",era:"고구려~조선",eraEn:"Goguryeo–Joseon (37 BC-1897)",location:"전국",desc:"술대로 여섯 줄을 내리쳐 깊고 장중한 소리를 내는 전통 현악기 연주.",visual:{style:["거문고","술대","연주자 정좌","한옥 마루","촛불"],colors:["오동나무 진갈색","명주실 흰색","한복 남색"],materials:["오동나무","명주실","술대","한복"],atmosphere:"장중한, 깊은 울림, 선비의 풍류"}},
+  {id:"daegeum",name:"대금 연주",nameEn:"Daegeum Bamboo Flute",type:"무형유산",category:"음악·무용",era:"삼국~조선",eraEn:"Three Kingdoms–Joseon (57 BC-1897)",location:"전국",desc:"대나무로 만든 횡적을 불어 맑고 깊은 소리를 내는 전통 관악기 연주.",visual:{style:["대금","연주자","갈대 청","한복 차림","자연 배경"],colors:["대나무 황갈색","갈대청 연두색","한복 흰색"],materials:["대나무","갈대","한복","옻칠"],atmosphere:"맑은, 청량한, 자연과 어우러지는 소리"}},
+  {id:"haegeum",name:"해금 연주",nameEn:"Haegeum Two-string Fiddle",type:"무형유산",category:"음악·무용",era:"고려~조선",eraEn:"Goryeo–Joseon (918-1897)",location:"전국",desc:"두 줄의 명주실을 활로 문질러 다채로운 음색을 내는 전통 찰현악기 연주.",visual:{style:["해금","활대","연주자 좌식","한옥 배경","병풍"],colors:["나무 밝은 갈색","명주실 흰색","한복 연보라"],materials:["대나무","명주실","말총 활","소나무"],atmosphere:"애절한, 구슬픈, 서정적 여운"}},
+  {id:"janggu",name:"장구 연주",nameEn:"Janggu Hourglass Drum",type:"무형유산",category:"음악·무용",era:"삼국~조선",eraEn:"Three Kingdoms–Joseon (57 BC-1897)",location:"전국",desc:"모래시계 모양의 양면북을 채와 손으로 두드려 장단을 만드는 전통 타악기 연주.",visual:{style:["장구","궁채","열채","연주자","놀이마당"],colors:["나무 붉은 갈색","가죽 미색","끈 다홍색"],materials:["오동나무","소가죽","말가죽","노끈"],atmosphere:"흥겨운, 역동적인, 장단의 조화"}},
+  {id:"samulnori",name:"사물놀이",nameEn:"Samulnori Percussion Ensemble",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"꽹과리·징·장구·북 네 가지 타악기로 연주하는 전통 풍물 합주 공연. 휘모리 장단의 절정에서 폭발하는 집단적 신명.",visual:{style:["꽹과리","징","장구","북","상모 돌리기","열두발상모","놀이마당","관객 호응"],colors:["한복 흰색·다홍색","악기 금색·갈색","상모 흰색","얼굴 붉은 상기"],materials:["놋쇠","소가죽","나무","상모","땀","먼지"],atmosphere:"폭발적인, 신명나는, 집단 에너지, 휘모리 절정, 트랜스 상태의 몰입"}},
+  {id:"seungmu",name:"승무",nameEn:"Seungmu Monk's Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"흰 장삼과 고깔을 쓰고 긴 소매를 휘날리며 추는 전통 독무.",visual:{style:["장삼","고깔","긴 소매","북","독무 무대"],colors:["장삼 흰색","고깔 흰색","북 갈색·빨강"],materials:["장삼","고깔","북","한지"],atmosphere:"고고한, 절제된 아름다움, 선과 곡선의 조화"}},
+  {id:"cheoyongmu",name:"처용무",nameEn:"Cheoyongmu Mask Dance",type:"무형유산/세계유산",category:"음악·무용",era:"통일신라~조선",eraEn:"Unified Silla–Joseon (668-1897)",location:"궁중",desc:"다섯 방위의 처용 탈을 쓰고 악귀를 물리치는 의미의 궁중 의식무.",visual:{style:["처용 탈","오방색 의상","다섯 무용수","궁중 무대","의식 대형"],colors:["오방색 청·백·적·흑·황","탈 붉은색","금색 장식"],materials:["나무 탈","비단","금박","오방색 천"],atmosphere:"장엄한, 벽사의 기운, 오색 화려함"}},
+  {id:"buchaechum",name:"부채춤",nameEn:"Buchaechum Fan Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"화려한 꽃부채를 들고 군무로 다양한 형상을 만들어내는 전통 여성 무용.",visual:{style:["꽃부채","한복 차림","군무 대형","꽃 형상","무대 조명"],colors:["분홍·연두 부채","한복 분홍·노랑","무대 청색"],materials:["부채","비단","한복","모란꽃 장식"],atmosphere:"화사한, 우아한, 여성적 아름다움"}},
+  {id:"nongak",name:"농악",nameEn:"Nongak Farmers' Music",type:"무형유산/세계유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국 농촌",desc:"농사의 시작과 끝을 축하하며 마을 공동체가 함께하는 풍물놀이와 춤.",visual:{style:["상모","꽹과리","장구","농기","마을 마당","잡색 놀이"],colors:["한복 흰색·색동","농기 다색","상모 흰색"],materials:["놋쇠 악기","상모","농기","한복"],atmosphere:"신명나는, 공동체의 흥, 대동의 축제"}},
+  {id:"jongmyo-jeryeak",name:"종묘제례악",nameEn:"Jongmyo Jeryeak Royal Ancestral Ritual Music",type:"세계유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울 종묘",desc:"조선 왕실 조상의 제사에 연주되는 아악과 일무를 포함한 궁중 의례 음악.",visual:{style:["종묘 정전","일무 무용수","아악기","제례복","의식 대형"],colors:["제례복 적색·청색","악기 금색","종묘 단청 다색"],materials:["편종","편경","비단 제례복","향로"],atmosphere:"엄숙한, 장엄한, 왕실 권위와 경건함"}},
+  {id:"hahoe-mask-dance",name:"탈춤 하회별신굿",nameEn:"Hahoe Mask Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"경북 안동",desc:"하회 마을에서 전승되는 탈놀이로 양반 사회를 풍자하는 민속 가면극.",visual:{style:["하회탈","양반 풍자","마당극","관객 참여","악사"],colors:["탈 나무색·붉은색","한복 다색","마당 흙색"],materials:["오리나무 탈","한복","장구","피리"],atmosphere:"해학적인, 풍자적인, 민중의 웃음과 저항"}},
+  {id:"bongsan-mask-dance",name:"봉산탈춤",nameEn:"Bongsan Mask Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"황해도 봉산",desc:"봉산 지역에서 전승된 탈춤으로 파계승·양반·서민의 갈등을 극화한 가면극.",visual:{style:["봉산탈","취발이","사자춤","마당놀이","악사 반주"],colors:["탈 검정·빨강·흰색","한복 다색","모닥불 주황"],materials:["종이탈","한복","장구","꽹과리"],atmosphere:"활기찬, 통쾌한, 민중 풍자의 에너지"}},
+  {id:"kkokdugaksi",name:"꼭두각시놀음",nameEn:"Kkokdugaksi Puppet Play",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"나무로 만든 인형을 조종하며 이야기를 풀어가는 전통 인형극.",visual:{style:["꼭두각시 인형","포장막","인형사","반주 악사","관객"],colors:["인형 다색","포장막 청색·흰색","의상 원색"],materials:["나무 인형","천 포장","장구","피리"],atmosphere:"익살스러운, 서민적 해학, 놀이판의 활기"}},
+  {id:"ajaeng",name:"아쟁 연주",nameEn:"Ajaeng Bowed Zither",type:"무형유산",category:"음악·무용",era:"고려~조선",eraEn:"Goryeo–Joseon (918-1897)",location:"전국",desc:"개나리 나무 활로 굵은 줄을 문질러 깊고 낮은 소리를 내는 전통 찰현악기 연주.",visual:{style:["아쟁","개나리 활대","연주자 좌식","정악 합주","한옥"],colors:["오동나무 밝은 갈색","줄 흰색","한복 남색"],materials:["오동나무","명주실","개나리나무 활","한복"],atmosphere:"깊은, 장중한 저음, 대지의 울림"}},
+  {id:"piri",name:"피리 연주",nameEn:"Piri Bamboo Oboe",type:"무형유산",category:"음악·무용",era:"삼국~조선",eraEn:"Three Kingdoms–Joseon (57 BC-1897)",location:"전국",desc:"대나무 겹서로 된 관악기를 불어 구성지고 깊은 소리를 내는 전통 연주.",visual:{style:["피리","서","연주자","정악 무대","한옥 배경"],colors:["대나무 황갈색","서 연두색","한복 옥색"],materials:["대나무","갈대 서","옻칠","한복"],atmosphere:"구성진, 깊은 여운, 애잔한 선율"}},
+  {id:"gungjung-jeongjae",name:"궁중 정재",nameEn:"Gungjung Jeongjae Court Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"궁중",desc:"궁중 연회에서 추던 격식 높은 의례무로 화려한 의상과 절제된 동작이 특징.",visual:{style:["궁중 무대","화관","원삼","족두리","죽간자","군무 대형"],colors:["원삼 홍색·청색","화관 금색","족두리 보석색"],materials:["비단 원삼","화관","죽간자","연꽃 조화"],atmosphere:"화려한, 격조 높은, 왕실 연회의 우아함"}},
+  {id:"salpurichum",name:"살풀이춤",nameEn:"Salpurichum Shamanistic Dance",type:"무형유산",category:"음악·무용",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"긴 흰 수건을 들고 살(액)을 풀어내는 뜻을 담은 전통 무속 계통의 독무.",visual:{style:["흰 수건","한복","독무","살풀이 가락","어둔 무대"],colors:["한복 흰색","수건 흰색","무대 어두운 남색"],materials:["명주 수건","한복","장구","해금"],atmosphere:"처연한, 한 서린, 영혼을 어루만지는 춤사위"}},
+  {id:"taepyeongso",name:"태평소 연주",nameEn:"Taepyeongso Shawm",type:"무형유산",category:"음악·무용",era:"고려~조선",eraEn:"Goryeo–Joseon (918-1897)",location:"전국",desc:"나팔 모양의 금속 벨과 겹서를 가진 관악기로 높고 힘찬 소리를 내는 전통 연주.",visual:{style:["태평소","금속 벨","서","연주자","풍물패 행렬"],colors:["나무 갈색","금속 벨 금색","한복 흰색·다홍"],materials:["대추나무","놋쇠 벨","갈대 서","한복"],atmosphere:"힘찬, 축제적, 하늘을 가르는 고음"}},
+  // ═══ 음식문화 (Food Culture) — 15개 ═══
+  {id:"gungjung-eumsik",name:"궁중음식",nameEn:"Royal Court Cuisine",type:"무형유산",category:"음식문화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"서울",desc:"조선 궁궐에서 전승된 격식 높은 궁중 요리로, 전국 각지의 진상품을 활용한 정교한 조리법과 상차림이 특징.",visual:{style:["궁중 상차림","십이첩 반상","은수저","놋그릇","화려한 고명"],colors:["오방색 고명","백자 흰색","놋그릇 금색","붉은 대추"],materials:["놋그릇","백자","은수저","소반"],atmosphere:"격조 높은, 왕실의 품격, 정갈한 상차림"}},
+  {id:"kimchi",name:"김치",nameEn:"Kimchi Traditional Fermented Vegetables",type:"무형유산/세계유산",category:"음식문화",era:"삼국~조선",eraEn:"Three Kingdoms to Joseon (AD 37-1897)",location:"전국",desc:"배추, 무 등을 소금에 절여 고춧가루, 젓갈 등 양념으로 버무려 발효시킨 전통 음식.",visual:{style:["배추김치","옹기 항아리","빨간 양념","젓가락","반찬 접시"],colors:["빨간 고춧가루","배추 녹색","옹기 갈색"],materials:["배추","고춧가루","옹기","소금"],atmosphere:"정성 가득한, 한국의 맛, 어머니의 손맛"}},
+  {id:"tteok",name:"떡",nameEn:"Tteok Rice Cake",type:"전통음식",category:"음식문화",era:"삼국~조선",eraEn:"Three Kingdoms to Joseon (AD 37-1897)",location:"전국",desc:"쌀가루를 찌거나 치대어 만든 전통 음식으로, 명절과 잔치에 빠지지 않는 한국의 대표 의례 음식.",visual:{style:["송편","절편","시루떡","떡살 문양","대나무 찜기"],colors:["흰 쌀떡","솔잎 녹색","콩고물 노란색","대추 붉은색"],materials:["쌀가루","솔잎","시루","떡살"],atmosphere:"명절의 풍성함, 가족의 온기, 정겨운 나눔"}},
+  {id:"hangwa",name:"한과",nameEn:"Hangwa Traditional Confectionery",type:"전통음식",category:"음식문화",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"전국",desc:"곡물가루에 꿀, 참기름 등을 넣어 만든 전통 과자류로, 유과, 약과, 강정 등 다양한 종류가 있다.",visual:{style:["유과","강정","매작과","꽃 모양 틀","오색 고명"],colors:["꿀 황금색","깨 흰색","오색 튀밥","갈색 기름"],materials:["찹쌀","꿀","참기름","깨"],atmosphere:"고운 손길, 달콤한 정성, 잔치의 기쁨"}},
+  {id:"makgeolli",name:"막걸리",nameEn:"Makgeolli Traditional Rice Wine",type:"전통음식",category:"음식문화",era:"삼국~조선",eraEn:"Three Kingdoms to Joseon (AD 37-1897)",location:"전국",desc:"쌀과 누룩을 발효시켜 만든 전통 탁주로, 은은한 단맛과 부드러운 목넘김이 특징인 서민의 술.",visual:{style:["막걸리 사발","누룩","옹기 항아리","대나무 국자","파전"],colors:["우윳빛 흰색","누룩 노란색","옹기 갈색"],materials:["쌀","누룩","옹기","사발"],atmosphere:"서민의 넉넉함, 정겨운 주막, 비 오는 날의 운치"}},
+  {id:"bibimbap",name:"비빔밥",nameEn:"Bibimbap Mixed Rice Bowl",type:"전통음식",category:"음식문화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전주, 전국",desc:"밥 위에 각종 나물과 고기, 고추장, 달걀을 올려 비벼 먹는 전통 음식으로 오방색의 조화가 특징.",visual:{style:["돌솥비빔밥","오색 나물","고추장","달걀 노른자","놋그릇"],colors:["오방색 나물","고추장 빨간색","달걀 노란색","밥 흰색"],materials:["놋그릇","돌솥","나무 숟가락","고추장"],atmosphere:"색색의 조화, 오감의 즐거움, 비비는 손맛"}},
+  {id:"bulgogi",name:"불고기",nameEn:"Bulgogi Marinated Beef",type:"전통음식",category:"음식문화",era:"고구려~조선",eraEn:"Goguryeo to Joseon (AD 37-1897)",location:"전국",desc:"얇게 썬 소고기를 간장, 배, 마늘 등으로 양념하여 구운 전통 고기 요리로, 달콤한 향이 특징.",visual:{style:["숯불 화로","불고기 전골","양념 고기","버섯","당면"],colors:["갈색 양념","숯불 붉은색","파 녹색","배 연노란색"],materials:["화로","숯","놋 전골판","젓가락"],atmosphere:"숯불 향기, 온 가족의 식탁, 달콤한 감칠맛"}},
+  {id:"yakgwa",name:"약과",nameEn:"Yakgwa Honey Cookie",type:"전통음식",category:"음식문화",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"전국",desc:"밀가루에 참기름과 꿀을 넣어 반죽하고 기름에 튀긴 뒤 꿀에 재운 전통 과자.",visual:{style:["꽃 모양 약과","꿀 시럽","약과 틀","잣 고명","제사상"],colors:["황금빛 꿀색","짙은 갈색","잣 연노란색"],materials:["밀가루","꿀","참기름","약과 틀","잣"],atmosphere:"달콤한 꿀향, 정성 가득한, 귀한 대접의 맛"}},
+  {id:"hanjeongsik",name:"한정식",nameEn:"Hanjeongsik Korean Full Course Meal",type:"전통음식",category:"음식문화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"밥과 국을 기본으로 다양한 반찬을 차려내는 한국 전통 상차림으로, 반상 차림의 격식을 따른다.",visual:{style:["반상 차림","열두 가지 반찬","밥과 국","종지","소반"],colors:["오색 반찬","백자 흰색","나무 소반 갈색","김치 빨간색"],materials:["백자","놋그릇","소반","종지"],atmosphere:"넉넉한 인심, 정갈한 차림, 한국 미학의 정수"}},
+  {id:"dasik",name:"다식",nameEn:"Dasik Tea Confection",type:"전통음식",category:"음식문화",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"전국",desc:"송화가루, 콩가루, 깨 등을 꿀에 반죽하여 다식판에 찍어 낸 전통 차 과자.",visual:{style:["다식판 문양","오색 다식","찻잔","찻상","꽃무늬 틀"],colors:["송화 노란색","깨 검은색","녹차 녹색","흰 콩가루"],materials:["다식판","송화가루","꿀","찻잔"],atmosphere:"고즈넉한 차 한 잔, 선비의 풍류, 은은한 향"}},
+  {id:"sikhye",name:"식혜",nameEn:"Sikhye Sweet Rice Drink",type:"전통음식",category:"음식문화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"전국",desc:"엿기름물에 밥을 삭혀 만든 전통 감주로, 달콤하고 시원한 맛이 특징인 후식 음료.",visual:{style:["유리 그릇","밥알","엿기름","잣 고명","얼음"],colors:["맑은 연노란색","밥알 흰색","잣 연노란색"],materials:["엿기름","쌀","유기 그릇","잣"],atmosphere:"시원한 달콤함, 명절의 여유, 마무리의 정갈함"}},
+  {id:"sujeonggwa",name:"수정과",nameEn:"Sujeonggwa Cinnamon Persimmon Punch",type:"전통음식",category:"음식문화",era:"고려~조선",eraEn:"Goryeo to Joseon (918-1897)",location:"전국",desc:"계피와 생강을 끓인 물에 설탕을 넣고 곶감과 잣을 띄운 전통 음료.",visual:{style:["곶감","계피 막대","잣 고명","유기 그릇","진한 갈색 음료"],colors:["짙은 갈색","곶감 주황색","잣 흰색","계피 적갈색"],materials:["계피","곶감","생강","유기 그릇","잣"],atmosphere:"향긋한 겨울밤, 따뜻한 정, 깊은 향의 여운"}},
+  {id:"jeotgal",name:"젓갈",nameEn:"Jeotgal Salted Fermented Seafood",type:"전통음식",category:"음식문화",era:"삼국~조선",eraEn:"Three Kingdoms to Joseon (AD 37-1897)",location:"전국 해안",desc:"새우, 조개, 생선 등 해산물을 소금에 절여 발효시킨 전통 저장 음식이자 감칠맛의 원천.",visual:{style:["옹기 항아리","새우젓","멸치젓","소금","종지 담음"],colors:["분홍 새우젓","갈색 멸치젓","소금 흰색","옹기 갈색"],materials:["옹기","소금","새우","종지"],atmosphere:"바다의 풍미, 세월의 깊은 맛, 감칠맛의 비밀"}},
+  {id:"jang-damgeugi",name:"장담그기",nameEn:"Jang-damgeugi Traditional Soy Paste Making",type:"무형유산",category:"음식문화",era:"삼국~조선",eraEn:"Three Kingdoms to Joseon (AD 37-1897)",location:"전국",desc:"콩으로 메주를 만들어 소금물에 담가 발효시켜 된장, 간장, 고추장을 만드는 전통 장 담그기 문화.",visual:{style:["장독대","메주","소금물","된장 항아리","볏짚"],colors:["메주 갈색","간장 검은색","된장 황토색","옹기 갈색"],materials:["콩","메주","옹기","소금","볏짚"],atmosphere:"어머니의 정성, 세월의 발효, 장맛의 깊이"}},
+  {id:"gochujang",name:"고추장",nameEn:"Gochujang Red Pepper Paste",type:"전통음식",category:"음식문화",era:"조선",eraEn:"Joseon Dynasty (1392-1897)",location:"순창, 전국",desc:"고춧가루, 찹쌀, 메줏가루, 소금을 섞어 발효시킨 매콤달콤한 전통 장류로, 한식의 핵심 양념.",visual:{style:["옹기 항아리","붉은 고추장","장독대","나무 주걱","고춧가루"],colors:["붉은 고추장","옹기 갈색","고춧가루 빨간색"],materials:["고춧가루","찹쌀","메줏가루","옹기"],atmosphere:"매콤한 정열, 발효의 지혜, 한식의 영혼"}},
+  // ═══ 자연유산 (Natural Heritage) — 15개 ═══
+  {id:"seoraksan",name:"설악산",nameEn:"Seoraksan Mountain",type:"천연기념물/생물권보전지역",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"강원도 속초·인제",desc:"한국의 대표 명산. 기암괴석과 울창한 숲, 사계절 절경.",visual:{style:["기암괴석","울산바위","흔들바위","단풍","운해","폭포"],colors:["가을 단풍 빨강·주황","소나무 녹색","화강암 회백색","하늘 청색"],materials:["화강암","소나무","단풍나무"],atmosphere:"장엄한, 웅장한, 사계절의 신비, 한국 산수의 정수"}},
+  {id:"hallasan",name:"한라산",nameEn:"Hallasan Mountain",type:"세계자연유산/국립공원",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"제주특별자치도",desc:"제주도 중앙의 화산. 백록담 정상 화구호와 아고산대 식생이 어우러진 세계자연유산.",visual:{style:["백록담","화구호","구상나무","고산습지","운해","눈꽃"],colors:["구상나무 짙은 녹색","백록담 에메랄드","겨울 설백색","철쭉 분홍"],materials:["현무암","구상나무","철쭉"],atmosphere:"신성한, 고요한, 화산섬의 영봉, 구름 위의 세계"}},
+  {id:"jirisan",name:"지리산",nameEn:"Jirisan Mountain",type:"국립공원 제1호",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전라남도·전라북도·경상남도",desc:"한국 최초의 국립공원. 종주 능선과 깊은 계곡, 반달가슴곰 서식지.",visual:{style:["천왕봉","노고단","운해","반달가슴곰","세석평전","계곡"],colors:["능선 짙은 청록","운해 은백색","가을 단풍 황금","철쭉 자주"],materials:["편마암","참나무","철쭉","이끼"],atmosphere:"어머니의 산, 깊고 너그러운, 한국 산악 문화의 뿌리"}},
+  {id:"jeju-columnar-joints",name:"제주 주상절리",nameEn:"Jeju Columnar Joints",type:"천연기념물 제443호",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"제주 서귀포시 중문",desc:"용암이 바다를 만나 급냉되며 형성된 수직 기둥 모양의 현무암 절벽.",visual:{style:["육각 기둥","수직 절벽","파도","해안 절경","용암 지질"],colors:["현무암 흑회색","파도 흰 포말","바다 코발트","이끼 녹색"],materials:["현무암","해수","화산암"],atmosphere:"자연의 기하학, 장엄한, 파도와 돌의 대비, 태고의 힘"}},
+  {id:"dokdo",name:"독도",nameEn:"Dokdo Island",type:"천연기념물 제336호",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"경상북도 울릉군",desc:"동해 최동단의 화산섬. 독특한 해양 생태계와 희귀 해조류 서식지.",visual:{style:["동도","서도","기암절벽","해식동굴","괭이갈매기","해조류"],colors:["바다 짙은 남색","바위 흑갈색","갈매기 흰색","해조류 녹색"],materials:["화산암","응회암","해조류"],atmosphere:"외로운, 의연한, 동해의 파수꾼, 대한민국 영토의 상징"}},
+  {id:"yongmeori-coast",name:"제주 용머리해안",nameEn:"Yongmeori Coast",type:"천연기념물 제526호",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"제주 서귀포시 안덕면",desc:"수천만 년 퇴적층이 드러난 해안 절벽. 용이 바다로 들어가는 형상.",visual:{style:["사암 절벽","해식동굴","퇴적층 단면","파도","산방산 배경"],colors:["사암 황토색","바다 청록","절벽 갈색·회색","하늘 청색"],materials:["사암","응회암","퇴적암"],atmosphere:"태고의 시간, 지질학의 교과서, 거친 바람과 파도의 조각"}},
+  {id:"suncheonman",name:"순천만 갯벌",nameEn:"Suncheonman Tidal Flat",type:"세계유산/람사르습지",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전라남도 순천시",desc:"세계적 연안 습지. 갈대밭과 S자 수로, 흑두루미 도래지.",visual:{style:["갈대밭","S자 수로","흑두루미","낙조","갯벌","철새"],colors:["갈대 황금색","갯벌 은회색","석양 주황·보라","하늘 분홍"],materials:["갯벌","갈대","수로"],atmosphere:"고요한, 서정적인, 생명의 보고, 자연과 인간의 공존"}},
+  {id:"boseong-tea",name:"보성 녹차밭",nameEn:"Boseong Green Tea Plantation",type:"명승/문화경관",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전라남도 보성군",desc:"완만한 구릉을 뒤덮은 녹차밭. 안개와 이슬이 만드는 몽환적 풍경.",visual:{style:["차밭 곡선","구릉 계단식","안개","이슬","삼나무 방풍림"],colors:["녹차 연두·진녹","안개 유백색","흙 적갈색","하늘 연청"],materials:["녹차나무","적토","삼나무"],atmosphere:"평화로운, 몽환적인, 이슬 머금은 초록의 물결"}},
+  {id:"damyang-bamboo",name:"담양 죽녹원",nameEn:"Damyang Bamboo Forest",type:"명승/생태관광지",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전라남도 담양군",desc:"울창한 대나무 숲이 조성하는 초록빛 터널. 바람에 흔들리는 댓잎 소리.",visual:{style:["대나무 터널","죽림 산책로","댓잎","죽순","빛내림"],colors:["대나무 청록","댓잎 연두","산책로 황토","빛 금색"],materials:["대나무","흙","돌"],atmosphere:"청량한, 선비의 기품, 바람과 댓잎의 교향, 사색의 공간"}},
+  {id:"dmz-ecology",name:"DMZ 생태",nameEn:"DMZ Ecology",type:"생태유산/비무장지대",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"강원도·경기도 접경지역",desc:"70년 이상 사람의 손이 닿지 않은 비무장지대. 두루미, 산양 등 희귀 동식물 서식.",visual:{style:["철책선","두루미","산양","원시림","습지","초원"],colors:["숲 짙은 녹색","철책 녹슨 갈색","두루미 흰색·빨강","하늘 회청"],materials:["철조망","원시림","습지"],atmosphere:"역설적 평화, 자연의 회복력, 분단의 아이러니 속 생명의 낙원"}},
+  {id:"naejangsan",name:"내장산 단풍",nameEn:"Naejangsan Autumn Foliage",type:"국립공원/명승",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전라북도 정읍시",desc:"한국 제일의 단풍 명소. 내장사 진입로의 단풍 터널이 장관.",visual:{style:["단풍 터널","내장사","우화정","케이블카 조망","계곡","능선"],colors:["단풍 진홍·주황","은행 노랑","소나무 녹색","하늘 청명"],materials:["단풍나무","소나무","화강암","계곡수"],atmosphere:"화려한, 절정의 아름다움, 붉은 비단을 두른 산, 가을의 정수"}},
+  {id:"jeju-stone-walls",name:"제주 돌담길",nameEn:"Jeju Stone Wall Path",type:"세계유산/문화경관",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"제주특별자치도 전역",desc:"현무암을 쌓아 만든 제주 특유의 돌담. 바람과 공존하는 섬의 지혜.",visual:{style:["현무암 돌담","밭담","올레길","감귤밭","야생화","해안"],colors:["현무암 흑회색","감귤 주황","유채꽃 노랑","하늘 청색"],materials:["현무암","화산석","이끼","흙"],atmosphere:"소박한, 정겨운, 바람과 돌의 공존, 제주 삶의 질감"}},
+  {id:"korean-pine-forest",name:"소나무 숲",nameEn:"Korean Pine Forest",type:"천연기념물/보호림",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"전국 (울진·안동·경주 등)",desc:"한국인의 정신적 상징 소나무. 울진 금강송 군락 등 천연기념물 소나무 숲.",visual:{style:["금강송","적송 군락","솔숲 산책로","송진 향","고사목","능선"],colors:["소나무 짙은 녹색","수피 적갈색","숲길 황토","하늘 청색"],materials:["소나무","송진","낙엽","화강암"],atmosphere:"기품 있는, 절개와 지조, 한국 선비 정신의 나무, 솔향의 고요"}},
+  {id:"ulleungdo-coast",name:"울릉도 해안",nameEn:"Ulleungdo Coastal Scenery",type:"천연기념물/국가지질공원",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"경상북도 울릉군",desc:"동해 화산섬의 기암절벽과 투명한 바다. 해식동굴과 코끼리바위 등 절경.",visual:{style:["코끼리바위","삼선암","해식동굴","투명 바다","태하등대","나리분지"],colors:["바다 에메랄드·코발트","절벽 흑갈색","숲 녹색","하늘 청명"],materials:["화산암","현무암","해송","해조류"],atmosphere:"신비로운, 원시적인, 동해의 보석, 때묻지 않은 자연의 성역"}},
+  {id:"gangwon-snow",name:"강원도 설경",nameEn:"Gangwon Winter Snow Scenery",type:"자연경관/관광명소",category:"자연유산",era:"자연",eraEn:"Natural Heritage",location:"강원도 평창·대관령·태백",desc:"대관령과 태백산맥의 겨울 설경. 눈꽃 핀 전나무 숲과 상고대의 환상.",visual:{style:["상고대","눈꽃","전나무 숲","대관령 목장","설원","고드름"],colors:["눈 순백색","하늘 회청색","전나무 암녹","석양 연분홍"],materials:["눈","전나무","얼음","바람"],atmosphere:"순백의 고요, 겨울 왕국, 차갑지만 따뜻한 풍경, 자연의 침묵"}},
+];
+
+// 스타일 옵션
+const STYLES = [
+  { id: "photo", icon: "📷", name: "사실적 사진", desc: "실제 사진처럼 사실적인 이미지" },
+  { id: "painting", icon: "🎨", name: "전통 한국화", desc: "수묵·채색 한국 전통 화풍" },
+  { id: "illust", icon: "✏️", name: "세밀 일러스트", desc: "깨끗하고 정교한 일러스트" },
+  { id: "3d", icon: "💎", name: "3D 렌더링", desc: "입체적 3D 그래픽 스타일" },
+];
+
+// AI 모델 옵션
+const MODELS = [
+  { id: "midjourney", icon: "🟣", name: "Midjourney", desc: "Discord /imagine — 영문 최적화", lang: "en" },
+  { id: "nanobanana", icon: "🍌", name: "나노바나나 (Gemini)", desc: "한글 프롬프트 최적화", lang: "ko" },
+  { id: "general", icon: "⚪", name: "범용", desc: "아무 AI 모델에나 사용 가능 — 영문", lang: "en" },
+];
+
+// 시대 배경 정보
+const ERA_CONTEXT = {
+  "고구려": "강렬하고 역동적인 기상. 벽화 중심. 기마 문화.",
+  "백제": "부드럽고 섬세한 곡선미. 온화한 예술 세계.",
+  "신라": "화려한 금속공예. 금관, 귀걸이 등 호화로운 장신구.",
+  "통일신라": "불교미술의 전성기. 세련된 불교 조각.",
+  "고려": "청자와 불화의 시대. 귀족적 세련미.",
+  "조선": "유교 문화. 검소함 속의 격조. 백자, 한옥, 궁궐 건축.",
+  "삼국시대": "고구려·백제·신라 각각의 개성 있는 문화.",
+  "가야": "철의 왕국. 뛰어난 철기·금속공예 문화.",
+  "대한제국": "근대 서양 건축 도입기. 전통과 서양의 만남.",
+  "고려~조선": "고려에서 조선으로 이어지는 전통문화.",
+  "삼국~조선": "고대부터 조선까지 이어지는 오랜 전통.",
+  "자연": "한반도의 자연 지형과 생태 유산.",
+};
+
+
+// ══════════════════════════════════════════════
+// 상태 관리
+// ══════════════════════════════════════════════
+let selectedHeritage = null;
+let selectedStyles = [];
+let selectedModels = [];
+let generatedPrompts = [];
+let currentCategory = "전체";
+let searchQuery = "";
+const PAGE_SIZE = 15;
+let visibleCount = PAGE_SIZE;
+
+
+// ══════════════════════════════════════════════
+// 프롬프트 생성 엔진
+// ══════════════════════════════════════════════
+
+// 공연·퍼포먼스 계열 판별
+const PERFORMANCE_IDS = new Set([
+  "samulnori","janggu","pansori","talchum","ganggangsullae",
+  "buchaechum","cheoyongmu","seungmu","arirang"
+]);
+function isPerformance(item) {
+  return PERFORMANCE_IDS.has(item.id) || item.category === "음악·무용";
+}
+
+// 공연 계열용 에너지 키워드
+function getEnergyContext(item) {
+  const energyMap = {
+    "samulnori": {
+      en: "explosive collective energy, ecstatic group trance, performers drenched in sweat, sangmo ribbons spinning wildly in the air, audience clapping and shouting along, bodies moving in rhythmic unison, dust rising from stomping feet, raw percussive power, festival atmosphere at its peak",
+      ko: "폭발적 집단 신명, 땀범벅의 연주자들, 상모가 미친듯이 회전, 관객이 어깨춤을 추며 호응, 온몸으로 장단을 타는 에너지, 먼지 날리는 발구름, 축제의 절정"
+    },
+    "janggu": {
+      en: "dynamic rhythmic performance, performer's passionate expression, powerful arm movements striking the drum, body swaying with the rhythm, energetic jangdan beat, vibrant stage presence",
+      ko: "역동적 장단, 연주자의 열정적 표정, 힘찬 팔동작, 몸 전체로 리듬을 타는 모습, 에너지 넘치는 무대"
+    },
+    "pansori": {
+      en: "powerful vocal projection, singer's intense emotional expression, dramatic gestures with fan, deep guttural tones, audience shouting chuimsae encouragement, raw human emotion",
+      ko: "폭발적 성량, 소리꾼의 격한 감정 표현, 부채를 든 극적 몸짓, 관객의 추임새, 날것의 인간적 감동"
+    },
+    "talchum": {
+      en: "wild satirical dance, exaggerated mask expressions, chaotic joyful movement, crowd laughing and cheering, irreverent energy, carnival atmosphere",
+      ko: "신나는 풍자 탈놀이, 과장된 탈의 표정, 관객의 웃음과 환호, 통쾌한 해학, 축제 마당의 열기"
+    },
+    "ganggangsullae": {
+      en: "large circle of women dancing under full moonlight, spinning faster and faster, joyful singing echoing, flowing white hanbok in motion, collective feminine energy, moonlit celebration",
+      ko: "보름달 아래 빙글빙글 도는 여성들, 점점 빨라지는 회전, 노랫소리 울려퍼짐, 나부끼는 흰 한복, 집단적 흥겨움"
+    },
+    "buchaechum": {
+      en: "vibrant fan formations blooming like flowers, synchronized group choreography, colorful fans creating dynamic patterns, graceful yet powerful collective movement",
+      ko: "활짝 피어나는 부채꽃 군무, 화려한 색감의 역동적 대형 변화, 우아하면서도 힘있는 집단 움직임"
+    }
+  };
+  return energyMap[item.id] || {
+    en: "dynamic live performance energy, performers fully engaged, audience interaction, vibrant movement and sound",
+    ko: "역동적 공연 에너지, 몰입한 연주자, 관객 호응, 활기찬 움직임과 소리"
+  };
+}
+
+// ── 영문 프롬프트 (Midjourney/범용) ──
+// 구조: [주제/장면] → [스타일 지시] → [시각 디테일] → [분위기/조명] → [파라미터]
+
+function genPhotoPrompt(item) {
+  const v = item.visual;
+  const perf = isPerformance(item);
+  // 1. 주제
+  const subject = `${item.nameEn}, ${item.eraEn}, Korean cultural heritage`;
+  // 2. 스타일
+  const style = "professional photography";
+  // 3. 시각 디테일
+  const details = `featuring ${v.style.slice(0,4).join(", ")}, color palette of ${v.colors.join(", ")}, textures of ${v.materials.join(", ")}`;
+  // 4. 분위기/조명
+  const mood = v.atmosphere;
+  const lighting = perf ? "action shot, motion blur on movements, sharp focus on expressions, photojournalistic energy" : "photorealistic, highly detailed, 8K, dramatic natural lighting";
+  const parts = [style, subject, details, mood, lighting];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
+}
+
+function genPaintingPrompt(item) {
+  const v = item.visual;
+  const perf = isPerformance(item);
+  const subject = `${item.nameEn}, ${item.eraEn}`;
+  const style = perf
+    ? "dynamic Korean folk painting (minhwa) style, bold expressive brushwork"
+    : "traditional Korean painting (Hanguk-hwa) style, ink wash and mineral pigment on hanji paper";
+  const details = `elements: ${v.style.slice(0,3).join(", ")}, color tones: ${v.colors.slice(0,2).join(", ")}`;
+  const mood = perf
+    ? "energetic ink splashes, swirling motion lines, vibrant mineral pigments, sense of rhythm in every brushstroke"
+    : "contemplative, artistic, visible brush strokes, traditional East Asian aesthetic";
+  const parts = [subject, style, details, mood];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
+}
+
+function genIllustPrompt(item) {
+  const v = item.visual;
+  const perf = isPerformance(item);
+  const subject = `${item.nameEn}, ${item.eraEn}`;
+  const style = "detailed editorial illustration";
+  const details = `showing ${v.style.join(", ")}, palette: ${v.colors.join(", ")}, materials: ${v.materials.join(", ")}`;
+  const mood = v.atmosphere;
+  const quality = perf
+    ? "dynamic composition, exaggerated motion, expressive character poses, rich detail, cultural accuracy"
+    : "clean lines, rich detail, cultural accuracy";
+  const parts = [subject, style, details, mood, quality];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
+}
+
+function gen3dPrompt(item) {
+  const v = item.visual;
+  const perf = isPerformance(item);
+  const subject = `3D rendered scene of ${item.nameEn}, ${item.eraEn}`;
+  const details = `modeled elements: ${v.style.slice(0,4).join(", ")}, surface textures: ${v.materials.join(", ")}, color scheme: ${v.colors.slice(0,2).join(", ")}`;
+  const quality = perf
+    ? "Blender 3D, octane render, dynamic camera angle, particle effects, motion blur, volumetric lighting, 3D digital art, NOT a photograph"
+    : "Blender 3D, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph";
+  const parts = [subject, details, quality];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
+}
+
+// ── 한글 프롬프트 (나노바나나/Gemini) ──
+// 구조: 자연스러운 문장형 — [이름과 맥락] → [시각 묘사] → [분위기] → [스타일 지시]
+
+function genKoreanPrompt(item, styleName) {
+  const v = item.visual;
+  const perf = isPerformance(item);
+  const styleMap = {
+    "사실적 사진": "사실적인 사진처럼 표현해주세요. 고해상도 8K, 자연광 조명으로 촬영한 듯한 느낌",
+    "전통 한국화": "전통 한국화 스타일로 그려주세요. 한지 위에 수묵과 채색을 사용한 붓터치가 느껴지는 화풍",
+    "세밀 일러스트": "세밀한 일러스트레이션으로 표현해주세요. 깨끗한 선과 정확한 고증이 돋보이는 스타일",
+    "3D 렌더링": "3D 디지털 아트로 렌더링해주세요. 부드러운 쉐이딩과 볼류메트릭 라이팅, 사진이 아닌 3D 그래픽"
+  };
+  const parts = [
+    `${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`,
+    `주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`,
+    `재질은 ${v.materials.join(", ")}으로 구성됩니다`,
+    `전체 분위기는 ${v.atmosphere}`,
+  ];
+  if (perf) {
+    parts.push(getEnergyContext(item).ko);
+    parts.push("공연의 역동적 에너지와 관객의 호응이 생생하게 느껴지도록 표현해주세요");
+  } else {
+    parts.push("역사적 고증에 충실하게 표현해주세요");
+  }
+  parts.push(styleMap[styleName] || styleName);
+  return parts.join(". ") + ".";
+}
+
+function wrapForModel(prompt, modelId, styleId) {
+  const is3d = styleId === "3d";
+  const isPhoto = styleId === "photo";
+  switch (modelId) {
+    case "midjourney":
+      // award winning은 사실적 사진 스타일에서만 적용
+      let mjPrompt = isPhoto ? prompt.replace("professional photography", "award winning photography") : prompt;
+      if (is3d) return mjPrompt + " --ar 16:9 --style raw --v 6 --no photograph, photo, realistic skin --q 2";
+      return mjPrompt + " --ar 16:9 --style raw --v 6 --q 2";
+    case "nanobanana":
+      // 나노바나나는 한글 프롬프트 사용 — wrapForModel에서는 영문 그대로 반환 (한글은 별도 처리)
+      return prompt;
+    default:
+      return prompt;
+  }
+}
+
+const STYLE_FN = { photo: genPhotoPrompt, painting: genPaintingPrompt, illust: genIllustPrompt, "3d": gen3dPrompt };
+const STYLE_NAMES = { photo: "사실적 사진", painting: "전통 한국화", illust: "세밀 일러스트", "3d": "3D 렌더링" };
+
+
+// ══════════════════════════════════════════════
+// UI 렌더링
+// ══════════════════════════════════════════════
+
+function init() {
+  renderCategories();
+  renderHeritage();
+  renderStyles();
+  renderModels();
+}
+
+function renderCategories() {
+  const cats = ["전체", ...new Set(HERITAGE_DB.map(h => h.category))];
+  const el = document.getElementById("categoryTabs");
+  el.innerHTML = cats.map(c =>
+    `<div class="cat-tab ${c==='전체'?'active':''}" onclick="filterCategory('${c}')">${c}</div>`
+  ).join("");
+}
+
+function filterCategory(cat) {
+  currentCategory = cat;
+  visibleCount = PAGE_SIZE;
+  document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.textContent === cat));
+  renderHeritage();
+}
+
+function getFilteredItems() {
+  let items = currentCategory === "전체" ? HERITAGE_DB : HERITAGE_DB.filter(h => h.category === currentCategory);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    items = items.filter(h =>
+      h.name.toLowerCase().includes(q) ||
+      h.nameEn.toLowerCase().includes(q) ||
+      h.era.includes(q) ||
+      h.location.includes(q) ||
+      h.desc.includes(q)
+    );
+  }
+  return items;
+}
+
+function renderHeritage() {
+  const items = getFilteredItems();
+  const visible = items.slice(0, visibleCount);
+  const grid = document.getElementById("heritageGrid");
+  grid.innerHTML = visible.map(h => `
+    <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
+      <span class="card-type">${h.type}</span>
+      <div class="card-name">${h.name}</div>
+      <div class="card-name-en">${h.nameEn}</div>
+      <div class="card-meta">
+        <span class="card-era">${h.era}</span>
+        <span class="card-era">${h.location}</span>
+      </div>
+      <div class="card-desc">${h.desc}</div>
+    </div>
+  `).join("");
+
+  const wrap = document.getElementById("loadMoreWrap");
+  const countEl = document.getElementById("itemCount");
+  if (items.length > visibleCount) {
+    wrap.style.display = "block";
+    countEl.textContent = `${visibleCount} / ${items.length}개 표시 중`;
+  } else {
+    wrap.style.display = items.length > 0 ? "block" : "none";
+    countEl.textContent = items.length > 0 ? `전체 ${items.length}개` : "";
+    wrap.querySelector(".load-more-btn").style.display = items.length > visibleCount ? "inline-block" : "none";
+  }
+}
+
+function loadMore() {
+  visibleCount += PAGE_SIZE;
+  renderHeritage();
+}
+
+function onSearchInput() {
+  searchQuery = document.getElementById("searchInput").value.trim();
+  visibleCount = PAGE_SIZE;
+  renderHeritage();
+}
+
+function selectHeritage(id) {
+  selectedHeritage = HERITAGE_DB.find(h => h.id === id);
+  document.querySelectorAll(".heritage-card").forEach(c =>
+    c.classList.toggle("selected", c.querySelector(".card-name-en")?.textContent === selectedHeritage.nameEn)
+  );
+  document.getElementById("btn-to-step2").disabled = false;
+}
+
+function renderStyles() {
+  const grid = document.getElementById("styleGrid");
+  grid.innerHTML = STYLES.map(s => `
+    <div class="option-card" onclick="toggleStyle('${s.id}')" id="style-${s.id}">
+      <div class="opt-icon">${s.icon}</div>
+      <div class="opt-name">${s.name}</div>
+      <div class="opt-desc">${s.desc}</div>
+    </div>
+  `).join("");
+}
+
+function toggleStyle(id) {
+  const idx = selectedStyles.indexOf(id);
+  if (idx >= 0) selectedStyles.splice(idx, 1);
+  else selectedStyles.push(id);
+  STYLES.forEach(s => document.getElementById(`style-${s.id}`).classList.toggle("selected", selectedStyles.includes(s.id)));
+  document.getElementById("btn-to-step3").disabled = selectedStyles.length === 0;
+}
+
+function renderModels() {
+  const grid = document.getElementById("modelGrid");
+  grid.innerHTML = MODELS.map(m => `
+    <div class="option-card" onclick="toggleModel('${m.id}')" id="model-${m.id}">
+      <div class="opt-icon">${m.icon}</div>
+      <div class="opt-name">${m.name}</div>
+      <div class="opt-desc">${m.desc}</div>
+    </div>
+  `).join("");
+}
+
+function toggleModel(id) {
+  const idx = selectedModels.indexOf(id);
+  if (idx >= 0) selectedModels.splice(idx, 1);
+  else selectedModels.push(id);
+  MODELS.forEach(m => document.getElementById(`model-${m.id}`).classList.toggle("selected", selectedModels.includes(m.id)));
+}
+
+
+// ══════════════════════════════════════════════
+// 단계 이동
+// ══════════════════════════════════════════════
+
+function goStep(n) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("visible"));
+  document.getElementById(`step${n}`).classList.add("visible");
+
+  document.querySelectorAll(".step").forEach((s, i) => {
+    s.classList.remove("active", "done");
+    if (i + 1 < n) s.classList.add("done");
+    if (i + 1 === n) s.classList.add("active");
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+// ══════════════════════════════════════════════
+// 프롬프트 생성
+// ══════════════════════════════════════════════
+
+function generatePrompts() {
+  if (!selectedHeritage) return;
+  const item = selectedHeritage;
+  const models = selectedModels.length > 0 ? selectedModels : ["general"];
+  generatedPrompts = [];
+
+  // 결과 제목
+  document.getElementById("resultTitle").textContent = `${item.name} — 생성된 프롬프트`;
+
+  const area = document.getElementById("resultsArea");
+  let html = "";
+
+  // 고증 상세 정보
+  html += `<div class="result-block">
+    <div class="result-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'block'">
+      <h3>📋 ${item.name} 고증 정보</h3>
+      <span class="tag">${item.type} · ${item.era}</span>
+    </div>
+    <div class="result-body">
+      <p style="margin-bottom:1rem;color:var(--text2);font-size:0.9rem;">${item.desc}</p>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="label">시대</div>
+          <div class="value">${item.era} (${item.eraEn})</div>
+          ${ERA_CONTEXT[item.era] ? `<div class="value" style="margin-top:0.3rem;font-size:0.78rem;color:var(--text2)">${ERA_CONTEXT[item.era]}</div>` : ""}
+        </div>
+        <div class="detail-item">
+          <div class="label">양식 · 구조</div>
+          <div class="tag-list">${item.visual.style.map(s => `<span class="mini-tag">${s}</span>`).join("")}</div>
+        </div>
+        <div class="detail-item">
+          <div class="label">색상 팔레트</div>
+          <div class="tag-list">${item.visual.colors.map(c => `<span class="mini-tag">${c}</span>`).join("")}</div>
+        </div>
+        <div class="detail-item">
+          <div class="label">재질 · 소재</div>
+          <div class="tag-list">${item.visual.materials.map(m => `<span class="mini-tag">${m}</span>`).join("")}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // 스타일 × 모델 별 프롬프트 생성
+  for (const styleId of selectedStyles) {
+    const styleName = STYLE_NAMES[styleId];
+    const baseFn = STYLE_FN[styleId];
+    const basePrompt = baseFn(item);
+    const korPrompt = genKoreanPrompt(item, styleName);
+
+    for (const modelId of models) {
+      const model = MODELS.find(m => m.id === modelId);
+      const finalPrompt = wrapForModel(basePrompt, modelId, styleId);
+      const promptId = `prompt-${styleId}-${modelId}`;
+      const isKoModel = model.lang === "ko";
+      const displayPrompt = isKoModel ? korPrompt : finalPrompt;
+      const langLabel = isKoModel ? "한글 프롬프트" : "영문 프롬프트";
+
+      generatedPrompts.push({
+        style: styleName,
+        model: model.name,
+        promptEn: finalPrompt,
+        promptKo: korPrompt
+      });
+
+      html += `<div class="result-block">
+        <div class="result-header">
+          <h3>${styleName} — ${model.name}</h3>
+          <span class="tag">${model.icon} ${model.name}</span>
+        </div>
+        <div class="result-body">
+          <div class="prompt-box">
+            <div class="prompt-label">${langLabel} — 복사해서 AI에 입력하세요</div>
+            <div class="prompt-text" id="${promptId}">${displayPrompt}</div>
+            <button class="copy-btn" onclick="copyPrompt('${promptId}', this)">복사</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  area.innerHTML = html;
+  goStep(4);
+}
+
+
+// ══════════════════════════════════════════════
+// 복사 & 다운로드
+// ══════════════════════════════════════════════
+
+function copyPrompt(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "복사됨!";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "복사";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+}
+
+function downloadTxt() {
+  if (!selectedHeritage || generatedPrompts.length === 0) return;
+  let txt = `${selectedHeritage.name} (${selectedHeritage.nameEn})\n`;
+  txt += `${selectedHeritage.type} | ${selectedHeritage.era} | ${selectedHeritage.category}\n`;
+  txt += "=".repeat(60) + "\n\n";
+
+  for (const p of generatedPrompts) {
+    txt += `[${p.style} — ${p.model} — 영문]\n${p.promptEn}\n\n`;
+    txt += `[${p.style} — ${p.model} — 한글]\n${p.promptKo}\n\n`;
+    txt += "-".repeat(40) + "\n\n";
+  }
+
+  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${selectedHeritage.name}_프롬프트.txt`;
+  a.click();
+}
+
+function downloadJson() {
+  if (!selectedHeritage || generatedPrompts.length === 0) return;
+  const data = {
+    heritage: {
+      name: selectedHeritage.name,
+      nameEn: selectedHeritage.nameEn,
+      type: selectedHeritage.type,
+      era: selectedHeritage.era,
+      category: selectedHeritage.category,
+      visual: selectedHeritage.visual
+    },
+    prompts: generatedPrompts
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${selectedHeritage.name}_프롬프트.json`;
+  a.click();
+}
+
+// 초기화
+init();
+</script>
+</body>
+</html>
