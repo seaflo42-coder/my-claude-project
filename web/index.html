@@ -860,10 +860,9 @@ const STYLES = [
 
 // AI 모델 옵션
 const MODELS = [
-  { id: "midjourney", icon: "🟣", name: "Midjourney", desc: "Discord에서 /imagine에 붙여넣기" },
-  { id: "dalle", icon: "🟢", name: "DALL-E (ChatGPT)", desc: "ChatGPT에 그대로 입력" },
-  { id: "sd", icon: "🔵", name: "Stable Diffusion", desc: "WebUI Prompt란에 붙여넣기" },
-  { id: "general", icon: "⚪", name: "범용", desc: "아무 AI 모델에나 사용 가능" },
+  { id: "midjourney", icon: "🟣", name: "Midjourney", desc: "Discord /imagine — 영문 최적화", lang: "en" },
+  { id: "nanobanana", icon: "🍌", name: "나노바나나 (Gemini)", desc: "한글 프롬프트 최적화", lang: "ko" },
+  { id: "general", icon: "⚪", name: "범용", desc: "아무 AI 모델에나 사용 가능 — 영문", lang: "en" },
 ];
 
 // 시대 배경 정보
@@ -947,7 +946,7 @@ function genPhotoPrompt(item) {
   const v = item.visual;
   const perf = isPerformance(item);
   const base = [
-    "award winning photography",
+    "professional photography",
     `${item.nameEn}, ${item.eraEn}`,
     `featuring: ${v.style.slice(0,4).join(", ")}`,
     `color palette: ${v.colors.join(", ")}`,
@@ -1054,15 +1053,16 @@ function genKoreanPrompt(item, styleName) {
 
 function wrapForModel(prompt, modelId, styleId) {
   const is3d = styleId === "3d";
+  const isPhoto = styleId === "photo";
   switch (modelId) {
     case "midjourney":
-      return prompt + (is3d ? " --ar 16:9 --style raw --v 6 --no photograph, photo, realistic skin --q 2" : " --ar 16:9 --style raw --v 6 --q 2");
-    case "dalle":
-      return is3d
-        ? `Create a 3D rendered digital art image (NOT a photograph): ${prompt}. Use smooth 3D shading and volumetric lighting like Blender or Cinema 4D output.`
-        : `Create a historically accurate, detailed image: ${prompt}. Ensure period-appropriate Korean historical accuracy.`;
-    case "sd":
-      return prompt + (is3d ? ", 3d render, blender, c4d, octane render, smooth shading, digital art, (photograph:0.1)" : ", masterpiece, best quality, ultra detailed, sharp focus");
+      // award winning은 사실적 사진 스타일에서만 적용
+      let mjPrompt = isPhoto ? prompt.replace("professional photography", "award winning photography") : prompt;
+      if (is3d) return mjPrompt + " --ar 16:9 --style raw --v 6 --no photograph, photo, realistic skin --q 2";
+      return mjPrompt + " --ar 16:9 --style raw --v 6 --q 2";
+    case "nanobanana":
+      // 나노바나나는 한글 프롬프트 사용 — wrapForModel에서는 영문 그대로 반환 (한글은 별도 처리)
+      return prompt;
     default:
       return prompt;
   }
@@ -1274,7 +1274,9 @@ function generatePrompts() {
       const model = MODELS.find(m => m.id === modelId);
       const finalPrompt = wrapForModel(basePrompt, modelId, styleId);
       const promptId = `prompt-${styleId}-${modelId}`;
-      const korId = `prompt-${styleId}-${modelId}-ko`;
+      const isKoModel = model.lang === "ko";
+      const displayPrompt = isKoModel ? korPrompt : finalPrompt;
+      const langLabel = isKoModel ? "한글 프롬프트" : "영문 프롬프트";
 
       generatedPrompts.push({
         style: styleName,
@@ -1290,14 +1292,9 @@ function generatePrompts() {
         </div>
         <div class="result-body">
           <div class="prompt-box">
-            <div class="prompt-label">영문 프롬프트 (복사해서 AI에 입력하세요)</div>
-            <div class="prompt-text" id="${promptId}">${finalPrompt}</div>
+            <div class="prompt-label">${langLabel} — 복사해서 AI에 입력하세요</div>
+            <div class="prompt-text" id="${promptId}">${displayPrompt}</div>
             <button class="copy-btn" onclick="copyPrompt('${promptId}', this)">복사</button>
-          </div>
-          <div class="prompt-box">
-            <div class="prompt-label">한글 프롬프트 (한글 지원 모델용)</div>
-            <div class="prompt-text" id="${korId}">${korPrompt}</div>
-            <button class="copy-btn" onclick="copyPrompt('${korId}', this)">복사</button>
           </div>
         </div>
       </div>`;
