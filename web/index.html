@@ -942,113 +942,96 @@ function getEnergyContext(item) {
   };
 }
 
+// ── 영문 프롬프트 (Midjourney/범용) ──
+// 구조: [주제/장면] → [스타일 지시] → [시각 디테일] → [분위기/조명] → [파라미터]
+
 function genPhotoPrompt(item) {
   const v = item.visual;
   const perf = isPerformance(item);
-  const base = [
-    "professional photography",
-    `${item.nameEn}, ${item.eraEn}`,
-    `featuring: ${v.style.slice(0,4).join(", ")}`,
-    `color palette: ${v.colors.join(", ")}`,
-    `materials: ${v.materials.join(", ")}`,
-    v.atmosphere,
-  ];
-  if (perf) {
-    const energy = getEnergyContext(item);
-    base.push(energy.en);
-    base.push("action shot, motion blur on fast movements, sharp focus on performers' expressions, wide angle capturing full scene and crowd, photojournalistic energy, sweat droplets visible");
-  } else {
-    base.push("photorealistic, highly detailed, 8K resolution, dramatic natural lighting");
-  }
-  return base.join(", ");
+  // 1. 주제
+  const subject = `${item.nameEn}, ${item.eraEn}, Korean cultural heritage`;
+  // 2. 스타일
+  const style = "professional photography";
+  // 3. 시각 디테일
+  const details = `featuring ${v.style.slice(0,4).join(", ")}, color palette of ${v.colors.join(", ")}, textures of ${v.materials.join(", ")}`;
+  // 4. 분위기/조명
+  const mood = v.atmosphere;
+  const lighting = perf ? "action shot, motion blur on movements, sharp focus on expressions, photojournalistic energy" : "photorealistic, highly detailed, 8K, dramatic natural lighting";
+  const parts = [style, subject, details, mood, lighting];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
 }
 
 function genPaintingPrompt(item) {
   const v = item.visual;
   const perf = isPerformance(item);
-  const base = [
-    `${item.nameEn}, ${item.eraEn}`,
-  ];
-  if (perf) {
-    const energy = getEnergyContext(item);
-    base.push("depicted in dynamic Korean folk painting (minhwa) style with bold expressive brushwork");
-    base.push(`elements: ${v.style.slice(0,3).join(", ")}`);
-    base.push(`color tones: ${v.colors.slice(0,2).join(", ")}`);
-    base.push(energy.en);
-    base.push("energetic ink splashes, swirling motion lines, vibrant mineral pigments, sense of rhythm and movement captured in every brushstroke");
-  } else {
-    base.push("depicted in traditional Korean painting (Hanguk-hwa) style");
-    base.push(`elements: ${v.style.slice(0,3).join(", ")}`);
-    base.push(`color tones: ${v.colors.slice(0,2).join(", ")}`);
-    base.push("ink wash and mineral pigment on hanji paper, visible brush strokes");
-    base.push("contemplative, artistic, traditional East Asian aesthetic");
-  }
-  return base.join(", ");
+  const subject = `${item.nameEn}, ${item.eraEn}`;
+  const style = perf
+    ? "dynamic Korean folk painting (minhwa) style, bold expressive brushwork"
+    : "traditional Korean painting (Hanguk-hwa) style, ink wash and mineral pigment on hanji paper";
+  const details = `elements: ${v.style.slice(0,3).join(", ")}, color tones: ${v.colors.slice(0,2).join(", ")}`;
+  const mood = perf
+    ? "energetic ink splashes, swirling motion lines, vibrant mineral pigments, sense of rhythm in every brushstroke"
+    : "contemplative, artistic, visible brush strokes, traditional East Asian aesthetic";
+  const parts = [subject, style, details, mood];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
 }
 
 function genIllustPrompt(item) {
   const v = item.visual;
   const perf = isPerformance(item);
-  const base = [
-    `${item.nameEn}, ${item.eraEn}`,
-    `detailed illustration showing: ${v.style.join(", ")}`,
-    `palette: ${v.colors.join(", ")}`,
-    `materials depicted: ${v.materials.join(", ")}`,
-    v.atmosphere,
-  ];
-  if (perf) {
-    const energy = getEnergyContext(item);
-    base.push(energy.en);
-    base.push("dynamic composition with diagonal energy lines, exaggerated motion, expressive character poses, festival illustration style, rich detail, cultural accuracy");
-  } else {
-    base.push("editorial illustration, clean lines, rich detail, cultural accuracy");
-  }
-  return base.join(", ");
+  const subject = `${item.nameEn}, ${item.eraEn}`;
+  const style = "detailed editorial illustration";
+  const details = `showing ${v.style.join(", ")}, palette: ${v.colors.join(", ")}, materials: ${v.materials.join(", ")}`;
+  const mood = v.atmosphere;
+  const quality = perf
+    ? "dynamic composition, exaggerated motion, expressive character poses, rich detail, cultural accuracy"
+    : "clean lines, rich detail, cultural accuracy";
+  const parts = [subject, style, details, mood, quality];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
 }
 
 function gen3dPrompt(item) {
   const v = item.visual;
   const perf = isPerformance(item);
-  const base = [
-    `3D rendered scene of ${item.nameEn}, ${item.eraEn}`,
-    `modeled elements: ${v.style.slice(0,4).join(", ")}`,
-    `surface textures: ${v.materials.join(", ")}`,
-    `color scheme: ${v.colors.slice(0,2).join(", ")}`,
-  ];
-  if (perf) {
-    const energy = getEnergyContext(item);
-    base.push(energy.en);
-    base.push("Blender 3D, Cinema 4D style, octane render, dynamic camera angle, particle effects for dust and sweat, motion blur, volumetric stage lighting with warm tones, 3D digital art, NOT a photograph");
-  } else {
-    base.push("Blender 3D, Cinema 4D style, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph");
-  }
-  return base.join(", ");
+  const subject = `3D rendered scene of ${item.nameEn}, ${item.eraEn}`;
+  const details = `modeled elements: ${v.style.slice(0,4).join(", ")}, surface textures: ${v.materials.join(", ")}, color scheme: ${v.colors.slice(0,2).join(", ")}`;
+  const quality = perf
+    ? "Blender 3D, octane render, dynamic camera angle, particle effects, motion blur, volumetric lighting, 3D digital art, NOT a photograph"
+    : "Blender 3D, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph";
+  const parts = [subject, details, quality];
+  if (perf) { parts.push(getEnergyContext(item).en); }
+  return parts.join(", ");
 }
+
+// ── 한글 프롬프트 (나노바나나/Gemini) ──
+// 구조: 자연스러운 문장형 — [이름과 맥락] → [시각 묘사] → [분위기] → [스타일 지시]
 
 function genKoreanPrompt(item, styleName) {
   const v = item.visual;
   const perf = isPerformance(item);
   const styleMap = {
-    "사실적 사진": "사실적 사진 스타일, 고해상도 8K, 자연광",
-    "전통 한국화": "전통 한국화 스타일, 한지 위 수묵채색, 붓터치",
-    "세밀 일러스트": "세밀한 일러스트레이션, 정확한 고증, 깨끗한 선",
-    "3D 렌더링": "3D 디지털 아트, Blender/C4D 스타일, 볼류메트릭 라이팅, 부드러운 쉐이딩, 사진이 아닌 3D 렌더링"
+    "사실적 사진": "사실적인 사진처럼 표현해주세요. 고해상도 8K, 자연광 조명으로 촬영한 듯한 느낌",
+    "전통 한국화": "전통 한국화 스타일로 그려주세요. 한지 위에 수묵과 채색을 사용한 붓터치가 느껴지는 화풍",
+    "세밀 일러스트": "세밀한 일러스트레이션으로 표현해주세요. 깨끗한 선과 정확한 고증이 돋보이는 스타일",
+    "3D 렌더링": "3D 디지털 아트로 렌더링해주세요. 부드러운 쉐이딩과 볼류메트릭 라이팅, 사진이 아닌 3D 그래픽"
   };
-  const base = [
-    `한국 ${item.category}: ${item.name}`,
-    `시대: ${item.era} (${item.eraEn})`,
-    `주요 요소: ${v.style.join(", ")}`,
-    `색감: ${v.colors.join(", ")}`,
-    `재질: ${v.materials.join(", ")}`,
-    `분위기: ${v.atmosphere}`,
+  const parts = [
+    `${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`,
+    `주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`,
+    `재질은 ${v.materials.join(", ")}으로 구성됩니다`,
+    `전체 분위기는 ${v.atmosphere}`,
   ];
   if (perf) {
-    const energy = getEnergyContext(item);
-    base.push(`에너지: ${energy.ko}`);
+    parts.push(getEnergyContext(item).ko);
+    parts.push("공연의 역동적 에너지와 관객의 호응이 생생하게 느껴지도록 표현해주세요");
+  } else {
+    parts.push("역사적 고증에 충실하게 표현해주세요");
   }
-  base.push(`스타일: ${styleMap[styleName] || styleName}`);
-  base.push(perf ? "공연의 역동적 에너지와 관객의 호응을 생생하게 표현" : "고증에 충실한 역사적 표현");
-  return base.join(". ");
+  parts.push(styleMap[styleName] || styleName);
+  return parts.join(". ") + ".";
 }
 
 function wrapForModel(prompt, modelId, styleId) {
