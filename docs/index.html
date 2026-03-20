@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>한국 문화유산 AI 이미지 프롬프트 생성기</title>
+<meta name="description" content="Korean Heritage for AI Creators">
+<title>Hanji Studio — Korean Heritage for AI Creators</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
@@ -39,6 +40,7 @@
   --font-body:    'Noto Sans KR', sans-serif;
   --size-xs: 0.75rem; --size-sm: 0.875rem; --size-base: 1rem;
   --size-md: 1.125rem; --size-lg: 1.5rem; --size-xl: 2rem;
+  --size-2xl: 3rem; --size-3xl: 4rem;
   /* Spacing */
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
@@ -76,15 +78,18 @@ body::before {
 }
 .header h1 {
   font-family: var(--font-display);
-  font-size: var(--size-xl);
+  font-size: var(--size-2xl, 3rem);
   color: var(--color-ink);
-  font-weight: 700;
   letter-spacing: -0.02em;
 }
-.header p {
+.logo-hanji { font-weight: 700; }
+.logo-studio { font-weight: 300; }
+.header .tagline {
+  font-family: var(--font-body);
   color: var(--color-ink-soft);
   margin-top: var(--space-2);
-  font-size: var(--size-sm);
+  font-size: var(--size-xs);
+  letter-spacing: 0.15em;
 }
 .header .badge {
   display: inline-block;
@@ -525,7 +530,7 @@ body::before {
 
 /* ── 반응형 ── */
 @media (max-width: 600px) {
-  .header h1 { font-size: var(--size-lg); }
+  .header h1 { font-size: var(--size-xl); }
   .header { padding: var(--space-8) var(--space-4); }
   .heritage-grid { grid-template-columns: 1fr; }
   .option-grid { grid-template-columns: 1fr 1fr; }
@@ -539,8 +544,8 @@ body::before {
 
 <!-- 헤더 -->
 <div class="header">
-  <h1>한국 문화유산 AI 이미지 프롬프트 생성기</h1>
-  <p>국가유산청 데이터 기반 · 고증 자동 반영 · 복사해서 바로 사용</p>
+  <h1><span class="logo-hanji">Hanji</span> <span class="logo-studio">Studio</span></h1>
+  <p class="tagline">Korean Heritage for AI Creators</p>
 </div>
 
 <div class="container">
