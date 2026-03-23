@@ -406,9 +406,11 @@ body::before {
   background: var(--color-accent-light);
   box-shadow: 0 0 0 2px var(--color-accent);
 }
-.option-card .opt-icon { font-size: 2rem; margin-bottom: var(--space-2); }
+.option-card .opt-icon { margin-bottom: var(--space-2); color: var(--color-accent); display: flex; justify-content: center; align-items: center; }
+.option-card .opt-icon svg { width: 32px; height: 32px; }
 .option-card .opt-name { font-family: var(--font-display); font-weight: 700; margin-bottom: var(--space-1); color: var(--color-ink); }
-.option-card .opt-desc { font-size: var(--size-xs); color: var(--color-ink-soft); }
+.option-card .opt-sub { font-size: var(--size-xs); color: var(--color-ink-soft); margin-bottom: var(--space-2); }
+.option-card .opt-example { font-size: var(--size-xs); color: var(--color-accent); font-style: italic; opacity: 0.85; }
 
 /* ── Step 3: 프롬프트 설정 ── */
 .setting-group { margin-bottom: var(--space-6); }
@@ -1189,12 +1191,23 @@ const HERITAGE_DB = [
 
 // 씬 타입 옵션
 const SCENE_TYPES = [
-  { id: "fashion",   icon: "👗", name: "패션/브랜드", desc: "브랜드 캠페인 · 패션 에디토리얼" },
-  { id: "portrait",  icon: "🧑", name: "인물/포트레이트", desc: "인물과 유산의 교감" },
-  { id: "product",   icon: "📦", name: "제품 사진", desc: "제품 + 유산 배경 구성" },
-  { id: "landscape", icon: "🏞️", name: "풍경", desc: "넓은 시야의 전경 장면" },
-  { id: "night",     icon: "🌙", name: "야경", desc: "밤의 분위기와 조명" },
+  { id: "fashion",    name: "패션/브랜드",     sub: "유산을 런웨이 배경으로",       example: " 앞 패션 컬렉션" },
+  { id: "portrait",   name: "인물/포트레이트", sub: "인물과 유산의 시간적 교감",   example: "과 함께한 인물" },
+  { id: "product",    name: "제품 사진",       sub: "유산 공간 속 오브제",         example: " 안의 제품 구성" },
+  { id: "landscape",  name: "풍경",           sub: "고증된 공간의 전경",           example: "의 원형 풍경" },
+  { id: "night",      name: "야경",           sub: "밤의 유산, 빛과 어둠",         example: "의 야간 조명" },
+  { id: "historical", name: "역사 고증",       sub: "원형 그대로의 사실적 재현",   example: "의 고증 복원" },
 ];
+
+// 씬 타입 SVG 아이콘 (단선 라인 드로잉, 32x32)
+const SCENE_ICONS = {
+  fashion: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-4 3v2c0 2 1.5 3 4 3s4-1 4-3V7l-4-3z"/><path d="M12 9l-4 2 2 17h12l2-17-4-2"/><path d="M10 28h12"/><path d="M14 12v4M18 12v4"/></svg>`,
+  portrait: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="11" r="4"/><path d="M10 22c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M5 4h4M23 4h4M5 4v4M27 4v4M5 28v-4M27 28v-4M5 28h4M23 28h4"/></svg>`,
+  product: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="12" width="16" height="14" rx="1"/><path d="M12 12V9a4 4 0 018 0v3"/><path d="M4 8l4 4M28 8l-4 4"/><circle cx="16" cy="20" r="2"/></svg>`,
+  landscape: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 24l7-10 5 6 4-4 8 8"/><path d="M6 14c2-4 5-8 10-8"/><path d="M20 10c1-2 3-3 5-2"/><circle cx="24" cy="8" r="2"/></svg>`,
+  night: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10a8 8 0 11-12 6"/><path d="M6 26h20"/><path d="M9 26v-4l3-2 3 2v4"/><path d="M15 26v-3l2.5-1.5L20 23v3"/><path d="M8 20l3-1.5"/></svg>`,
+  historical: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h16v22H6z"/><path d="M10 6V4h8v2"/><path d="M10 11h8M10 15h8M10 19h6"/><rect x="22" y="18" width="6" height="6" rx="1"/><path d="M25 18v-2M23 21h6"/></svg>`,
+};
 
 // 감도 옵션
 const SENSITIVITIES = {
@@ -1965,11 +1978,12 @@ function getEnergyContext(item) {
 // 구조: [씬 타입 + 주제] → [고증 감도] → [시각 디테일] → [자유 입력] → [고급 설정]
 
 const SCENE_PROMPT = {
-  fashion:   { en: "fashion editorial scene at", ko: "패션 에디토리얼 장면," },
-  portrait:  { en: "portrait photography at", ko: "인물 포트레이트 촬영," },
-  product:   { en: "product photography featuring", ko: "제품 사진 촬영," },
-  landscape: { en: "wide panoramic landscape view of", ko: "넓은 전경으로 바라본" },
-  night:     { en: "atmospheric night scene of", ko: "밤의 분위기로 담아낸" },
+  fashion:    { en: "fashion editorial scene at", ko: "패션 에디토리얼 장면," },
+  portrait:   { en: "portrait photography at", ko: "인물 포트레이트 촬영," },
+  product:    { en: "product photography featuring", ko: "제품 사진 촬영," },
+  landscape:  { en: "wide panoramic landscape view of", ko: "넓은 전경으로 바라본" },
+  night:      { en: "atmospheric night scene of", ko: "밤의 분위기로 담아낸" },
+  historical: { en: "historically accurate documentation of", ko: "역사 고증에 충실한" },
 };
 
 // 씬 타입별 구체적 디렉션 (영문/한글)
@@ -1994,7 +2008,65 @@ const SCENE_DIRECTION = {
     en: ["atmospheric night ambiance", "heritage illuminated by ambient light", "long exposure feel"],
     ko: ["밤 특유의 감성적 분위기", "은은한 조명으로 빛나는 유산", "장노출 느낌"]
   },
+  historical: {
+    en: ["pure architectural heritage shot", "no people", "restored to original condition", "no modern elements"],
+    ko: ["순수 건축 유산 촬영", "인물 없음", "원형 복원 상태", "현대 요소 배제"]
+  },
 };
+
+// ── 역사 고증 전용 프롬프트 빌더 ──
+function buildHistoricalEnPrompt(item) {
+  const v = item.visual;
+  const arSelect = document.getElementById("aspectRatio");
+  const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
+
+  const parts = [];
+  // 1. 유산 식별
+  parts.push(`${item.nameEn}, ${item.eraEn}, Korean cultural heritage`);
+  // 2. 고증 정확성
+  parts.push("historically accurate restoration");
+  // 3. 건축 양식/구조 전체 포함
+  const stylesEn = v.style.map(s => translateToEn(s)).join(", ");
+  parts.push(stylesEn);
+  // 4. 재질/색상 전체 포함
+  const colorsEn = v.colors.map(c => translateToEn(c)).join(", ");
+  const materialsEn = v.materials.map(m => translateToEn(m)).join(", ");
+  parts.push(colorsEn);
+  parts.push(materialsEn);
+  // 5. 시대 맥락
+  parts.push(`as it appeared in ${item.eraEn}`);
+  // 6. 고증 제한
+  parts.push("no modern elements, archaeologically precise, no people");
+  // 7. 사실성 레이어
+  parts.push("ultra photorealistic, hyperrealistic architectural photography");
+  parts.push("shot on Phase One IQ4 150MP, natural daylight, no artificial lighting");
+  parts.push("no color grading, true to life colors, photogrammetry-level detail");
+  // 8. 분위기
+  parts.push("clear sky, natural atmosphere, midday sun");
+
+  return parts.join(", ") + " " + ar.mj;
+}
+
+function buildHistoricalKoPrompt(item) {
+  const v = item.visual;
+  const arSelect = document.getElementById("aspectRatio");
+  const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
+
+  const parts = [];
+  parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 역사 고증 이미지를 생성해주세요`);
+  parts.push("원형 그대로의 사실적 복원 상태를 촬영한 장면입니다");
+  parts.push(`건축 양식: ${v.style.join(", ")}`);
+  parts.push(`색상: ${v.colors.join(", ")}`);
+  parts.push(`재질: ${v.materials.join(", ")}`);
+  parts.push(`${item.eraEn} 시기의 모습 그대로를 재현해주세요`);
+  parts.push("현대적 요소는 모두 배제하고, 고고학적으로 정확하게 표현해주세요");
+  parts.push("인물 없이 순수 건축/유산만 촬영한 사진이어야 합니다");
+  parts.push("Phase One IQ4 150MP로 촬영한 듯한 초고해상도 사실주의 사진");
+  parts.push("정오 자연광, 인위적 조명 없음, 맑은 하늘, 자연 그대로의 색감");
+  parts.push(ar.ko);
+
+  return parts.join(". ") + ".";
+}
 
 function getAdvancedSettings() {
   const camera = document.getElementById("advCamera")?.value || "";
@@ -2246,11 +2318,13 @@ function selectHeritage(id) {
 
 function renderSceneTypes() {
   const grid = document.getElementById("sceneGrid");
+  const hName = selectedHeritage ? selectedHeritage.name : "유산";
   grid.innerHTML = SCENE_TYPES.map(s => `
     <div class="option-card" onclick="selectScene('${s.id}')" id="scene-${s.id}">
-      <div class="opt-icon">${s.icon}</div>
+      <div class="opt-icon">${SCENE_ICONS[s.id] || ""}</div>
       <div class="opt-name">${s.name}</div>
-      <div class="opt-desc">${s.desc}</div>
+      <div class="opt-sub">${s.sub}</div>
+      <div class="opt-example">예: ${hName}${s.example}</div>
     </div>
   `).join("");
 }
@@ -2258,6 +2332,37 @@ function renderSceneTypes() {
 function selectScene(id) {
   selectedScene = id;
   SCENE_TYPES.forEach(s => document.getElementById(`scene-${s.id}`).classList.toggle("selected", s.id === id));
+
+  // 역사 고증 선택 시 Step 3 UI 제어
+  const isHistorical = id === "historical";
+  const freeGroup = document.getElementById("freeInput")?.closest(".setting-group");
+  const sensGroup = document.getElementById("sensitivityOptions")?.closest(".setting-group");
+  const advToggle = document.querySelector(".advanced-toggle");
+
+  if (freeGroup) {
+    freeGroup.style.display = isHistorical ? "none" : "";
+    if (isHistorical) document.getElementById("freeInput").value = "";
+  }
+  if (sensGroup) sensGroup.style.display = isHistorical ? "none" : "";
+  if (advToggle) advToggle.style.display = isHistorical ? "none" : "";
+
+  // 역사 고증 안내 메시지
+  let notice = document.getElementById("historicalNotice");
+  if (isHistorical) {
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.id = "historicalNotice";
+      notice.style.cssText = "padding:var(--space-4) var(--space-6);background:var(--color-accent-light);border:1px solid var(--color-accent);border-radius:var(--radius-lg);color:var(--color-accent);font-size:var(--size-sm);margin-bottom:var(--space-6);line-height:1.6";
+      notice.innerHTML = "<strong>역사 고증 모드</strong><br>감도·자유입력·고급설정 없이 고증 데이터만으로 사실적 프롬프트를 생성합니다.<br>Phase One IQ4 150MP · 정오 자연광 · 현대 요소 배제";
+      const step3 = document.getElementById("step3");
+      const firstGroup = step3.querySelector(".setting-group");
+      if (firstGroup) step3.insertBefore(notice, firstGroup);
+    }
+    notice.style.display = "";
+  } else if (notice) {
+    notice.style.display = "none";
+  }
+
   // 자동으로 Step 3 이동
   setTimeout(() => goStep(3), 250);
 }
@@ -2322,7 +2427,7 @@ function updateBadges(step) {
     const scene = SCENE_TYPES.find(s => s.id === selectedScene);
     if (scene) html += `<span class="sel-badge">${scene.name}</span>`;
   }
-  if (step >= 4 && selectedSensitivity) {
+  if (step >= 4 && selectedScene !== "historical" && selectedSensitivity) {
     const sensNames = { editorial: "에디토리얼", cinematic: "시네마틱", campaign: "캠페인" };
     html += `<span class="sel-badge">${sensNames[selectedSensitivity] || selectedSensitivity}</span>`;
   }
@@ -2336,6 +2441,15 @@ function resetAndGoStep1() {
   document.querySelectorAll(".heritage-card").forEach(c => c.classList.remove("selected"));
   document.querySelectorAll(".sens-btn").forEach(b => b.classList.toggle("active", b.dataset.val === "editorial"));
   if (document.getElementById("freeInput")) document.getElementById("freeInput").value = "";
+  // 역사 고증 모드 해제
+  const freeGroup = document.getElementById("freeInput")?.closest(".setting-group");
+  const sensGroup = document.getElementById("sensitivityOptions")?.closest(".setting-group");
+  const advToggle = document.querySelector(".advanced-toggle");
+  const notice = document.getElementById("historicalNotice");
+  if (freeGroup) freeGroup.style.display = "";
+  if (sensGroup) sensGroup.style.display = "";
+  if (advToggle) advToggle.style.display = "";
+  if (notice) notice.style.display = "none";
   goStep(1);
 }
 
@@ -2387,14 +2501,20 @@ function generatePrompts() {
     </div>
   </div>`;
 
-  // 영문 프롬프트
-  const promptEn = buildEnPrompt(item, selectedScene, selectedSensitivity, freeText);
-  // 한글 프롬프트
-  const promptKo = buildKoPrompt(item, selectedScene, selectedSensitivity, freeText);
+  // 역사 고증 모드 분기
+  const isHistorical = selectedScene === "historical";
+  const promptEn = isHistorical
+    ? buildHistoricalEnPrompt(item)
+    : buildEnPrompt(item, selectedScene, selectedSensitivity, freeText);
+  const promptKo = isHistorical
+    ? buildHistoricalKoPrompt(item)
+    : buildKoPrompt(item, selectedScene, selectedSensitivity, freeText);
+
+  const headerLabel = isHistorical ? `${sceneName}` : `${sceneName} · ${sensLabel}`;
 
   generatedPrompts.push({
     scene: sceneName,
-    sensitivity: sensLabel,
+    sensitivity: isHistorical ? "고증" : sensLabel,
     promptEn: promptEn,
     promptKo: promptKo
   });
@@ -2402,7 +2522,7 @@ function generatePrompts() {
   // 영문 프롬프트 카드
   html += `<div class="result-block">
     <div class="result-header">
-      <h3>${sceneName} · ${sensLabel}</h3>
+      <h3>${headerLabel}</h3>
       <span class="tag">영문 프롬프트</span>
     </div>
     <div class="result-body">
@@ -2417,7 +2537,7 @@ function generatePrompts() {
   // 한글 프롬프트 카드
   html += `<div class="result-block">
     <div class="result-header">
-      <h3>${sceneName} · ${sensLabel}</h3>
+      <h3>${headerLabel}</h3>
       <span class="tag">한글 프롬프트</span>
     </div>
     <div class="result-body">
