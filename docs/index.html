@@ -1031,12 +1031,19 @@ details[open] .advanced-summary::before { content: '▾ '; }
           <label>카메라 앵글</label>
           <select id="advCamera">
             <option value="">자동</option>
-            <option value="eye level">눈높이 (Eye Level)</option>
-            <option value="low angle">로우 앵글</option>
-            <option value="high angle">하이 앵글</option>
-            <option value="bird's eye view">버드아이 뷰</option>
-            <option value="worm's eye view">웜즈아이 뷰</option>
-            <option value="dutch angle">더치 앵글</option>
+            <option value="eye level shot, natural perspective">아이레벨 (Eye Level)</option>
+            <option value="low angle shot, looking up, powerful stance">로우앵글 (Low Angle)</option>
+            <option value="high angle shot, overhead perspective">하이앵글 (High Angle)</option>
+            <option value="bird's eye view, aerial perspective, top down">항공뷰 (Bird's Eye)</option>
+            <option value="dutch angle, tilted frame, dramatic tension">더치앵글 (Dutch Angle)</option>
+            <option value="over the shoulder shot, POV perspective">숄더샷 (Over the Shoulder)</option>
+            <option value="extreme close-up, macro detail, intricate textures, microscopic details">익스트림 클로즈업</option>
+            <option value="close-up shot, subject isolation">클로즈업 (Close-up)</option>
+            <option value="medium shot, waist up framing">미디엄샷 (Medium Shot)</option>
+            <option value="full body shot, head to toe">풀샷 (Full Shot)</option>
+            <option value="wide shot, environmental context">와이드샷 (Wide Shot)</option>
+            <option value="extreme wide shot, vast landscape">익스트림 와이드</option>
+            <option value="worm's eye view, extreme low angle, dramatic upward perspective">웜홀뷰 (Worm's Eye)</option>
           </select>
         </div>
         <div class="adv-item">
@@ -1049,6 +1056,16 @@ details[open] .advanced-summary::before { content: '▾ '; }
             <option value="telephoto 200mm">망원 200mm</option>
             <option value="macro lens">매크로</option>
             <option value="tilt-shift lens">틸트시프트</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>피사계심도</label>
+          <select id="advDof">
+            <option value="">자동</option>
+            <option value="shallow depth of field, f/1.4 aperture, bokeh background, subject isolation">아웃포커스 강하게</option>
+            <option value="moderate depth of field, f/2.8 aperture, soft background blur">아웃포커스 보통</option>
+            <option value="deep depth of field, f/11 aperture, everything in focus, sharp background">전체 선명하게</option>
+            <option value="tilt-shift effect, selective focus, miniature effect">앞뒤 모두 흐림</option>
           </select>
         </div>
         <div class="adv-item">
@@ -1189,6 +1206,7 @@ const I18N = {
   // 고급 설정
   adv_camera:         { ko: "카메라 앵글", en: "Camera angle" },
   adv_lens:           { ko: "렌즈", en: "Lens" },
+  adv_dof:            { ko: "피사계심도", en: "Depth of field" },
   adv_lighting:       { ko: "조명", en: "Lighting" },
   adv_season:         { ko: "계절", en: "Season" },
   adv_time:           { ko: "시간대", en: "Time of day" },
@@ -1279,7 +1297,7 @@ function applyLang() {
   });
 
   // 고급 설정 라벨
-  const advMap = [["advCamera","adv_camera"],["advLens","adv_lens"],["advLighting","adv_lighting"],["advSeason","adv_season"],["advTime","adv_time"]];
+  const advMap = [["advCamera","adv_camera"],["advLens","adv_lens"],["advDof","adv_dof"],["advLighting","adv_lighting"],["advSeason","adv_season"],["advTime","adv_time"]];
   advMap.forEach(([id, key]) => {
     const sel = document.getElementById(id);
     if (sel) {
@@ -2591,6 +2609,7 @@ function buildHistoricalTangibleEn(item, v, ar) {
   parts.push("shot on Phase One IQ4 150MP, natural daylight, no artificial lighting");
   parts.push("no color grading, true to life colors, photogrammetry-level detail");
   parts.push("clear sky, natural atmosphere, midday sun");
+  parts.push(buildBooster("historical", ""));
   return parts.join(", ") + " " + ar.mj;
 }
 
@@ -2637,6 +2656,7 @@ function buildHistoricalIntangibleEn(item, v, ar) {
   parts.push("National Geographic photography");
   parts.push("shot on Phase One IQ4 150MP");
   parts.push("no color grading, true to life colors");
+  parts.push(buildBooster("historical", ""));
   return parts.join(", ") + " " + ar.mj;
 }
 
@@ -2705,19 +2725,55 @@ function buildHistoricalIntangibleKo(item, v, ar) {
   return parts.join(". ") + ".";
 }
 
+// ── 품질 부스터 ──
+const BOOSTER_BASE = "award winning photography, dramatic composition, volumetric lighting, photorealistic rendering, subsurface scattering, physically accurate, intricate textures";
+const BOOSTER_HISTORICAL = "photogrammetry, tactile surfaces, microscopic details, anatomically correct, hyper definition, hyperdetailed, 16K resolution";
+const BOOSTER_EDITORIAL = "cinematic color grading, complementary color palette, HDR, trending on artstation, masterpiece, professional photography";
+const BOOSTER_CINEMATIC = "moody atmosphere, volumetric fog, golden hour, cinematic color grading, depth of field, dramatic composition";
+const BOOSTER_CAMPAIGN = "clean composition, HDR, complementary color palette, professional photography, masterpiece";
+const BOOSTER_PORTRAIT = "subsurface scattering, natural skin texture, anatomically correct, hyper definition, Close up portrait, hyper realistic detailed style";
+
+function buildBooster(sceneId, sensitivity) {
+  const tokens = new Set();
+  const add = str => str.split(",").map(s => s.trim()).filter(Boolean).forEach(s => tokens.add(s));
+
+  const isHistorical = sceneId === "historical";
+
+  // 공통 부스터 (역사 고증에서는 award winning, trending on artstation 제외)
+  if (isHistorical) {
+    BOOSTER_BASE.split(",").map(s => s.trim()).filter(Boolean).forEach(s => {
+      if (!/award winning|trending on artstation/i.test(s)) tokens.add(s);
+    });
+  } else {
+    add(BOOSTER_BASE);
+  }
+
+  // 씬별 부스터
+  if (isHistorical) add(BOOSTER_HISTORICAL);
+  if (sceneId === "portrait") add(BOOSTER_PORTRAIT);
+
+  // 감도별 부스터
+  if (sensitivity === "editorial") add(BOOSTER_EDITORIAL);
+  if (sensitivity === "cinematic") add(BOOSTER_CINEMATIC);
+  if (sensitivity === "campaign") add(BOOSTER_CAMPAIGN);
+
+  return [...tokens].join(", ");
+}
+
 function getAdvancedSettings() {
   const camera = document.getElementById("advCamera")?.value || "";
   const lens = document.getElementById("advLens")?.value || "";
+  const dof = document.getElementById("advDof")?.value || "";
   const lighting = document.getElementById("advLighting")?.value || "";
   const season = document.getElementById("advSeason")?.value || "";
   const time = document.getElementById("advTime")?.value || "";
   const extra = document.getElementById("advExtra")?.value?.trim() || "";
-  return { camera, lens, lighting, season, time, extra };
+  return { camera, lens, dof, lighting, season, time, extra };
 }
 
 // 시네마틱 감도: 씬별 자동 앵글 (카메라가 "자동"일 때)
 const CINEMATIC_AUTO_ANGLE = {
-  fashion:   "low angle looking up",
+  fashion:   "low angle shot, looking up, powerful stance",
   portrait:  "slight off-axis 45 degree angle",
   product:   "three-quarter angle",
   landscape: "",
@@ -2776,12 +2832,14 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
     const lensChar = LENS_CHARACTER[effectiveLens];
     if (lensChar) parts.push(lensChar);
   }
+  // 8c. 피사계심도
+  if (adv.dof) parts.push(adv.dof);
   if (adv.lighting) parts.push(adv.lighting);
   if (adv.season) parts.push(adv.season);
   if (adv.time) parts.push(adv.time);
   if (adv.extra) parts.push(translateFreeText(adv.extra));
-  // 9. 퀄리티
-  parts.push("highly detailed, 8K, professional quality");
+  // 9. 품질 부스터
+  parts.push(buildBooster(sceneId, sensitivity));
 
   return parts.join(", ") + " " + ar.mj;
 }
@@ -2840,6 +2898,10 @@ function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   if (adv.time) advParts.push(document.getElementById("advTime").selectedOptions[0].text);
   if (adv.lighting) advParts.push(document.getElementById("advLighting").selectedOptions[0].text);
   if (advParts.length) parts.push(advParts.join(", ") + " 분위기");
+  if (adv.dof) {
+    const dofLabel = document.getElementById("advDof")?.selectedOptions[0]?.text || "";
+    if (dofLabel) parts.push(`피사계심도: ${dofLabel}`);
+  }
   if (adv.extra) parts.push(adv.extra);
   // 종횡비
   parts.push(ar.ko);
@@ -2899,7 +2961,7 @@ function renderCategories() {
 function filterCategory(cat) {
   currentCategory = cat;
   visibleCount = PAGE_SIZE;
-  document.querySelectorAll(".cat-tab").forEach(t => t.classList.toggle("active", t.textContent === cat));
+  renderCategories();
   renderHeritage();
 }
 
