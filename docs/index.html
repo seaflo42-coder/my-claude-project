@@ -443,6 +443,33 @@ details[open] .advanced-summary::before { content: '▾ '; }
 .adv-item select:focus, .adv-item input[type="text"]:focus { outline: none; border-color: var(--color-accent); }
 .adv-full { grid-column: 1 / -1; }
 
+/* ── 종횡비 선택 ── */
+.aspect-ratio-options { display: flex; align-items: center; gap: var(--space-4); }
+.aspect-select {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  min-width: 200px;
+}
+.aspect-select:focus { outline: none; border-color: var(--color-accent); }
+.aspect-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+.aspect-box {
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-light);
+  transition: all 0.2s;
+}
+
 /* ── 버튼 ── */
 .btn-row {
   display: flex;
@@ -706,15 +733,32 @@ details[open] .advanced-summary::before { content: '▾ '; }
     <div class="setting-group">
       <label class="setting-label">고증 감도</label>
       <div class="sensitivity-options" id="sensitivityOptions">
-        <button class="sens-btn" data-val="accurate" onclick="selectSensitivity('accurate')">
-          <strong>정밀 고증</strong><span>역사적 사실에 충실</span>
+        <button class="sens-btn active" data-val="editorial" onclick="selectSensitivity('editorial')">
+          <strong>에디토리얼</strong><span>보그 · 하이패션</span>
         </button>
-        <button class="sens-btn active" data-val="balanced" onclick="selectSensitivity('balanced')">
-          <strong>균형</strong><span>고증 + 예술적 자유</span>
+        <button class="sens-btn" data-val="cinematic" onclick="selectSensitivity('cinematic')">
+          <strong>시네마틱</strong><span>영화 스틸컷 · 아트하우스</span>
         </button>
-        <button class="sens-btn" data-val="creative" onclick="selectSensitivity('creative')">
-          <strong>자유 해석</strong><span>창작 중심</span>
+        <button class="sens-btn" data-val="campaign" onclick="selectSensitivity('campaign')">
+          <strong>캠페인</strong><span>광고 · 커머셜</span>
         </button>
+      </div>
+    </div>
+
+    <!-- 종횡비 선택 -->
+    <div class="setting-group">
+      <label class="setting-label">종횡비</label>
+      <div class="aspect-ratio-options">
+        <select id="aspectRatio" class="aspect-select">
+          <option value="1:1">1:1 정방형</option>
+          <option value="4:5">4:5 세로 (인스타그램)</option>
+          <option value="2:3" selected>2:3 포트레이트</option>
+          <option value="16:9">16:9 가로 (와이드)</option>
+          <option value="9:16">9:16 모바일</option>
+        </select>
+        <div class="aspect-preview" id="aspectPreview">
+          <div class="aspect-box" id="aspectBox"></div>
+        </div>
       </div>
     </div>
 
@@ -1100,20 +1144,140 @@ const HERITAGE_DB = [
 
 // 씬 타입 옵션
 const SCENE_TYPES = [
+  { id: "fashion",   icon: "👗", name: "패션/브랜드", desc: "브랜드 캠페인 · 패션 에디토리얼" },
+  { id: "portrait",  icon: "🧑", name: "인물/포트레이트", desc: "인물과 유산의 교감" },
+  { id: "product",   icon: "📦", name: "제품 사진", desc: "제품 + 유산 배경 구성" },
   { id: "landscape", icon: "🏞️", name: "풍경", desc: "넓은 시야의 전경 장면" },
-  { id: "closeup", icon: "🔍", name: "클로즈업", desc: "디테일과 질감에 집중" },
-  { id: "figure", icon: "🧑‍🎨", name: "인물 씬", desc: "사람과 유산이 어우러진 장면" },
-  { id: "stilllife", icon: "🏺", name: "스틸라이프", desc: "유물·오브제 중심 구성" },
-  { id: "aerial", icon: "🦅", name: "항공뷰", desc: "하늘에서 내려다본 구도" },
-  { id: "night", icon: "🌙", name: "야경", desc: "밤의 분위기와 조명" },
+  { id: "night",     icon: "🌙", name: "야경", desc: "밤의 분위기와 조명" },
 ];
 
 // 감도 옵션
 const SENSITIVITIES = {
-  accurate: { label: "정밀 고증", promptEn: "historically accurate, museum-quality detail, archaeological precision", promptKo: "역사적 고증에 철저하게 충실한" },
-  balanced: { label: "균형", promptEn: "inspired by historical reference, artistic interpretation", promptKo: "역사적 고증을 바탕으로 예술적으로 해석한" },
-  creative: { label: "자유 해석", promptEn: "creative reimagining, artistic freedom, contemporary interpretation", promptKo: "자유롭고 창의적으로 재해석한" },
+  editorial: {
+    label: "에디토리얼",
+    promptEn: "Vogue editorial, 85mm lens, shallow depth of field, dramatic lighting, high fashion photography",
+    promptKo: "보그 에디토리얼 감성, 85mm 렌즈, 얕은 심도, 드라마틱한 조명, 하이패션 사진",
+    colorGrade: { fashion: "desaturated color grading", portrait: "warm film tone color grading", product: "teal and orange color grading", landscape: "soft pastel color grading", night: "cool desaturated color grading" }
+  },
+  cinematic: {
+    label: "시네마틱",
+    promptEn: "cinematic composition, anamorphic lens flare, depth of field, shot on ARRI Alexa, dramatic chiaroscuro lighting, movie still from art house film",
+    promptKo: "시네마틱 구도, 아나모픽 렌즈 플레어, 깊은 심도, ARRI Alexa 촬영, 키아로스쿠로 조명, 아트하우스 영화 스틸컷 느낌",
+    colorGrade: { fashion: "desaturated color grading", portrait: "warm film tone color grading", product: "teal and orange color grading", landscape: "teal and orange color grading", night: "teal and orange color grading" }
+  },
+  campaign: {
+    label: "캠페인",
+    promptEn: "advertising campaign, commercial photography, clean composition, studio-quality retouching",
+    promptKo: "광고 캠페인, 커머셜 포토그래피, 깔끔한 구도, 스튜디오급 리터칭",
+    colorGrade: { fashion: "vibrant commercial color grading", portrait: "warm natural color grading", product: "clean neutral color grading", landscape: "vivid saturated color grading", night: "dramatic contrast color grading" }
+  },
 };
+
+// ── 한영 번역 매핑 테이블 (문제 3 해결) ──
+const KO_EN_MAP = {
+  // 건축
+  "팔작지붕": "hipped-and-gabled roof (paljakjibung)",
+  "맞배지붕": "gable roof (matbaejibung)",
+  "우진각지붕": "hip roof (ujingakjibung)",
+  "겹처마": "layered eaves (gyeopchemma)",
+  "처마": "eaves (cheoma)",
+  "공포": "bracket sets (gongpo)",
+  "기단": "stone platform base (gidan)",
+  "문루": "gate pavilion (munru)",
+  "기둥": "wooden columns (gidung)",
+  "주심포": "column-top bracket set (jusimpo)",
+  "다포": "multi-cluster bracket set (dapo)",
+  "익공": "wing-shaped bracket (ikgong)",
+  // 색상/재질
+  "단청 오방색": "dancheong five-color paintwork",
+  "단청": "dancheong traditional paintwork",
+  "오방색": "five directional colors (obangsaek)",
+  "기와 회색": "grey roof tiles",
+  "목재 갈색": "warm wood brown",
+  "석재": "stone masonry",
+  "목재": "timber wood",
+  "기와": "roof tiles (giwa)",
+  "화강암": "granite",
+  "흙": "earthen clay",
+  "황토": "yellow ochre clay",
+  "백토": "white clay",
+  // 양식/구조
+  "배흘림기둥": "entasis columns (baeheullim)",
+  "월대": "elevated stone terrace (woldae)",
+  "돌난간": "stone balustrade",
+  "석등": "stone lantern (seokdeung)",
+  "석탑": "stone pagoda (seoktap)",
+  "부도": "stupa (budo)",
+  "가구식구조": "post-and-lintel structure",
+  "온돌": "ondol underfloor heating",
+  "마루": "maru wooden floor",
+  "창호": "lattice window and door (changho)",
+  "격자문": "lattice pattern",
+  "연꽃무늬": "lotus flower motif",
+  "당초문": "arabesque scroll pattern (dangchomun)",
+  "보상화문": "stylized floral medallion (bosanghwamun)",
+  // 분위기
+  "장엄한": "majestic",
+  "위풍당당한": "dignified and imposing",
+  "고즈넉한": "serene and tranquil",
+  "소박한": "humble and understated",
+  "화려한": "magnificent and ornate",
+  "고요한": "still and peaceful",
+  "역동적인": "dynamic and energetic",
+  "웅장한": "grand and monumental",
+  // 기타
+  "조선 왕조의 위엄": "the majesty of the Joseon Dynasty",
+  "불교 사찰": "Buddhist temple",
+  "유교적 질서": "Confucian order",
+};
+
+function translateToEn(text) {
+  let result = text;
+  const sortedKeys = Object.keys(KO_EN_MAP).sort((a, b) => b.length - a.length);
+  for (const ko of sortedKeys) {
+    result = result.split(ko).join(KO_EN_MAP[ko]);
+  }
+  return result;
+}
+
+// ── 종횡비 옵션 ──
+const ASPECT_RATIOS = [
+  { id: "1:1",  label: "1:1 정방형", mj: "--ar 1:1", ko: "종횡비 1:1 정방형" },
+  { id: "4:5",  label: "4:5 세로 (인스타그램)", mj: "--ar 4:5", ko: "종횡비 4:5 세로 (인스타그램)" },
+  { id: "2:3",  label: "2:3 포트레이트", mj: "--ar 2:3", ko: "종횡비 2:3 포트레이트" },
+  { id: "16:9", label: "16:9 가로 (와이드)", mj: "--ar 16:9", ko: "종횡비 16:9 와이드" },
+  { id: "9:16", label: "9:16 모바일", mj: "--ar 9:16", ko: "종횡비 9:16 모바일" },
+];
+
+// ── 자유입력 재구성 함수 ──
+function composeFreeText(freeText, sceneId, sensitivity, cameraView) {
+  if (!freeText) return { en: "", ko: "" };
+
+  const dir = SCENE_DIRECTION[sceneId] || SCENE_DIRECTION.landscape;
+  const sens = SENSITIVITIES[sensitivity] || SENSITIVITIES.editorial;
+  const colorGrade = sens.colorGrade?.[sceneId] || sens.colorGrade?.landscape || "";
+
+  // 영문: 씬 디렉션 + 자유입력(그대로) + 감도 수식어 + 컬러 그레이딩 + 뷰
+  const enParts = [];
+  enParts.push(dir.en.join(", "));
+  enParts.push(freeText);
+  if (colorGrade) enParts.push(colorGrade);
+  if (cameraView) enParts.push(`${cameraView} perspective`);
+
+  // 한글: 씬 디렉션 + 자유입력 + 뷰
+  const koParts = [];
+  koParts.push(dir.ko.join(", "));
+  koParts.push(freeText);
+  if (cameraView) {
+    const camEl = document.getElementById("advCamera");
+    if (camEl && camEl.selectedOptions[0]) koParts.push(camEl.selectedOptions[0].text + " 구도");
+  }
+
+  return {
+    en: enParts.filter(Boolean).join(", "),
+    ko: koParts.filter(Boolean).join(". ")
+  };
+}
 
 // 시대 배경 정보
 const ERA_CONTEXT = {
@@ -1137,7 +1301,7 @@ const ERA_CONTEXT = {
 // ══════════════════════════════════════════════
 let selectedHeritage = null;
 let selectedScene = null;
-let selectedSensitivity = "balanced";
+let selectedSensitivity = "editorial";
 let generatedPrompts = [];
 let currentCategory = "전체";
 let searchQuery = "";
@@ -1196,12 +1360,35 @@ function getEnergyContext(item) {
 // 구조: [씬 타입 + 주제] → [고증 감도] → [시각 디테일] → [자유 입력] → [고급 설정]
 
 const SCENE_PROMPT = {
+  fashion:   { en: "fashion editorial scene at", ko: "패션 에디토리얼 장면," },
+  portrait:  { en: "portrait photography at", ko: "인물 포트레이트 촬영," },
+  product:   { en: "product photography featuring", ko: "제품 사진 촬영," },
   landscape: { en: "wide panoramic landscape view of", ko: "넓은 전경으로 바라본" },
-  closeup:   { en: "extreme close-up detail shot of", ko: "디테일 클로즈업으로 촬영한" },
-  figure:    { en: "scene with people interacting with", ko: "사람들이 어우러진" },
-  stilllife: { en: "still life composition featuring artifacts of", ko: "유물 중심 스틸라이프 구성의" },
-  aerial:    { en: "aerial bird's eye view of", ko: "하늘에서 내려다본" },
   night:     { en: "atmospheric night scene of", ko: "밤의 분위기로 담아낸" },
+};
+
+// 씬 타입별 구체적 디렉션 (영문/한글)
+const SCENE_DIRECTION = {
+  fashion: {
+    en: ["subject in the foreground", "heritage architecture as dramatic backdrop", "static editorial pose"],
+    ko: ["인물이 전경에 위치", "문화유산 건축물이 드라마틱한 배경", "정적인 에디토리얼 포즈"]
+  },
+  portrait: {
+    en: ["mid shot framing", "contemplative expression", "looking away from camera"],
+    ko: ["미드샷 프레이밍", "사색적인 표정", "카메라에서 시선을 돌린 구도"]
+  },
+  product: {
+    en: ["product centered in frame", "placed in front of heritage architecture", "side lighting"],
+    ko: ["제품이 프레임 중앙에 배치", "문화유산 건축물 앞에 놓인 구도", "측면 조명"]
+  },
+  landscape: {
+    en: ["wide establishing shot", "heritage as main subject", "environmental context"],
+    ko: ["와이드 이스타블리싱 샷", "유산이 주요 피사체", "주변 환경과 어우러진 구도"]
+  },
+  night: {
+    en: ["atmospheric night ambiance", "heritage illuminated by ambient light", "long exposure feel"],
+    ko: ["밤 특유의 감성적 분위기", "은은한 조명으로 빛나는 유산", "장노출 느낌"]
+  },
 };
 
 function getAdvancedSettings() {
@@ -1218,41 +1405,51 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
   const scene = SCENE_PROMPT[sceneId]?.en || "view of";
-  const sens = SENSITIVITIES[sensitivity]?.promptEn || "";
+  const sens = SENSITIVITIES[sensitivity] || SENSITIVITIES.editorial;
   const adv = getAdvancedSettings();
+  const arSelect = document.getElementById("aspectRatio");
+  const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
 
   const parts = [];
-  // 1. 씬 + 주제
+  // 1. 씬 + 주제 (영문 변환)
   parts.push(`${scene} ${item.nameEn}, ${item.eraEn}, Korean cultural heritage`);
-  // 2. 시각 디테일
-  parts.push(`featuring ${v.style.slice(0,4).join(", ")}, color palette of ${v.colors.join(", ")}, textures of ${v.materials.join(", ")}`);
-  // 3. 분위기
-  parts.push(v.atmosphere);
-  // 4. 고증 감도
-  parts.push(sens);
-  // 5. 공연 에너지
+  // 2. 시각 디테일 — translateToEn으로 한글→영문 자동 변환
+  const stylesEn = v.style.slice(0,4).map(s => translateToEn(s)).join(", ");
+  const colorsEn = v.colors.map(c => translateToEn(c)).join(", ");
+  const materialsEn = v.materials.map(m => translateToEn(m)).join(", ");
+  parts.push(`featuring ${stylesEn}, color palette of ${colorsEn}, textures of ${materialsEn}`);
+  // 3. 분위기 (번역)
+  parts.push(translateToEn(v.atmosphere));
+  // 4. 자유입력 재구성 (씬+감도+뷰 기반)
+  const composed = composeFreeText(freeText, sceneId, sensitivity, adv.camera);
+  if (composed.en) parts.push(composed.en);
+  // 5. 감도 수식어
+  parts.push(sens.promptEn);
+  // 6. 컬러 그레이딩
+  const colorGrade = sens.colorGrade?.[sceneId] || sens.colorGrade?.landscape || "";
+  if (colorGrade) parts.push(colorGrade);
+  // 7. 공연 에너지
   if (perf) parts.push(getEnergyContext(item).en);
-  // 6. 고급 설정
-  if (adv.camera) parts.push(`${adv.camera} shot`);
+  // 8. 고급 설정
   if (adv.lens) parts.push(`shot on ${adv.lens}`);
   if (adv.lighting) parts.push(adv.lighting);
   if (adv.season) parts.push(adv.season);
   if (adv.time) parts.push(adv.time);
   if (adv.extra) parts.push(adv.extra);
-  // 7. 자유 입력
-  if (freeText) parts.push(freeText);
-  // 8. 퀄리티
+  // 9. 퀄리티
   parts.push("highly detailed, 8K, professional quality");
 
-  return parts.join(", ");
+  return parts.join(", ") + " " + ar.mj;
 }
 
 function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
   const scene = SCENE_PROMPT[sceneId]?.ko || "";
-  const sens = SENSITIVITIES[sensitivity]?.promptKo || "";
+  const sens = SENSITIVITIES[sensitivity] || SENSITIVITIES.editorial;
   const adv = getAdvancedSettings();
+  const arSelect = document.getElementById("aspectRatio");
+  const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
 
   const parts = [];
   parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`);
@@ -1260,7 +1457,11 @@ function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   parts.push(`주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`);
   parts.push(`재질은 ${v.materials.join(", ")}으로 구성됩니다`);
   parts.push(`전체 분위기는 ${v.atmosphere}`);
-  parts.push(`${sens} 스타일로 표현해주세요`);
+  // 자유입력 재구성 (한글)
+  const composed = composeFreeText(freeText, sceneId, sensitivity, adv.camera);
+  if (composed.ko) parts.push(composed.ko);
+  // 감도
+  parts.push(`${sens.promptKo} 스타일로 표현해주세요`);
   if (perf) {
     parts.push(getEnergyContext(item).ko);
     parts.push("공연의 역동적 에너지와 관객의 호응이 생생하게 느껴지도록 표현해주세요");
@@ -1272,7 +1473,8 @@ function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   if (adv.lighting) advParts.push(document.getElementById("advLighting").selectedOptions[0].text);
   if (advParts.length) parts.push(advParts.join(", ") + " 분위기");
   if (adv.extra) parts.push(adv.extra);
-  if (freeText) parts.push(freeText);
+  // 종횡비
+  parts.push(ar.ko);
 
   return parts.join(". ") + ".";
 }
@@ -1286,6 +1488,22 @@ function init() {
   renderCategories();
   renderHeritage();
   renderSceneTypes();
+  initAspectRatio();
+}
+
+function initAspectRatio() {
+  const select = document.getElementById("aspectRatio");
+  if (!select) return;
+  const updatePreview = () => {
+    const box = document.getElementById("aspectBox");
+    if (!box) return;
+    const ratios = { "1:1": [32,32], "4:5": [28,35], "2:3": [24,36], "16:9": [42,24], "9:16": [20,36] };
+    const [w,h] = ratios[select.value] || [32,32];
+    box.style.width = w + "px";
+    box.style.height = h + "px";
+  };
+  select.addEventListener("change", updatePreview);
+  updatePreview();
 }
 
 function renderCategories() {
