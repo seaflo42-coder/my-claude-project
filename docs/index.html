@@ -353,6 +353,96 @@ body::before {
 .option-card .opt-name { font-family: var(--font-display); font-weight: 700; margin-bottom: var(--space-1); color: var(--color-ink); }
 .option-card .opt-desc { font-size: var(--size-xs); color: var(--color-ink-soft); }
 
+/* ── Step 3: 프롬프트 설정 ── */
+.setting-group { margin-bottom: var(--space-6); }
+.setting-label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--size-md);
+  margin-bottom: var(--space-3);
+  color: var(--color-ink);
+}
+.free-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  resize: vertical;
+  line-height: 1.7;
+}
+.free-input:focus { outline: none; border-color: var(--color-accent); }
+.sensitivity-options { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.sens-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+.sens-btn strong { display: block; font-size: var(--size-sm); color: var(--color-ink); margin-bottom: var(--space-1); }
+.sens-btn span { font-size: var(--size-xs); color: var(--color-ink-soft); }
+.sens-btn:hover { border-color: var(--color-ink); }
+.sens-btn.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+.advanced-toggle {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+.advanced-summary {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  padding: var(--space-3) 0;
+  letter-spacing: 0.05em;
+  list-style: none;
+}
+.advanced-summary::before { content: '▸ '; }
+details[open] .advanced-summary::before { content: '▾ '; }
+.advanced-summary::-webkit-details-marker { display: none; }
+.advanced-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding: var(--space-6);
+  background: var(--color-ground-deep);
+  border-radius: var(--radius-lg);
+}
+.adv-item label {
+  display: block;
+  font-size: var(--size-xs);
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+}
+.adv-item select, .adv-item input[type="text"] {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--size-xs);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.adv-item select:focus, .adv-item input[type="text"]:focus { outline: none; border-color: var(--color-accent); }
+.adv-full { grid-column: 1 / -1; }
+
 /* ── 버튼 ── */
 .btn-row {
   display: flex;
@@ -556,10 +646,10 @@ body::before {
       <span class="step-num">1</span> 문화유산 선택
     </div>
     <div class="step" id="step2-indicator">
-      <span class="step-num">2</span> 스타일 선택
+      <span class="step-num">2</span> 씬 타입
     </div>
     <div class="step" id="step3-indicator">
-      <span class="step-num">3</span> AI 모델 선택
+      <span class="step-num">3</span> 프롬프트 설정
     </div>
     <div class="step" id="step4-indicator">
       <span class="step-num">4</span> 프롬프트 확인
@@ -588,25 +678,114 @@ body::before {
     </div>
   </div>
 
-  <!-- ========== STEP 2: 스타일 선택 ========== -->
+  <!-- ========== STEP 2: 씬 타입 선택 ========== -->
   <div class="section" id="step2">
-    <div class="section-title">어떤 스타일의 이미지를 만들까요?</div>
+    <div class="section-title">어떤 장면으로 표현할까요?</div>
 
-    <div class="option-grid" id="styleGrid"></div>
+    <div class="option-grid" id="sceneGrid"></div>
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goStep(1)">← 뒤로</button>
       <button class="btn btn-primary" id="btn-to-step3" disabled onclick="goStep(3)">
-        다음: AI 모델 선택 →
+        다음: 프롬프트 설정 →
       </button>
     </div>
   </div>
 
-  <!-- ========== STEP 3: AI 모델 선택 ========== -->
+  <!-- ========== STEP 3: 프롬프트 설정 ========== -->
   <div class="section" id="step3">
-    <div class="section-title">어떤 AI 도구에서 사용할 프롬프트인가요?</div>
+    <div class="section-title">프롬프트를 다듬어보세요</div>
 
-    <div class="option-grid" id="modelGrid"></div>
+    <!-- 자유 입력 -->
+    <div class="setting-group">
+      <label class="setting-label">자유 입력 <span style="color:var(--color-ink-soft);font-weight:400;font-size:var(--size-xs)">— 원하는 분위기나 상황을 자유롭게 적어주세요</span></label>
+      <textarea id="freeInput" class="free-input" rows="3" placeholder="예: 비 오는 날 고즈넉한 풍경, 봄 벚꽃이 흩날리는 장면..."></textarea>
+    </div>
+
+    <!-- 감도 선택 -->
+    <div class="setting-group">
+      <label class="setting-label">고증 감도</label>
+      <div class="sensitivity-options" id="sensitivityOptions">
+        <button class="sens-btn" data-val="accurate" onclick="selectSensitivity('accurate')">
+          <strong>정밀 고증</strong><span>역사적 사실에 충실</span>
+        </button>
+        <button class="sens-btn active" data-val="balanced" onclick="selectSensitivity('balanced')">
+          <strong>균형</strong><span>고증 + 예술적 자유</span>
+        </button>
+        <button class="sens-btn" data-val="creative" onclick="selectSensitivity('creative')">
+          <strong>자유 해석</strong><span>창작 중심</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 고급 설정 (접기/펼치기) -->
+    <details class="advanced-toggle">
+      <summary class="advanced-summary">고급 설정</summary>
+      <div class="advanced-grid">
+        <div class="adv-item">
+          <label>카메라 앵글</label>
+          <select id="advCamera">
+            <option value="">자동</option>
+            <option value="eye level">눈높이 (Eye Level)</option>
+            <option value="low angle">로우 앵글</option>
+            <option value="high angle">하이 앵글</option>
+            <option value="bird's eye view">버드아이 뷰</option>
+            <option value="worm's eye view">웜즈아이 뷰</option>
+            <option value="dutch angle">더치 앵글</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>렌즈</label>
+          <select id="advLens">
+            <option value="">자동</option>
+            <option value="wide angle 24mm">광각 24mm</option>
+            <option value="standard 50mm">표준 50mm</option>
+            <option value="telephoto 85mm">인물 85mm</option>
+            <option value="telephoto 200mm">망원 200mm</option>
+            <option value="macro lens">매크로</option>
+            <option value="tilt-shift lens">틸트시프트</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>조명</label>
+          <select id="advLighting">
+            <option value="">자동</option>
+            <option value="golden hour warm sunlight">골든아워</option>
+            <option value="soft diffused overcast light">흐린 날 확산광</option>
+            <option value="dramatic side lighting with deep shadows">드라마틱 사이드</option>
+            <option value="soft moonlight">달빛</option>
+            <option value="warm candlelight and lantern glow">촛불/등불</option>
+            <option value="bright midday sunlight">한낮 직사광</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>계절</label>
+          <select id="advSeason">
+            <option value="">자동</option>
+            <option value="spring with cherry blossoms">봄 (벚꽃)</option>
+            <option value="lush green summer">여름 (녹음)</option>
+            <option value="autumn with red and golden foliage">가을 (단풍)</option>
+            <option value="winter with snow">겨울 (눈)</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>시간대</label>
+          <select id="advTime">
+            <option value="">자동</option>
+            <option value="early morning dawn">새벽</option>
+            <option value="morning">아침</option>
+            <option value="midday">한낮</option>
+            <option value="golden hour sunset">해질녘</option>
+            <option value="blue hour twilight">블루아워</option>
+            <option value="night">밤</option>
+          </select>
+        </div>
+        <div class="adv-item adv-full">
+          <label>추가 디렉션</label>
+          <input type="text" id="advExtra" placeholder="예: 안개가 자욱한, 사람이 없는, 축제 분위기..." class="free-input" style="height:auto;">
+        </div>
+      </div>
+    </details>
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goStep(2)">← 뒤로</button>
@@ -632,7 +811,7 @@ body::before {
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goStep(1)">← 처음부터 다시</button>
-      <button class="btn btn-primary" onclick="goStep(2)">스타일 바꿔서 다시 생성</button>
+      <button class="btn btn-primary" onclick="goStep(2)">설정 바꿔서 다시 생성</button>
     </div>
   </div>
 
@@ -919,20 +1098,22 @@ const HERITAGE_DB = [
   {id:"sotdae",name:"전통 솟대",nameEn:"Sotdae Village Guardian Pole with Bird",type:"민속문화재",category:"생활·풍속",era:"전시대",eraEn:"All Eras",location:"전국",desc:"마을 입구에 세운 긴 장대 위에 새를 얹은 신앙 조형물. 풍요와 마을의 안녕을 기원하는 민간 신앙.",visual:{style:["tall wooden pole","carved bird on top","village entrance marker"],colors:["weathered wood grey-brown","sky blue backdrop","rice paddy green"],materials:["pine wood pole","carved wooden bird"],atmosphere:"마을 어귀 하늘 높이 솟은 나무새가 지키는 평화로운 들녘"}},
 ];
 
-// 스타일 옵션
-const STYLES = [
-  { id: "photo", icon: "📷", name: "사실적 사진", desc: "실제 사진처럼 사실적인 이미지" },
-  { id: "painting", icon: "🎨", name: "전통 한국화", desc: "수묵·채색 한국 전통 화풍" },
-  { id: "illust", icon: "✏️", name: "세밀 일러스트", desc: "깨끗하고 정교한 일러스트" },
-  { id: "3d", icon: "💎", name: "3D 렌더링", desc: "입체적 3D 그래픽 스타일" },
+// 씬 타입 옵션
+const SCENE_TYPES = [
+  { id: "landscape", icon: "🏞️", name: "풍경", desc: "넓은 시야의 전경 장면" },
+  { id: "closeup", icon: "🔍", name: "클로즈업", desc: "디테일과 질감에 집중" },
+  { id: "figure", icon: "🧑‍🎨", name: "인물 씬", desc: "사람과 유산이 어우러진 장면" },
+  { id: "stilllife", icon: "🏺", name: "스틸라이프", desc: "유물·오브제 중심 구성" },
+  { id: "aerial", icon: "🦅", name: "항공뷰", desc: "하늘에서 내려다본 구도" },
+  { id: "night", icon: "🌙", name: "야경", desc: "밤의 분위기와 조명" },
 ];
 
-// AI 모델 옵션
-const MODELS = [
-  { id: "midjourney", icon: "🟣", name: "Midjourney", desc: "Discord /imagine — 영문 최적화", lang: "en" },
-  { id: "nanobanana", icon: "🍌", name: "나노바나나 (Gemini)", desc: "한글 프롬프트 최적화", lang: "ko" },
-  { id: "general", icon: "⚪", name: "범용", desc: "아무 AI 모델에나 사용 가능 — 영문", lang: "en" },
-];
+// 감도 옵션
+const SENSITIVITIES = {
+  accurate: { label: "정밀 고증", promptEn: "historically accurate, museum-quality detail, archaeological precision", promptKo: "역사적 고증에 철저하게 충실한" },
+  balanced: { label: "균형", promptEn: "inspired by historical reference, artistic interpretation", promptKo: "역사적 고증을 바탕으로 예술적으로 해석한" },
+  creative: { label: "자유 해석", promptEn: "creative reimagining, artistic freedom, contemporary interpretation", promptKo: "자유롭고 창의적으로 재해석한" },
+};
 
 // 시대 배경 정보
 const ERA_CONTEXT = {
@@ -955,8 +1136,8 @@ const ERA_CONTEXT = {
 // 상태 관리
 // ══════════════════════════════════════════════
 let selectedHeritage = null;
-let selectedStyles = [];
-let selectedModels = [];
+let selectedScene = null;
+let selectedSensitivity = "balanced";
 let generatedPrompts = [];
 let currentCategory = "전체";
 let searchQuery = "";
@@ -1011,117 +1192,90 @@ function getEnergyContext(item) {
   };
 }
 
-// ── 영문 프롬프트 (Midjourney/범용) ──
-// 구조: [주제/장면] → [스타일 지시] → [시각 디테일] → [분위기/조명] → [파라미터]
+// ── V2 프롬프트 생성 엔진 ──
+// 구조: [씬 타입 + 주제] → [고증 감도] → [시각 디테일] → [자유 입력] → [고급 설정]
 
-function genPhotoPrompt(item) {
+const SCENE_PROMPT = {
+  landscape: { en: "wide panoramic landscape view of", ko: "넓은 전경으로 바라본" },
+  closeup:   { en: "extreme close-up detail shot of", ko: "디테일 클로즈업으로 촬영한" },
+  figure:    { en: "scene with people interacting with", ko: "사람들이 어우러진" },
+  stilllife: { en: "still life composition featuring artifacts of", ko: "유물 중심 스틸라이프 구성의" },
+  aerial:    { en: "aerial bird's eye view of", ko: "하늘에서 내려다본" },
+  night:     { en: "atmospheric night scene of", ko: "밤의 분위기로 담아낸" },
+};
+
+function getAdvancedSettings() {
+  const camera = document.getElementById("advCamera")?.value || "";
+  const lens = document.getElementById("advLens")?.value || "";
+  const lighting = document.getElementById("advLighting")?.value || "";
+  const season = document.getElementById("advSeason")?.value || "";
+  const time = document.getElementById("advTime")?.value || "";
+  const extra = document.getElementById("advExtra")?.value?.trim() || "";
+  return { camera, lens, lighting, season, time, extra };
+}
+
+function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
-  // 1. 주제
-  const subject = `${item.nameEn}, ${item.eraEn}, Korean cultural heritage`;
-  // 2. 스타일
-  const style = "professional photography";
-  // 3. 시각 디테일
-  const details = `featuring ${v.style.slice(0,4).join(", ")}, color palette of ${v.colors.join(", ")}, textures of ${v.materials.join(", ")}`;
-  // 4. 분위기/조명
-  const mood = v.atmosphere;
-  const lighting = perf ? "action shot, motion blur on movements, sharp focus on expressions, photojournalistic energy" : "photorealistic, highly detailed, 8K, dramatic natural lighting";
-  const parts = [style, subject, details, mood, lighting];
-  if (perf) { parts.push(getEnergyContext(item).en); }
+  const scene = SCENE_PROMPT[sceneId]?.en || "view of";
+  const sens = SENSITIVITIES[sensitivity]?.promptEn || "";
+  const adv = getAdvancedSettings();
+
+  const parts = [];
+  // 1. 씬 + 주제
+  parts.push(`${scene} ${item.nameEn}, ${item.eraEn}, Korean cultural heritage`);
+  // 2. 시각 디테일
+  parts.push(`featuring ${v.style.slice(0,4).join(", ")}, color palette of ${v.colors.join(", ")}, textures of ${v.materials.join(", ")}`);
+  // 3. 분위기
+  parts.push(v.atmosphere);
+  // 4. 고증 감도
+  parts.push(sens);
+  // 5. 공연 에너지
+  if (perf) parts.push(getEnergyContext(item).en);
+  // 6. 고급 설정
+  if (adv.camera) parts.push(`${adv.camera} shot`);
+  if (adv.lens) parts.push(`shot on ${adv.lens}`);
+  if (adv.lighting) parts.push(adv.lighting);
+  if (adv.season) parts.push(adv.season);
+  if (adv.time) parts.push(adv.time);
+  if (adv.extra) parts.push(adv.extra);
+  // 7. 자유 입력
+  if (freeText) parts.push(freeText);
+  // 8. 퀄리티
+  parts.push("highly detailed, 8K, professional quality");
+
   return parts.join(", ");
 }
 
-function genPaintingPrompt(item) {
+function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
-  const subject = `${item.nameEn}, ${item.eraEn}`;
-  const style = perf
-    ? "dynamic Korean folk painting (minhwa) style, bold expressive brushwork"
-    : "traditional Korean painting (Hanguk-hwa) style, ink wash and mineral pigment on hanji paper";
-  const details = `elements: ${v.style.slice(0,3).join(", ")}, color tones: ${v.colors.slice(0,2).join(", ")}`;
-  const mood = perf
-    ? "energetic ink splashes, swirling motion lines, vibrant mineral pigments, sense of rhythm in every brushstroke"
-    : "contemplative, artistic, visible brush strokes, traditional East Asian aesthetic";
-  const parts = [subject, style, details, mood];
-  if (perf) { parts.push(getEnergyContext(item).en); }
-  return parts.join(", ");
-}
+  const scene = SCENE_PROMPT[sceneId]?.ko || "";
+  const sens = SENSITIVITIES[sensitivity]?.promptKo || "";
+  const adv = getAdvancedSettings();
 
-function genIllustPrompt(item) {
-  const v = item.visual;
-  const perf = isPerformance(item);
-  const subject = `${item.nameEn}, ${item.eraEn}`;
-  const style = "detailed editorial illustration";
-  const details = `showing ${v.style.join(", ")}, palette: ${v.colors.join(", ")}, materials: ${v.materials.join(", ")}`;
-  const mood = v.atmosphere;
-  const quality = perf
-    ? "dynamic composition, exaggerated motion, expressive character poses, rich detail, cultural accuracy"
-    : "clean lines, rich detail, cultural accuracy";
-  const parts = [subject, style, details, mood, quality];
-  if (perf) { parts.push(getEnergyContext(item).en); }
-  return parts.join(", ");
-}
-
-function gen3dPrompt(item) {
-  const v = item.visual;
-  const perf = isPerformance(item);
-  const subject = `3D rendered scene of ${item.nameEn}, ${item.eraEn}`;
-  const details = `modeled elements: ${v.style.slice(0,4).join(", ")}, surface textures: ${v.materials.join(", ")}, color scheme: ${v.colors.slice(0,2).join(", ")}`;
-  const quality = perf
-    ? "Blender 3D, octane render, dynamic camera angle, particle effects, motion blur, volumetric lighting, 3D digital art, NOT a photograph"
-    : "Blender 3D, octane render, volumetric lighting, smooth shading, subsurface scattering, 3D digital art, NOT a photograph";
-  const parts = [subject, details, quality];
-  if (perf) { parts.push(getEnergyContext(item).en); }
-  return parts.join(", ");
-}
-
-// ── 한글 프롬프트 (나노바나나/Gemini) ──
-// 구조: 자연스러운 문장형 — [이름과 맥락] → [시각 묘사] → [분위기] → [스타일 지시]
-
-function genKoreanPrompt(item, styleName) {
-  const v = item.visual;
-  const perf = isPerformance(item);
-  const styleMap = {
-    "사실적 사진": "사실적인 사진처럼 표현해주세요. 고해상도 8K, 자연광 조명으로 촬영한 듯한 느낌",
-    "전통 한국화": "전통 한국화 스타일로 그려주세요. 한지 위에 수묵과 채색을 사용한 붓터치가 느껴지는 화풍",
-    "세밀 일러스트": "세밀한 일러스트레이션으로 표현해주세요. 깨끗한 선과 정확한 고증이 돋보이는 스타일",
-    "3D 렌더링": "3D 디지털 아트로 렌더링해주세요. 부드러운 쉐이딩과 볼류메트릭 라이팅, 사진이 아닌 3D 그래픽"
-  };
-  const parts = [
-    `${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`,
-    `주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`,
-    `재질은 ${v.materials.join(", ")}으로 구성됩니다`,
-    `전체 분위기는 ${v.atmosphere}`,
-  ];
+  const parts = [];
+  parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`);
+  parts.push(`${scene} 장면입니다`);
+  parts.push(`주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`);
+  parts.push(`재질은 ${v.materials.join(", ")}으로 구성됩니다`);
+  parts.push(`전체 분위기는 ${v.atmosphere}`);
+  parts.push(`${sens} 스타일로 표현해주세요`);
   if (perf) {
     parts.push(getEnergyContext(item).ko);
     parts.push("공연의 역동적 에너지와 관객의 호응이 생생하게 느껴지도록 표현해주세요");
-  } else {
-    parts.push("역사적 고증에 충실하게 표현해주세요");
   }
-  parts.push(styleMap[styleName] || styleName);
+  // 고급 설정 (한글)
+  const advParts = [];
+  if (adv.season) advParts.push(document.getElementById("advSeason").selectedOptions[0].text.replace(/ \(.*\)/, ""));
+  if (adv.time) advParts.push(document.getElementById("advTime").selectedOptions[0].text);
+  if (adv.lighting) advParts.push(document.getElementById("advLighting").selectedOptions[0].text);
+  if (advParts.length) parts.push(advParts.join(", ") + " 분위기");
+  if (adv.extra) parts.push(adv.extra);
+  if (freeText) parts.push(freeText);
+
   return parts.join(". ") + ".";
 }
-
-function wrapForModel(prompt, modelId, styleId) {
-  const is3d = styleId === "3d";
-  const isPhoto = styleId === "photo";
-  switch (modelId) {
-    case "midjourney":
-      // award winning은 사실적 사진 스타일에서만 적용
-      let mjPrompt = isPhoto ? prompt.replace("professional photography", "award winning photography") : prompt;
-      if (is3d) return mjPrompt + " --ar 16:9 --style raw --v 6 --no photograph, photo, realistic skin --q 2";
-      return mjPrompt + " --ar 16:9 --style raw --v 6 --q 2";
-    case "nanobanana":
-      // 나노바나나는 한글 프롬프트 사용 — wrapForModel에서는 영문 그대로 반환 (한글은 별도 처리)
-      return prompt;
-    default:
-      return prompt;
-  }
-}
-
-const STYLE_FN = { photo: genPhotoPrompt, painting: genPaintingPrompt, illust: genIllustPrompt, "3d": gen3dPrompt };
-const STYLE_NAMES = { photo: "사실적 사진", painting: "전통 한국화", illust: "세밀 일러스트", "3d": "3D 렌더링" };
 
 
 // ══════════════════════════════════════════════
@@ -1131,8 +1285,7 @@ const STYLE_NAMES = { photo: "사실적 사진", painting: "전통 한국화", i
 function init() {
   renderCategories();
   renderHeritage();
-  renderStyles();
-  renderModels();
+  renderSceneTypes();
 }
 
 function renderCategories() {
@@ -1213,10 +1366,10 @@ function selectHeritage(id) {
   document.getElementById("btn-to-step2").disabled = false;
 }
 
-function renderStyles() {
-  const grid = document.getElementById("styleGrid");
-  grid.innerHTML = STYLES.map(s => `
-    <div class="option-card" onclick="toggleStyle('${s.id}')" id="style-${s.id}">
+function renderSceneTypes() {
+  const grid = document.getElementById("sceneGrid");
+  grid.innerHTML = SCENE_TYPES.map(s => `
+    <div class="option-card" onclick="selectScene('${s.id}')" id="scene-${s.id}">
       <div class="opt-icon">${s.icon}</div>
       <div class="opt-name">${s.name}</div>
       <div class="opt-desc">${s.desc}</div>
@@ -1224,30 +1377,15 @@ function renderStyles() {
   `).join("");
 }
 
-function toggleStyle(id) {
-  const idx = selectedStyles.indexOf(id);
-  if (idx >= 0) selectedStyles.splice(idx, 1);
-  else selectedStyles.push(id);
-  STYLES.forEach(s => document.getElementById(`style-${s.id}`).classList.toggle("selected", selectedStyles.includes(s.id)));
-  document.getElementById("btn-to-step3").disabled = selectedStyles.length === 0;
+function selectScene(id) {
+  selectedScene = id;
+  SCENE_TYPES.forEach(s => document.getElementById(`scene-${s.id}`).classList.toggle("selected", s.id === id));
+  document.getElementById("btn-to-step3").disabled = false;
 }
 
-function renderModels() {
-  const grid = document.getElementById("modelGrid");
-  grid.innerHTML = MODELS.map(m => `
-    <div class="option-card" onclick="toggleModel('${m.id}')" id="model-${m.id}">
-      <div class="opt-icon">${m.icon}</div>
-      <div class="opt-name">${m.name}</div>
-      <div class="opt-desc">${m.desc}</div>
-    </div>
-  `).join("");
-}
-
-function toggleModel(id) {
-  const idx = selectedModels.indexOf(id);
-  if (idx >= 0) selectedModels.splice(idx, 1);
-  else selectedModels.push(id);
-  MODELS.forEach(m => document.getElementById(`model-${m.id}`).classList.toggle("selected", selectedModels.includes(m.id)));
+function selectSensitivity(val) {
+  selectedSensitivity = val;
+  document.querySelectorAll(".sens-btn").forEach(b => b.classList.toggle("active", b.dataset.val === val));
 }
 
 
@@ -1274,30 +1412,31 @@ function goStep(n) {
 // ══════════════════════════════════════════════
 
 function generatePrompts() {
-  if (!selectedHeritage) return;
+  if (!selectedHeritage || !selectedScene) return;
   const item = selectedHeritage;
-  const models = selectedModels.length > 0 ? selectedModels : ["general"];
+  const freeText = document.getElementById("freeInput")?.value?.trim() || "";
   generatedPrompts = [];
 
-  // 결과 제목
   document.getElementById("resultTitle").textContent = `${item.name} — 생성된 프롬프트`;
 
   const area = document.getElementById("resultsArea");
   let html = "";
+  const sceneName = SCENE_TYPES.find(s => s.id === selectedScene)?.name || "";
+  const sensLabel = SENSITIVITIES[selectedSensitivity]?.label || "";
 
   // 고증 상세 정보
   html += `<div class="result-block">
-    <div class="result-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'block'">
+    <div class="result-header">
       <h3>📋 ${item.name} 고증 정보</h3>
       <span class="tag">${item.type} · ${item.era}</span>
     </div>
     <div class="result-body">
-      <p style="margin-bottom:1rem;color:var(--text2);font-size:0.9rem;">${item.desc}</p>
+      <p style="margin-bottom:1rem;color:var(--color-ink-soft);font-size:0.9rem;">${item.desc}</p>
       <div class="detail-grid">
         <div class="detail-item">
           <div class="label">시대</div>
           <div class="value">${item.era} (${item.eraEn})</div>
-          ${ERA_CONTEXT[item.era] ? `<div class="value" style="margin-top:0.3rem;font-size:0.78rem;color:var(--text2)">${ERA_CONTEXT[item.era]}</div>` : ""}
+          ${ERA_CONTEXT[item.era] ? `<div class="value" style="margin-top:0.3rem;font-size:0.78rem;color:var(--color-ink-soft)">${ERA_CONTEXT[item.era]}</div>` : ""}
         </div>
         <div class="detail-item">
           <div class="label">양식 · 구조</div>
@@ -1315,43 +1454,47 @@ function generatePrompts() {
     </div>
   </div>`;
 
-  // 스타일 × 모델 별 프롬프트 생성
-  for (const styleId of selectedStyles) {
-    const styleName = STYLE_NAMES[styleId];
-    const baseFn = STYLE_FN[styleId];
-    const basePrompt = baseFn(item);
-    const korPrompt = genKoreanPrompt(item, styleName);
+  // 영문 프롬프트
+  const promptEn = buildEnPrompt(item, selectedScene, selectedSensitivity, freeText);
+  // 한글 프롬프트
+  const promptKo = buildKoPrompt(item, selectedScene, selectedSensitivity, freeText);
 
-    for (const modelId of models) {
-      const model = MODELS.find(m => m.id === modelId);
-      const finalPrompt = wrapForModel(basePrompt, modelId, styleId);
-      const promptId = `prompt-${styleId}-${modelId}`;
-      const isKoModel = model.lang === "ko";
-      const displayPrompt = isKoModel ? korPrompt : finalPrompt;
-      const langLabel = isKoModel ? "한글 프롬프트" : "영문 프롬프트";
+  generatedPrompts.push({
+    scene: sceneName,
+    sensitivity: sensLabel,
+    promptEn: promptEn,
+    promptKo: promptKo
+  });
 
-      generatedPrompts.push({
-        style: styleName,
-        model: model.name,
-        promptEn: finalPrompt,
-        promptKo: korPrompt
-      });
+  // 영문 프롬프트 카드
+  html += `<div class="result-block">
+    <div class="result-header">
+      <h3>${sceneName} · ${sensLabel}</h3>
+      <span class="tag">영문 프롬프트</span>
+    </div>
+    <div class="result-body">
+      <div class="prompt-box">
+        <div class="prompt-label">English — Midjourney, Stable Diffusion 등에 사용</div>
+        <div class="prompt-text" id="prompt-en">${promptEn}</div>
+        <button class="copy-btn" onclick="copyPrompt('prompt-en', this)">복사</button>
+      </div>
+    </div>
+  </div>`;
 
-      html += `<div class="result-block">
-        <div class="result-header">
-          <h3>${styleName} — ${model.name}</h3>
-          <span class="tag">${model.icon} ${model.name}</span>
-        </div>
-        <div class="result-body">
-          <div class="prompt-box">
-            <div class="prompt-label">${langLabel} — 복사해서 AI에 입력하세요</div>
-            <div class="prompt-text" id="${promptId}">${displayPrompt}</div>
-            <button class="copy-btn" onclick="copyPrompt('${promptId}', this)">복사</button>
-          </div>
-        </div>
-      </div>`;
-    }
-  }
+  // 한글 프롬프트 카드
+  html += `<div class="result-block">
+    <div class="result-header">
+      <h3>${sceneName} · ${sensLabel}</h3>
+      <span class="tag">한글 프롬프트</span>
+    </div>
+    <div class="result-body">
+      <div class="prompt-box">
+        <div class="prompt-label">한글 — 나노바나나(Gemini) 등에 사용</div>
+        <div class="prompt-text" id="prompt-ko">${promptKo}</div>
+        <button class="copy-btn" onclick="copyPrompt('prompt-ko', this)">복사</button>
+      </div>
+    </div>
+  </div>`;
 
   area.innerHTML = html;
   goStep(4);
@@ -1381,8 +1524,8 @@ function downloadTxt() {
   txt += "=".repeat(60) + "\n\n";
 
   for (const p of generatedPrompts) {
-    txt += `[${p.style} — ${p.model} — 영문]\n${p.promptEn}\n\n`;
-    txt += `[${p.style} — ${p.model} — 한글]\n${p.promptKo}\n\n`;
+    txt += `[${p.scene} · ${p.sensitivity} — 영문]\n${p.promptEn}\n\n`;
+    txt += `[${p.scene} · ${p.sensitivity} — 한글]\n${p.promptKo}\n\n`;
     txt += "-".repeat(40) + "\n\n";
   }
 
