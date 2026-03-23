@@ -262,10 +262,10 @@ body::before {
   font-weight: 500;
 }
 .cat-tab:hover { border-color: var(--color-ink); color: var(--color-ink); }
-.cat-tab.active {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-surface);
+.cat-tab.active, .cat-tab.active:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
 }
 
 /* ── 검색창 ── */
@@ -295,6 +295,14 @@ body::before {
   color: var(--color-ink-ghost);
   font-size: 0.9rem;
   pointer-events: none;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--size-sm);
+  grid-column: 1 / -1;
 }
 
 /* ── 더보기 버튼 ── */
@@ -785,8 +793,8 @@ details[open] .advanced-summary::before { content: '▾ '; }
 
     <div class="category-tabs" id="categoryTabs"></div>
     <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="문화유산 이름, 시대, 지역으로 검색..." oninput="onSearchInput()">
+      <span class="search-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg></span>
+      <input type="text" id="searchInput" placeholder="유산 이름으로 검색..." oninput="onSearchInput()">
     </div>
     <div class="heritage-grid" id="heritageGrid"></div>
     <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
@@ -2025,6 +2033,129 @@ function getEnergyContext(item) {
 // ── V2 프롬프트 생성 엔진 ──
 // 구조: [씬 타입 + 주제] → [고증 감도] → [시각 디테일] → [자유 입력] → [고급 설정]
 
+// 씬 타입별 자유입력 placeholder 풀 (접속마다 랜덤 표시)
+const FREE_INPUT_HINTS = {
+  fashion: [
+    "나이키 런웨이, 모델 3명이 나란히 걷는 장면",
+    "버버리 트렌치코트를 입은 여성, 바람에 옷이 날리는",
+    "구찌 캠페인, 붉은 립스틱, 강렬한 눈빛",
+    "디올 오뜨쿠튀르 드레스, 흰 꽃이 흩날리는 배경",
+    "샤넬 트위드 재킷, 흑백 대비가 강한 조명",
+    "이세이 미야케 플리츠, 바람에 펄럭이는 주름",
+    "알렉산더 맥퀸 드레스, 극적인 실루엣",
+    "자크뮈스 린넨 셔츠, 햇살 가득한 여름",
+    "보테가 베네타 가죽 가방, 미니멀 스타일링",
+    "릭 오웬스 블랙 레이어드, 강렬한 실루엣",
+    "메종 마르지엘라 해체주의, 언밸런스 구성",
+    "톰브라운 슈트, 회색 울 소재, 단정한 포즈",
+    "프라다 나일론 백, 도시적 분위기",
+    "발렌시아가 오버사이즈 코트, 스트릿 감성",
+    "셀린느 클래식 코트, 미니멀 세팅",
+    "한복 리디자인 패션쇼, 현대적 재해석",
+    "전통 소재 한복 × 스니커즈 믹스매치",
+    "흰 저고리에 데님 팬츠, 동서양 퓨전",
+    "색동 실크 재킷, 파리 패션위크 무드",
+    "금박 자수 한복 드레스, 레드카펫 분위기",
+    "아디다스 × 한복 콜라보, 스포티 에디토리얼",
+    "흑백 한복 실루엣, 드라마틱 라이팅",
+    "비 오는 날 런웨이, 반사되는 바닥",
+    "사막 배경 에디토리얼, 바람에 흩날리는 원단",
+    "눈 내리는 겨울 런웨이, 모피와 울 소재",
+  ],
+  portrait: [
+    "아워레가시 재킷을 입은 20대 남성",
+    "한복 입은 노인, 깊은 주름과 따뜻한 미소",
+    "흰 저고리 입은 소녀, 바람에 머리카락 날림",
+    "갓 쓴 선비, 서재에서 책 읽는 모습",
+    "무용수가 쉬는 순간, 땀방울이 빛나는",
+    "도예가의 손, 흙 묻은 작업 중 포착",
+    "한복 입은 신부, 자연광 아래 시선 내림",
+    "대장간 장인, 불꽃 앞에서 망치 든 모습",
+    "전통 시장 할머니, 먹거리 앞에 앉은",
+    "서예가, 먹물 묻은 붓을 든 순간",
+    "하회탈 장인, 나무 깎는 집중된 표정",
+    "전통 화가, 한지 위에 붓놀림하는",
+    "옹기장이, 물레 위에서 형태 잡는",
+    "풍물 연주자, 상모 돌리기 직전 집중",
+    "전통 다례 중인 여인, 찻잔을 드는 순간",
+    "궁중 의상 입은 왕, 용상에 앉은 정면",
+    "가야금 연주자, 줄을 튕기는 손가락 클로즈업",
+    "판소리 소리꾼, 부채 들고 소리하는 순간",
+    "승무 무용수, 장삼 소매가 공중에 멈춘",
+    "전통 혼례 신랑신부, 마주보는 시선",
+    "궁녀 복식의 젊은 여성, 고개 살짝 숙인",
+    "조선 무관, 갑옷 입고 활을 겨누는",
+    "단청 칠하는 장인, 높은 곳에서 작업 중",
+    "짚신 엮는 노인의 손, 따뜻한 오후빛",
+  ],
+  product: [
+    "조선 백자 옆의 향수병",
+    "은입사 담배함 위에 놓인 만년필",
+    "나전칠기 함 안에 담긴 주얼리",
+    "분청사기 찻잔과 현대적 티포트",
+    "석등 앞에 놓인 캔들 제품",
+    "한지 위에 올려진 화장품 세트",
+    "옹기 항아리 옆의 디퓨저",
+    "떡살 무늬와 나란히 놓인 비누",
+    "고려청자 옆의 와인잔",
+    "전통 보자기로 감싼 선물 상자",
+    "서안 위에 올려진 노트북과 붓",
+    "전통 목가구 서랍장 위의 시계",
+    "단청 배경 앞에 놓인 향수",
+    "돌담 틈새에 놓인 핸드크림",
+    "궁중 병풍 앞에 전시된 가방",
+    "한옥 대청마루 위의 블루투스 스피커",
+    "전통 지승 바구니 안의 과일",
+    "옻칠 쟁반 위의 커피잔과 디저트",
+    "매화문 자수 앞의 립스틱",
+    "오방색 천 위에 놓인 주얼리 세트",
+  ],
+  landscape: [
+    "안개 낀 이른 아침, 산사 풍경",
+    "가을 단풍으로 물든 궁궐 담장길",
+    "눈 덮인 처마 끝 고드름, 겨울 아침",
+    "벚꽃 흩날리는 봄, 고즈넉한 한옥 마을",
+    "비 내리는 여름 한옥, 처마에서 떨어지는 빗물",
+    "석양에 물든 성곽, 금빛 하늘",
+    "논 위에 비친 하늘, 모내기 전 고요",
+    "대나무 숲 사이로 빛이 쏟아지는",
+    "이끼 낀 돌계단, 산사로 오르는 길",
+    "연못에 비친 누각, 잔잔한 수면",
+    "장독대 위의 아침 햇살",
+    "초가지붕 위에 눈 쌓인 겨울 마을",
+    "소나무 숲 사이 한옥 기와지붕",
+    "서원 앞 연못에 핀 연꽃",
+    "읍성 성벽 위에서 바라본 마을 전경",
+    "산 위 산성에서 내려다본 운해",
+    "대숲 사이로 보이는 달빛",
+    "가을 억새밭 너머 보이는 한옥",
+    "폭포 아래 절벽에 세워진 정자",
+    "둑길 따라 벚꽃 만개한 풍경",
+  ],
+  night: [
+    "보름달 아래 은은한 궁궐 조명",
+    "등불 켜진 한옥마을 골목길",
+    "촛불 하나로 밝힌 한옥 방 안",
+    "달빛에 비친 연못과 정자",
+    "석등에 불 밝힌 사찰 마당",
+    "야간 관람 조명 아래 궁궐 전각",
+    "횃불 들고 걷는 야간 성곽 순찰",
+    "달빛과 별빛만으로 비친 산사",
+    "초롱 불빛이 이어진 다리 위 행렬",
+    "화톳불 타오르는 마당놀이 풍경",
+    "창호지 사이로 새어나오는 은은한 불빛",
+    "눈 내리는 밤 한옥, 처마 아래 등불",
+    "물 위에 비친 궁궐 야경, 잔잔한 반영",
+    "단풍나무 아래 정원등 불빛",
+    "성문 아래 횃불 밝힌 야경",
+    "밤하늘 은하수와 한옥 지붕 실루엣",
+    "장승 옆 모닥불, 마을 입구 풍경",
+    "달빛 아래 대나무 숲 그림자",
+    "제등 달린 사찰 법당, 어둠 속 빛",
+    "청사초롱 불빛 속 혼례 행렬",
+  ],
+};
+
 const SCENE_PROMPT = {
   fashion:    { en: "fashion editorial scene at", ko: "패션 에디토리얼 장면," },
   portrait:   { en: "portrait photography at", ko: "인물 포트레이트 촬영," },
@@ -2413,10 +2544,20 @@ function initAspectRatio() {
   updatePreview();
 }
 
+// 카테고리 그룹 매핑
+const CATEGORY_GROUPS = {
+  "전체":       null,
+  "건축":       ["건축"],
+  "회화":       ["회화"],
+  "공예":       ["도자기·공예"],
+  "복식":       ["생활·풍속"],
+  "무형문화재": ["음악·무용"],
+};
+const CATEGORY_GROUP_NAMES = Object.keys(CATEGORY_GROUPS);
+
 function renderCategories() {
-  const cats = ["전체", ...new Set(HERITAGE_DB.map(h => h.category))];
   const el = document.getElementById("categoryTabs");
-  el.innerHTML = cats.map(c =>
+  el.innerHTML = CATEGORY_GROUP_NAMES.map(c =>
     `<div class="cat-tab ${c==='전체'?'active':''}" onclick="filterCategory('${c}')">${c}</div>`
   ).join("");
 }
@@ -2429,13 +2570,20 @@ function filterCategory(cat) {
 }
 
 function getFilteredItems() {
-  let items = currentCategory === "전체" ? HERITAGE_DB : HERITAGE_DB.filter(h => h.category === currentCategory);
+  let items = HERITAGE_DB;
+  if (currentCategory !== "전체") {
+    const group = CATEGORY_GROUPS[currentCategory];
+    if (group) {
+      items = items.filter(h => group.includes(h.category));
+    }
+  }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     items = items.filter(h =>
       h.name.toLowerCase().includes(q) ||
       h.nameEn.toLowerCase().includes(q) ||
       h.era.includes(q) ||
+      h.category.includes(q) ||
       h.location.includes(q) ||
       h.desc.includes(q)
     );
@@ -2447,18 +2595,22 @@ function renderHeritage() {
   const items = getFilteredItems();
   const visible = items.slice(0, visibleCount);
   const grid = document.getElementById("heritageGrid");
-  grid.innerHTML = visible.map(h => `
-    <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
-      <span class="card-type">${h.type}</span>
-      <div class="card-name">${h.name}</div>
-      <div class="card-name-en">${h.nameEn}</div>
-      <div class="card-meta">
-        <span class="card-era">${h.era}</span>
-        <span class="card-era">${h.location}</span>
+  if (items.length === 0) {
+    grid.innerHTML = `<div class="empty-state">검색 결과가 없어요</div>`;
+  } else {
+    grid.innerHTML = visible.map(h => `
+      <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
+        <span class="card-type">${h.type}</span>
+        <div class="card-name">${h.name}</div>
+        <div class="card-name-en">${h.nameEn}</div>
+        <div class="card-meta">
+          <span class="card-era">${h.era}</span>
+          <span class="card-era">${h.location}</span>
+        </div>
+        <div class="card-desc">${h.desc}</div>
       </div>
-      <div class="card-desc">${h.desc}</div>
-    </div>
-  `).join("");
+    `).join("");
+  }
 
   const wrap = document.getElementById("loadMoreWrap");
   const countEl = document.getElementById("itemCount");
@@ -2537,6 +2689,15 @@ function selectScene(id) {
     notice.style.display = "";
   } else if (notice) {
     notice.style.display = "none";
+  }
+
+  // 씬 타입별 랜덤 placeholder 적용
+  const freeEl = document.getElementById("freeInput");
+  if (freeEl && !isHistorical) {
+    const hints = FREE_INPUT_HINTS[id];
+    if (hints && hints.length) {
+      freeEl.placeholder = "예) " + hints[Math.floor(Math.random() * hints.length)].replace(/^예\) ?/, "");
+    }
   }
 
   // 자동으로 Step 3 이동
