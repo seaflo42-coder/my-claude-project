@@ -1220,68 +1220,525 @@ const SENSITIVITIES = {
 
 // ── 한영 번역 매핑 테이블 (문제 3 해결) ──
 const KO_EN_MAP = {
-  // 건축
-  "팔작지붕": "hipped-and-gabled roof (paljakjibung)",
-  "맞배지붕": "gable roof (matbaejibung)",
-  "우진각지붕": "hip roof (ujingakjibung)",
-  "겹처마": "layered eaves (gyeopchemma)",
-  "처마": "eaves (cheoma)",
-  "공포": "bracket sets (gongpo)",
-  "기단": "stone platform base (gidan)",
-  "문루": "gate pavilion (munru)",
-  "기둥": "wooden columns (gidung)",
-  "주심포": "column-top bracket set (jusimpo)",
-  "다포": "multi-cluster bracket set (dapo)",
-  "익공": "wing-shaped bracket (ikgong)",
-  // 색상/재질
+  // ── 건축 구조 ──
+  "팔작지붕": "hipped-and-gabled roof",
+  "맞배지붕": "gable roof",
+  "우진각지붕": "hip roof",
+  "겹처마": "layered eaves",
+  "처마": "eaves",
+  "공포": "bracket sets",
+  "기단": "stone platform base",
+  "문루": "gate pavilion",
+  "기둥": "wooden columns",
+  "주심포": "column-top bracket set",
+  "다포": "multi-cluster bracket set",
+  "다포식 공포": "multi-cluster bracket system",
+  "익공": "wing-shaped bracket",
+  "배흘림기둥": "entasis columns",
+  "월대": "elevated stone terrace",
+  "돌난간": "stone balustrade",
+  "석등": "stone lantern",
+  "석탑": "stone pagoda",
+  "부도": "stupa",
+  "가구식구조": "post-and-lintel structure",
+  "온돌": "ondol underfloor heating",
+  "구들장": "ondol floor stones",
+  "마루": "maru wooden floor",
+  "대청마루": "daecheong main wooden hall",
+  "누마루": "elevated wooden veranda",
+  "창호": "lattice window and door",
+  "살창": "lattice windows",
+  "환기구": "ventilation openings",
+  "행각": "corridor pavilion",
+  "긴 행각": "long corridor pavilion",
+  "긴 수평 행각": "long horizontal corridor",
+  "벽체": "wall surface",
+  "굴뚝": "chimney",
+  "담장": "enclosing wall",
+  "돌담": "stone wall",
+  "대문": "main gate",
+  "누각": "raised pavilion",
+  "난간": "railing balustrade",
+  "답도": "royal stone walkway",
+  "드므": "fire prevention water vessel",
+  "잡상": "roof ridge figurines",
+  "단층": "single-story",
+  "중층": "two-story",
+  "단층 팔작지붕": "single-story hipped-and-gabled roof",
+  "닫집": "ornamental canopy over throne",
+  "대웅전": "main Buddha hall",
+  "대광보전": "great hall of brilliance",
+  "강학당": "lecture hall",
+  "강학 공간": "lecture hall space",
+  "공북루": "Gongbukru gate pavilion",
+  "공심돈": "hollow watchtower",
+  "개방형 누각": "open-air pavilion",
+  "기와지붕 곡선": "curved tile roof line",
+  "기와집": "tile-roofed house",
+  "초가": "thatched cottage",
+  "넓은 기단": "wide stone platform",
+  "낮은 기단": "low stone platform",
+  "단층 기단": "single-tier platform",
+  "간결한 구조": "minimal structure",
+  "간결한 비례": "balanced proportions",
+  "대칭 구도": "symmetrical composition",
+  "대칭적 형태": "symmetrical form",
+  "구층석탑": "nine-story stone pagoda",
+  "석주": "stone pillar",
+  "수문": "water gate",
+  "수로": "waterway channel",
+  "골목길": "narrow alley",
+  "계곡": "valley",
+  "계곡 옆 입지": "valley-side location",
+
+  // ── 불교 미술 ──
+  "광배": "mandorla (halo)",
+  "연화대좌": "lotus pedestal",
+  "결가부좌": "full lotus position",
+  "항마촉지인": "earth-touching mudra",
+  "금강계단": "diamond ordination platform",
+  "불단": "Buddha altar",
+  "내영도": "welcome descent painting",
+  "금니 세선": "gold-line drawing",
+
+  // ── 색상 기본 ──
+  "백색": "white",
+  "흑색": "black",
+  "갈색": "brown",
+  "흙갈색": "earthy brown",
+  "흙색": "earth tone",
+  "적색": "red",
+  "홍색": "crimson red",
+  "주홍색": "vermilion",
+  "주황색": "orange",
+  "남색": "indigo",
+  "청색": "blue",
+  "녹색": "green",
+  "황색": "yellow",
+  "금색": "gold",
+  "은색": "silver",
+  "옥색": "jade green",
+  "분홍색": "pink",
+  "자주색": "purple",
+  "담청색": "pale blue",
+  "담홍색": "pale pink",
+  "담갈색": "light brown",
+  "담녹색": "pale green",
+  "담황색": "pale yellow",
+  "담묵색": "light ink gray",
+  "담채색": "light wash tone",
+  "담회색": "light gray",
+  "연갈색": "light brown",
+  "연녹색": "light green",
+  "연두색": "yellow-green",
+  "연분홍": "soft pink",
+  "연청색": "light blue",
+  "하늘색": "sky blue",
+  "청록색": "teal",
+  "비취색": "jade green",
+  "비색": "celadon green",
+  "감청색": "deep blue",
+  "다홍색": "deep crimson",
+  "적갈색": "reddish brown",
+  "암갈색": "dark brown",
+  "암회색": "dark gray",
+  "철색": "iron gray",
+  "철흑색": "iron black",
+  "청동색": "bronze",
+  "목재색": "wood brown",
+  "황토색": "ochre",
+  "모래색": "sand beige",
+  "살색": "skin tone",
+  "피부색": "skin tone",
+  "먹색": "ink black",
+  "삼베색": "hemp beige",
+  "백자색": "white porcelain",
+  "단청색": "dancheong polychrome",
+  "미색": "ivory",
+  "유백색": "milky white",
+  "회백색": "grayish white",
+  "회색": "gray",
+  "호박색": "amber",
+  "흑갈색": "dark brown",
+  "색동": "rainbow-striped",
+  "오방색": "five directional colors",
+
+  // ── 색상/재질 결합 ──
   "단청 오방색": "dancheong five-color paintwork",
   "단청": "dancheong traditional paintwork",
-  "오방색": "five directional colors (obangsaek)",
   "기와 회색": "grey roof tiles",
+  "기와 암회색": "dark grey roof tiles",
+  "기와 회흑색": "dark grey-black roof tiles",
   "목재 갈색": "warm wood brown",
   "석재": "stone masonry",
   "목재": "timber wood",
-  "기와": "roof tiles (giwa)",
+  "기와": "roof tiles",
   "화강암": "granite",
+  "화강암 회백색": "grayish-white granite",
+  "화강암 백색": "white granite",
+  "화강암 백회색": "pale white granite",
+  "화강암 황갈색": "yellowish-brown granite",
+  "석재 회색": "gray stone",
+  "석재 회백색": "grayish-white stone",
+  "석재 회갈색": "grayish-brown stone",
+  "석재 황갈색": "yellowish-brown stone",
+  "석재 담황색": "pale yellow stone",
   "흙": "earthen clay",
   "황토": "yellow ochre clay",
   "백토": "white clay",
-  // 양식/구조
-  "배흘림기둥": "entasis columns (baeheullim)",
-  "월대": "elevated stone terrace (woldae)",
-  "돌난간": "stone balustrade",
-  "석등": "stone lantern (seokdeung)",
-  "석탑": "stone pagoda (seoktap)",
-  "부도": "stupa (budo)",
-  "가구식구조": "post-and-lintel structure",
-  "온돌": "ondol underfloor heating",
-  "마루": "maru wooden floor",
-  "창호": "lattice window and door (changho)",
+  "벽체 백색": "white wall surface",
+  "대리석 백색": "white marble",
+  "대리석": "marble",
+  "벽돌 적갈색": "reddish-brown brick",
+  "벽돌": "brick",
+  "사암 황갈색": "yellowish-brown sandstone",
+  "사암 황토색": "ochre sandstone",
+  "사암": "sandstone",
+  "응회암": "tuff stone",
+  "편마암": "gneiss",
+  "현무암 회색": "gray basalt",
+  "현무암 흑회색": "dark gray basalt",
+  "현무암": "basalt",
+  "화산석": "volcanic rock",
+  "화산암": "volcanic rock",
+  "퇴적암": "sedimentary rock",
+  "토성 황갈색": "earthen fortress brown",
+  "흙벽": "earthen wall",
+  "황토 벽 갈색": "ochre earthen wall",
+  "흙담 황토색": "ochre mud wall",
+  "흙빛 황토색": "ochre earth tone",
+  "창틀 백색": "white window frame",
+  "황토색 벽": "ochre wall",
+  "녹청색": "patina green",
+  "녹청 파티나": "verdigris patina",
+  "금동색": "gilt bronze",
+  "금동 황금빛": "golden gilt bronze",
+  "금동": "gilt bronze",
+  "금박": "gold leaf",
+  "금니": "gold pigment",
+  "금사": "gold thread",
+  "은입사": "silver inlay",
+
+  // ── 한복/복식 ──
+  "한복": "hanbok",
+  "한복 치마": "hanbok skirt",
+  "저고리": "jeogori (upper garment)",
+  "긴 저고리": "long jeogori",
+  "긴 소매": "long sleeves",
+  "치마": "chima (skirt)",
+  "도포": "dopo (scholar robe)",
+  "갓": "gat (black horsehair hat)",
+  "대님": "daenim (leg ties)",
+  "버선": "beoseon (socks)",
+  "댕기": "daenggi (hair ribbon)",
+  "노리개": "norigae (ornamental pendant)",
+  "비녀": "binyeo (hairpin)",
+  "족두리": "jokduri (bridal coronet)",
+  "화관": "hwagwan (floral crown)",
+  "가체": "gache (wig)",
+  "원삼": "wonsam (ceremonial robe)",
+  "곤룡포": "gonryongpo (royal robe)",
+  "장삼": "jangsam (long robe)",
+  "고깔": "pointed monk hat",
+  "삿갓": "satgat (conical straw hat)",
+  "패랭이": "paeraengi (flat straw hat)",
+  "짚신": "jipsin (straw sandals)",
+  "상모": "sangmo (hat with spinning ribbon)",
+  "두정갑": "studded armor",
+  "투구": "warrior helmet",
+  "관복": "court official robe",
+
+  // ── 전통 도구/생활 ──
+  "소반": "soban (small dining table)",
+  "놋그릇": "brass bowl",
+  "옹기": "onggi (earthenware)",
+  "지게": "jige (A-frame carrier)",
+  "부채": "fan (buchae)",
+  "가마": "palanquin (gama)",
+  "가마니": "straw sack",
+  "보따리": "cloth bundle",
+  "엽전": "brass coin",
+  "봇짐": "peddler bundle",
+  "좌판": "market stall",
+  "저울": "scale",
+  "논": "rice paddy",
+  "쟁기": "plow",
+  "낫": "sickle",
+  "돗자리": "straw mat",
+  "윷가락": "yut sticks",
+  "윷판": "yut game board",
+  "그네줄": "swing rope",
+  "다듬잇돌": "ironing stone",
+  "도리깨": "threshing flail",
+  "떡살": "rice cake stamp",
+  "떡": "rice cake (tteok)",
+  "한지": "hanji (Korean paper)",
+  "먹": "ink stick",
+  "붓": "brush",
+  "벼루": "inkstone",
+  "장판지": "oiled floor paper",
+  "방석": "cushion",
+
+  // ── 악기/공연 ──
+  "가야금": "gayageum (zither)",
+  "거문고": "geomungo (zither)",
+  "장구": "janggu (hourglass drum)",
+  "북": "buk (drum)",
+  "꽹과리": "kkwaenggwari (gong)",
+  "대금": "daegeum (bamboo flute)",
+  "피리": "piri (oboe)",
+  "해금": "haegeum (fiddle)",
+  "편경": "pyeongyeong (stone chimes)",
+  "편종": "pyeonjong (bell chimes)",
+  "나발": "nabal (long trumpet)",
+
+  // ── 재질 ──
+  "비단": "silk",
+  "명주": "fine silk",
+  "명주실": "silk thread",
+  "명주끈": "silk cord",
+  "면": "cotton",
+  "면직": "cotton fabric",
+  "모시": "ramie (fine hemp)",
+  "삼베": "hemp cloth",
+  "광목": "cotton broadcloth",
+  "광목천": "cotton broadcloth",
+  "광목보": "cotton wrapping cloth",
+  "가죽": "leather",
+  "소가죽": "cowhide",
+  "말가죽": "horsehide",
+  "가죽끈": "leather strap",
+  "옻칠": "lacquer (ottchil)",
+  "옻": "lacquer",
+  "나무": "wood",
+  "대나무": "bamboo",
+  "소나무": "pine wood",
+  "오동나무": "paulownia wood",
+  "참나무": "oak wood",
+  "삼나무": "cedar",
+  "해송": "Japanese black pine",
+  "금강송": "geumgangsong pine",
+  "철": "iron",
+  "주철": "cast iron",
+  "구리": "copper",
+  "놋쇠": "brass",
+  "청동": "bronze",
+  "금": "gold",
+  "은": "silver",
+  "옥": "jade",
+  "경옥": "hard jade",
+  "산호": "coral",
+  "진주": "pearl",
+  "자개": "mother-of-pearl",
+  "나전 상감": "mother-of-pearl inlay",
+  "유리": "glass",
+  "점토": "clay",
+  "진흙": "clay mud",
+  "돌": "stone",
+  "짚": "straw",
+  "갈대": "reed",
+  "종이": "paper",
+  "초": "candle",
+  "숯": "charcoal",
+  "소금": "salt",
+  "꿀": "honey",
+  "콩": "soybean",
+  "쌀": "rice",
+  "쌀가루": "rice flour",
+  "밀가루": "wheat flour",
+  "찹쌀": "glutinous rice",
+  "누룩": "nuruk (fermentation starter)",
+  "고추장": "gochujang (red pepper paste)",
+  "고춧가루": "gochugaru (red pepper flakes)",
+  "된장": "doenjang (soybean paste)",
+  "간장": "soy sauce",
+  "참기름": "sesame oil",
+  "깨": "sesame",
+  "송화가루": "pine pollen",
+  "녹차": "green tea",
+
+  // ── 문양/장식 ──
   "격자문": "lattice pattern",
   "연꽃무늬": "lotus flower motif",
-  "당초문": "arabesque scroll pattern (dangchomun)",
-  "보상화문": "stylized floral medallion (bosanghwamun)",
-  // 분위기
+  "당초문": "arabesque scroll pattern",
+  "보상화문": "stylized floral medallion",
+  "구름문": "cloud pattern",
+  "구름 문양": "cloud motif",
+  "나전": "mother-of-pearl inlay",
+  "나비매듭": "butterfly knot",
+  "도래매듭": "circular knot",
+  "매듭": "decorative knot",
+  "다식판 문양": "pressed-pattern cookie mold",
+  "떡살 문양": "rice cake stamp pattern",
+  "대나무문": "bamboo pattern",
+  "국화당초문": "chrysanthemum arabesque",
+  "꽃 형상": "floral shape",
+  "곡옥 장식": "comma-shaped jade ornament",
+  "금사 자수": "gold-thread embroidery",
+
+  // ── 자연/풍경 ──
+  "단풍": "autumn foliage",
+  "계곡 풍경": "valley landscape",
+  "능선": "mountain ridge",
+  "갯벌": "tidal flat",
+  "기암괴석": "bizarre rock formations",
+  "기암절벽": "craggy cliff",
+  "고사목": "ancient dead tree",
+  "구상나무": "Korean fir",
+  "고산습지": "alpine wetland",
+  "낙조": "sunset glow",
+  "유채꽃": "rapeseed flowers",
+  "철쭉": "royal azalea",
+  "두루미": "crane",
+  "까치": "magpie",
+  "기러기": "wild goose",
+  "괭이갈매기": "black-tailed gull",
+  "나룻배": "ferry boat",
+
+  // ── 분위기 ──
+  "경건한": "reverent",
+  "지혜로운": "wise",
   "장엄한": "majestic",
-  "위풍당당한": "dignified and imposing",
+  "위풍당당한": "commanding and dignified",
   "고즈넉한": "serene and tranquil",
   "소박한": "humble and understated",
   "화려한": "magnificent and ornate",
   "고요한": "still and peaceful",
   "역동적인": "dynamic and energetic",
   "웅장한": "grand and monumental",
-  // 기타
+  "숭고한": "sublime",
+  "명상적": "meditative",
+  "신비로운": "mystical",
+  "고풍스러운": "antique and classical",
+  "고아한": "refined and elegant",
+  "고졸한": "archaic charm",
+  "기품 있는": "dignified",
+  "격조 높은": "sophisticated",
+  "검소하고 단아한": "frugal yet elegant",
+  "단정한": "neat and orderly",
+  "절제된": "restrained",
+  "점잖은": "composed and dignified",
+  "정겨운": "warm and endearing",
+  "따뜻한": "warm",
+  "포근한": "cozy and warm",
+  "활기찬": "vibrant and lively",
+  "흥겨운": "festive and joyful",
+  "경쾌한": "light and cheerful",
+  "구성진": "soulful and resonant",
+  "구슬픈": "sorrowful and haunting",
+  "강렬한": "intense",
+  "아슬아슬한": "thrilling and precarious",
+  "해학적인": "humorous and witty",
+  "고단한": "weary and laborious",
+  "긴장된": "tense",
+  "경사스러운": "celebratory",
+  "경축의": "festive celebration",
+  "감사의": "grateful",
+  "감사하는": "thankful",
+  "과학적인": "scientific",
+  "과학적 지혜": "scientific wisdom",
+  "깊은": "profound",
+  "깊은 울림": "deep resonance",
+  "깊은 여운": "lingering impression",
+  "견고한": "sturdy and solid",
+  "고고한": "noble and aloof",
+  "고운": "delicate and fine",
+  "곱게": "gracefully",
+  "균형 잡힌": "well-balanced",
+  "간결하고 실용적인": "simple and practical",
+  "개방적 풍류": "open-air elegance",
+  "거친": "rough and wild",
+  "근대적 위엄": "modern dignity",
+  "근대의 온기": "warmth of modern era",
+  "공동체의 흥": "communal excitement",
+  "공동체적 유대": "communal bond",
+  "공동체적 협동": "communal cooperation",
+  "공동체적 화합": "communal harmony",
+  "정교한": "elaborate and intricate",
+  "섬세한": "delicate and refined",
+  "곡선미": "beauty of curves",
+  "독창적인": "original and creative",
+  "자비로운": "compassionate",
+  "성스러운": "sacred",
+  "담백한": "plain and unadorned",
+  "투박한": "rustic",
+  "소탈한": "unpretentious",
+  "조화로운": "harmonious",
+  "가족적 온기": "family warmth",
+  "가족적 온정": "family affection",
+  "가족적 화목": "family harmony",
+
+  // ── 조선 왕조/유교/불교 ──
   "조선 왕조의 위엄": "the majesty of the Joseon Dynasty",
   "불교 사찰": "Buddhist temple",
   "유교적 질서": "Confucian order",
+
+  // ── 음식 관련 ──
+  "찻잔": "tea cup",
+  "다관": "tea kettle",
+  "솥": "cauldron",
+  "돌솥": "stone pot",
+  "시루": "steamer (siru)",
+  "술대": "liquor ladle",
+  "강정": "gangjeong (fried sweet)",
+  "약과": "yakgwa (honey cookie)",
+  "다식": "dasik (pressed sweet)",
+  "곶감": "dried persimmon",
+  "대추": "jujube",
+
+  // ── 기타 ──
+  "탈": "mask (tal)",
+  "풍경": "wind chime",
+  "보름달": "full moon",
+  "횃불": "torch",
+  "모닥불": "bonfire",
+  "달빛": "moonlight",
+  "눈꽃": "snowflake",
+  "고드름": "icicle",
+  "운해": "sea of clouds",
+  "안개": "mist",
+};
+
+// 색상 접미사 패턴 매핑
+const COLOR_SUFFIX_MAP = {
+  "백색": "white", "흑색": "black", "갈색": "brown", "적색": "red",
+  "홍색": "crimson", "청색": "blue", "녹색": "green", "황색": "yellow",
+  "금색": "gold", "은색": "silver", "회색": "gray", "분홍": "pink",
+  "주황": "orange", "보라": "purple", "남색": "indigo",
+};
+// 분위기 접미사 패턴 매핑
+const MOOD_SUFFIX_MAP = {
+  "스러운": "", "로운": "", "다운": "",
+  "적인": "", "적": "", "한": "",
 };
 
 function translateToEn(text) {
   let result = text;
+
+  // 1단계: KO_EN_MAP 직접 매핑 (긴 키 우선)
   const sortedKeys = Object.keys(KO_EN_MAP).sort((a, b) => b.length - a.length);
   for (const ko of sortedKeys) {
     result = result.split(ko).join(KO_EN_MAP[ko]);
   }
+
+  // 2단계: "X색" 패턴 자동 변환 (예: "연분홍색" → "soft pink")
+  result = result.replace(/([가-힣]+)\s*(색)/g, (match, prefix) => {
+    for (const [suffix, en] of Object.entries(COLOR_SUFFIX_MAP)) {
+      if (prefix.endsWith(suffix.replace("색",""))) return en;
+    }
+    return match;
+  });
+
+  // 3단계: "X 갈색", "X 흰색" 등 복합 색상 패턴
+  result = result.replace(/([가-힣]+)\s+(white|black|brown|red|blue|green|yellow|gold|silver|gray|pink|orange|purple|crimson|indigo)/g,
+    (match, ko, color) => color);
+
+  // 4단계: 남은 한국어 문자 제거 (Midjourney에서 한국어는 무의미)
+  result = result.replace(/[가-힣\u3131-\u3163\u1100-\u11FF]+/g, "");
+
+  // 정리: 중복 공백, 앞뒤 쉼표 등 제거
+  result = result.replace(/,\s*,/g, ",").replace(/\s+/g, " ").replace(/^[\s,]+|[\s,]+$/g, "").trim();
+
   return result;
 }
 
@@ -1295,6 +1752,108 @@ const ASPECT_RATIOS = [
 ];
 
 // ── 자유입력 재구성 함수 ──
+// ── 자유입력 한국어→영문 키워드 매핑 ──
+const FREE_TEXT_KO_EN = {
+  // 인물
+  "한국인": "Korean", "한국 여성": "Korean woman", "한국 남성": "Korean man",
+  "동양적인": "East Asian", "동양인": "East Asian", "동양": "East Asian",
+  "여성": "woman", "남성": "man", "여자": "woman", "남자": "man",
+  "소녀": "girl", "소년": "boy", "아이": "child", "어린이": "child",
+  "노인": "elderly person", "할머니": "grandmother", "할아버지": "grandfather",
+  "모델": "model", "무용수": "dancer", "선비": "scholar",
+  "명": "people", "명이": "people", "사람": "person",
+  // 숫자+인물
+  "한 명": "one person", "두 명": "two people", "세 명": "three people",
+  "네 명": "four people", "다섯 명": "five people",
+  "1명": "one person", "2명": "two people", "3명": "three people",
+  "4명": "four people", "5명": "five people",
+  "5명이": "five people", "4명이": "four people", "3명이": "three people",
+  "2명이": "two people", "1명이": "one person",
+  // 복식
+  "한복을 입고": "wearing hanbok", "한복 입은": "wearing hanbok",
+  "한복을 입은": "wearing hanbok", "한복": "hanbok",
+  "저고리": "jeogori", "치마": "chima skirt",
+  "갓을 쓴": "wearing gat hat", "갓": "gat hat",
+  "두루마기": "durumagi (overcoat)", "도포": "dopo robe",
+  // 패션/브랜드 동작
+  "런웨이": "runway", "패션쇼": "fashion show", "화보": "fashion editorial",
+  "촬영": "photoshoot", "광고": "advertisement campaign",
+  "캠페인": "campaign", "룩북": "lookbook",
+  "패턴의": "patterned", "패턴": "pattern", "스타일의": "styled",
+  "디자인의": "designed", "디자인": "design", "컬렉션": "collection",
+  // 장소/배경
+  "궁궐": "royal palace", "한옥": "hanok (traditional house)",
+  "절": "temple", "사찰": "Buddhist temple", "정원": "garden",
+  "거리": "street", "마을": "village", "시장": "market",
+  "대나무 숲": "bamboo forest", "소나무 숲": "pine forest",
+  "산": "mountain", "바다": "sea", "강": "river", "호수": "lake",
+  "눈 덮인": "snow-covered", "벚꽃": "cherry blossoms",
+  // 브랜드 (한글 표기 → 영문)
+  "구찌": "Gucci", "나이키": "Nike", "샤넬": "Chanel", "디올": "Dior",
+  "프라다": "Prada", "루이비통": "Louis Vuitton", "에르메스": "Hermès",
+  "버버리": "Burberry", "발렌시아가": "Balenciaga", "보테가": "Bottega Veneta",
+  "셀린느": "Celine", "생로랑": "Saint Laurent", "지방시": "Givenchy",
+  "펜디": "Fendi", "아디다스": "Adidas", "뉴발란스": "New Balance",
+  "유니클로": "Uniqlo", "자라": "Zara",
+  // 분위기
+  "우아한": "elegant", "모던한": "modern", "전통적인": "traditional",
+  "고급스러운": "luxurious", "세련된": "sophisticated",
+  "미니멀한": "minimal", "다채로운": "colorful",
+  "따뜻한": "warm", "차가운": "cool-toned",
+  // 의류/소품
+  "코트": "coat", "재킷": "jacket", "드레스": "dress", "셔츠": "shirt",
+  "바지": "pants", "스커트": "skirt", "가방": "bag", "신발": "shoes",
+  "모자": "hat", "목걸이": "necklace", "반지": "ring", "귀걸이": "earring",
+  "선글라스": "sunglasses", "스카프": "scarf", "벨트": "belt",
+  // 날씨/시간
+  "비 오는 날": "rainy day", "비 오는": "rainy", "비": "rain",
+  "눈 오는 날": "snowy day", "눈 오는": "snowy",
+  "흐린 날": "overcast day", "맑은 날": "clear day",
+  "안개 낀": "foggy", "바람 부는": "windy",
+  "해질녘": "sunset", "새벽": "dawn", "한낮": "midday",
+  "밤": "night", "저녁": "evening", "아침": "morning",
+  // 동작
+  "걷고 있는": "walking", "서 있는": "standing", "앉아 있는": "sitting",
+  "춤추는": "dancing", "포즈를 취하는": "posing",
+  "달리는": "running", "돌아보는": "looking back",
+  "흩날리는": "fluttering", "날리는": "blowing",
+  // 장면 묘사
+  "장면": "scene", "풍경": "landscape", "배경": "background",
+  "분위기": "atmosphere", "느낌": "feeling", "스타일": "style",
+  // 연결어 (제거용 — 공백으로 치환)
+  "에서": " in ", "에": " at ", "으로": " with ", "로": " with ",
+  "와": " and ", "과": " and ", "의": " ", "도": " also ",
+  "이": " ", "가": " ", "을": " ", "를": " ", "는": " ", "은": " ",
+  "하는": " ", "하고": " and ", "이며": " and ", "며": " and ",
+};
+
+function translateFreeText(text) {
+  if (!text) return "";
+  // 한국어가 없으면 그대로 반환
+  if (!/[가-힣]/.test(text)) return text;
+
+  let result = text;
+
+  // 1단계: 긴 구절부터 매핑
+  const sortedKeys = Object.keys(FREE_TEXT_KO_EN).sort((a, b) => b.length - a.length);
+  for (const ko of sortedKeys) {
+    result = result.split(ko).join(FREE_TEXT_KO_EN[ko]);
+  }
+
+  // 2단계: KO_EN_MAP도 적용
+  const mapKeys = Object.keys(KO_EN_MAP).sort((a, b) => b.length - a.length);
+  for (const ko of mapKeys) {
+    result = result.split(ko).join(KO_EN_MAP[ko]);
+  }
+
+  // 3단계: 남은 한국어 제거
+  result = result.replace(/[가-힣\u3131-\u3163\u1100-\u11FF]+/g, "");
+
+  // 정리
+  result = result.replace(/,\s*,/g, ",").replace(/\s+/g, " ").replace(/^[\s,]+|[\s,]+$/g, "").trim();
+  return result;
+}
+
 function composeFreeText(freeText, sceneId, sensitivity, cameraView) {
   if (!freeText) return { en: "", ko: "" };
 
@@ -1302,10 +1861,11 @@ function composeFreeText(freeText, sceneId, sensitivity, cameraView) {
   const sens = SENSITIVITIES[sensitivity] || SENSITIVITIES.editorial;
   const colorGrade = sens.colorGrade?.[sceneId] || sens.colorGrade?.landscape || "";
 
-  // 영문: 씬 디렉션 + 자유입력(그대로) + 감도 수식어 + 컬러 그레이딩 + 뷰
+  // 영문: 씬 디렉션 + 자유입력(한→영 변환) + 컬러 그레이딩 + 뷰
+  const translatedFree = translateFreeText(freeText);
   const enParts = [];
   enParts.push(dir.en.join(", "));
-  enParts.push(freeText);
+  if (translatedFree) enParts.push(translatedFree);
   if (colorGrade) enParts.push(colorGrade);
   if (cameraView) enParts.push(`${cameraView} perspective`);
 
@@ -1480,7 +2040,7 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   if (adv.lighting) parts.push(adv.lighting);
   if (adv.season) parts.push(adv.season);
   if (adv.time) parts.push(adv.time);
-  if (adv.extra) parts.push(adv.extra);
+  if (adv.extra) parts.push(translateFreeText(adv.extra));
   // 9. 퀄리티
   parts.push("highly detailed, 8K, professional quality");
 
