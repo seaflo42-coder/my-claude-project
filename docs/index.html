@@ -1975,12 +1975,12 @@ const SCENE_PROMPT = {
 // 씬 타입별 구체적 디렉션 (영문/한글)
 const SCENE_DIRECTION = {
   fashion: {
-    en: ["subject in the foreground", "heritage architecture as dramatic backdrop", "static editorial pose"],
-    ko: ["인물이 전경에 위치", "문화유산 건축물이 드라마틱한 배경", "정적인 에디토리얼 포즈"]
+    en: ["subject in the foreground", "heritage architecture as dramatic backdrop", "natural movement caught in motion", "hair movement mid-stride", "natural skin texture with visible pores"],
+    ko: ["인물이 전경에 위치", "문화유산 건축물이 드라마틱한 배경", "자연스러운 움직임이 포착된 순간", "머리카락 날림과 걸음 중 포즈", "자연스러운 피부 질감"]
   },
   portrait: {
-    en: ["mid shot framing", "contemplative expression", "looking away from camera"],
-    ko: ["미드샷 프레이밍", "사색적인 표정", "카메라에서 시선을 돌린 구도"]
+    en: ["mid shot framing", "candid moment with subtle expression", "natural gaze slightly off-camera", "natural skin texture subsurface scattering", "photorealistic skin no retouching"],
+    ko: ["미드샷 프레이밍", "자연스러운 순간 포착과 미묘한 표정", "카메라 살짝 벗어난 자연스러운 시선", "자연스러운 피부 질감과 피하 산란", "리터칭 없는 사실적 피부"]
   },
   product: {
     en: ["product centered in frame", "placed in front of heritage architecture", "side lighting"],
@@ -2006,6 +2006,25 @@ function getAdvancedSettings() {
   return { camera, lens, lighting, season, time, extra };
 }
 
+// 시네마틱 감도: 씬별 자동 앵글 (카메라가 "자동"일 때)
+const CINEMATIC_AUTO_ANGLE = {
+  fashion:   "low angle looking up",
+  portrait:  "slight off-axis 45 degree angle",
+  product:   "three-quarter angle",
+  landscape: "",
+  night:     ""
+};
+
+// 렌즈별 인물 표현 특성
+const LENS_CHARACTER = {
+  "telephoto 85mm":  "compressed background, subject isolation",
+  "standard 50mm":   "natural perspective, environmental context",
+  "wide angle 24mm": "wider context, environmental storytelling",
+  "telephoto 200mm": "extreme background compression, tight framing",
+  "macro lens":      "extreme close-up detail",
+  "tilt-shift lens": "miniature effect selective focus"
+};
+
 function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
@@ -2014,6 +2033,11 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   const adv = getAdvancedSettings();
   const arSelect = document.getElementById("aspectRatio");
   const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
+
+  // 시네마틱 자동 앵글/렌즈 결정
+  const isCinematic = sensitivity === "cinematic";
+  const effectiveCamera = adv.camera || (isCinematic ? (CINEMATIC_AUTO_ANGLE[sceneId] || "") : "");
+  const effectiveLens = adv.lens || (isCinematic && (sceneId === "fashion" || sceneId === "portrait") ? "telephoto 85mm" : "");
 
   const parts = [];
   // 1. 씬 + 주제 (영문 변환)
@@ -2026,7 +2050,7 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   // 3. 분위기 (번역)
   parts.push(translateToEn(v.atmosphere));
   // 4. 자유입력 재구성 (씬+감도+뷰 기반)
-  const composed = composeFreeText(freeText, sceneId, sensitivity, adv.camera);
+  const composed = composeFreeText(freeText, sceneId, sensitivity, effectiveCamera);
   if (composed.en) parts.push(composed.en);
   // 5. 감도 수식어
   parts.push(sens.promptEn);
@@ -2035,8 +2059,14 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   if (colorGrade) parts.push(colorGrade);
   // 7. 공연 에너지
   if (perf) parts.push(getEnergyContext(item).en);
-  // 8. 고급 설정
-  if (adv.lens) parts.push(`shot on ${adv.lens}`);
+  // 8. 고급 설정 — 앵글
+  if (effectiveCamera) parts.push(effectiveCamera);
+  // 8b. 렌즈 + 렌즈 특성
+  if (effectiveLens) {
+    parts.push(`shot on ${effectiveLens}`);
+    const lensChar = LENS_CHARACTER[effectiveLens];
+    if (lensChar) parts.push(lensChar);
+  }
   if (adv.lighting) parts.push(adv.lighting);
   if (adv.season) parts.push(adv.season);
   if (adv.time) parts.push(adv.time);
@@ -2047,6 +2077,15 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   return parts.join(", ") + " " + ar.mj;
 }
 
+// 시네마틱 자동 앵글 한글 매핑
+const CINEMATIC_AUTO_ANGLE_KO = {
+  fashion:   "로우 앵글 (아래에서 올려다보는 구도)",
+  portrait:  "약간 비스듬한 45도 앵글",
+  product:   "쓰리쿼터 앵글",
+  landscape: "",
+  night:     ""
+};
+
 function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   const v = item.visual;
   const perf = isPerformance(item);
@@ -2056,14 +2095,27 @@ function buildKoPrompt(item, sceneId, sensitivity, freeText) {
   const arSelect = document.getElementById("aspectRatio");
   const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
 
+  const isCinematic = sensitivity === "cinematic";
+  const effectiveCameraKo = adv.camera ? (document.getElementById("advCamera").selectedOptions[0]?.text || "") : (isCinematic ? (CINEMATIC_AUTO_ANGLE_KO[sceneId] || "") : "");
+
   const parts = [];
   parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 이미지를 생성해주세요`);
   parts.push(`${scene} 장면입니다`);
+  // 시네마틱 인물 씬: 생동감 디렉션
+  if (isCinematic && (sceneId === "fashion" || sceneId === "portrait")) {
+    if (sceneId === "fashion") {
+      parts.push("인물은 자연스러운 움직임이 포착된 순간, 머리카락이 날리고 걸음 중의 역동적 포즈로 표현해주세요");
+      parts.push("피부는 리터칭 없는 자연스러운 질감으로, 모공이 보이는 사실적 표현이어야 합니다");
+    } else {
+      parts.push("인물은 자연스러운 순간이 포착된 듯한 미묘한 표정과, 카메라에서 살짝 벗어난 자연스러운 시선으로 표현해주세요");
+      parts.push("피부는 피하 산란이 느껴지는 사실적 질감, 리터칭 없는 자연스러운 표현이어야 합니다");
+    }
+  }
   parts.push(`주요 시각 요소는 ${v.style.join(", ")}이며, ${v.colors.join(", ")} 색감을 사용합니다`);
   parts.push(`재질은 ${v.materials.join(", ")}으로 구성됩니다`);
   parts.push(`전체 분위기는 ${v.atmosphere}`);
   // 자유입력 재구성 (한글)
-  const composed = composeFreeText(freeText, sceneId, sensitivity, adv.camera);
+  const composed = composeFreeText(freeText, sceneId, sensitivity, adv.camera || (isCinematic ? CINEMATIC_AUTO_ANGLE[sceneId] : ""));
   if (composed.ko) parts.push(composed.ko);
   // 감도
   parts.push(`${sens.promptKo} 스타일로 표현해주세요`);
@@ -2071,6 +2123,8 @@ function buildKoPrompt(item, sceneId, sensitivity, freeText) {
     parts.push(getEnergyContext(item).ko);
     parts.push("공연의 역동적 에너지와 관객의 호응이 생생하게 느껴지도록 표현해주세요");
   }
+  // 시네마틱 자동 앵글 (한글)
+  if (effectiveCameraKo) parts.push(`카메라 앵글: ${effectiveCameraKo}`);
   // 고급 설정 (한글)
   const advParts = [];
   if (adv.season) advParts.push(document.getElementById("advSeason").selectedOptions[0].text.replace(/ \(.*\)/, ""));
