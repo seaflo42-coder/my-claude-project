@@ -2042,35 +2042,67 @@ const SCENE_DIRECTION = {
 };
 
 // ── 역사 고증 전용 프롬프트 빌더 ──
+// 무형문화재 판별 (공연/의식/놀이/기술 계열)
+function isIntangible(item) {
+  return isPerformance(item)
+    || item.type === "무형유산"
+    || item.type === "전통놀이"
+    || item.type === "세시풍속";
+}
+
 function buildHistoricalEnPrompt(item) {
   const v = item.visual;
   const arSelect = document.getElementById("aspectRatio");
   const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
 
+  if (isIntangible(item)) {
+    return buildHistoricalIntangibleEn(item, v, ar);
+  }
+  return buildHistoricalTangibleEn(item, v, ar);
+}
+
+// 유형 A — 유형문화재 (건축/유물/미술)
+function buildHistoricalTangibleEn(item, v, ar) {
   const parts = [];
-  // 1. 유산 식별
   parts.push(`${item.nameEn}, ${item.eraEn}, Korean cultural heritage`);
-  // 2. 고증 정확성
   parts.push("historically accurate restoration");
-  // 3. 건축 양식/구조 전체 포함
   const stylesEn = v.style.map(s => translateToEn(s)).join(", ");
   parts.push(stylesEn);
-  // 4. 재질/색상 전체 포함
   const colorsEn = v.colors.map(c => translateToEn(c)).join(", ");
   const materialsEn = v.materials.map(m => translateToEn(m)).join(", ");
   parts.push(colorsEn);
   parts.push(materialsEn);
-  // 5. 시대 맥락
   parts.push(`as it appeared in ${item.eraEn}`);
-  // 6. 고증 제한
   parts.push("no modern elements, archaeologically precise, no people");
-  // 7. 사실성 레이어
   parts.push("ultra photorealistic, hyperrealistic architectural photography");
   parts.push("shot on Phase One IQ4 150MP, natural daylight, no artificial lighting");
   parts.push("no color grading, true to life colors, photogrammetry-level detail");
-  // 8. 분위기
   parts.push("clear sky, natural atmosphere, midday sun");
+  return parts.join(", ") + " " + ar.mj;
+}
 
+// 유형 B — 무형문화재 (공연/의식/놀이)
+function buildHistoricalIntangibleEn(item, v, ar) {
+  const parts = [];
+  // 1. 유산 식별 + 공연 문맥
+  parts.push(`${item.nameEn} performance, ${item.eraEn}, Korean cultural heritage`);
+  // 2. 공연자 + 복식
+  const stylesEn = v.style.map(s => translateToEn(s)).join(", ");
+  const colorsEn = v.colors.map(c => translateToEn(c)).join(", ");
+  const materialsEn = v.materials.map(m => translateToEn(m)).join(", ");
+  parts.push(`performers in traditional costume, ${stylesEn}`);
+  parts.push(`${colorsEn}, ${materialsEn}`);
+  // 3. 역동적 움직임
+  parts.push("dynamic movement, caught in peak action moment");
+  parts.push("performers in full ritual motion, motion blur on costume details");
+  // 4. 현장감
+  parts.push("captured during actual performance");
+  parts.push("outdoor madang courtyard setting, natural daylight or traditional torchlight");
+  // 5. 고증 + 다큐멘터리
+  parts.push("candid documentary style, historically accurate, no modern elements");
+  parts.push("National Geographic photography");
+  parts.push("shot on Phase One IQ4 150MP");
+  parts.push("no color grading, true to life colors");
   return parts.join(", ") + " " + ar.mj;
 }
 
@@ -2079,6 +2111,14 @@ function buildHistoricalKoPrompt(item) {
   const arSelect = document.getElementById("aspectRatio");
   const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
 
+  if (isIntangible(item)) {
+    return buildHistoricalIntangibleKo(item, v, ar);
+  }
+  return buildHistoricalTangibleKo(item, v, ar);
+}
+
+// 유형 A — 유형문화재 한글
+function buildHistoricalTangibleKo(item, v, ar) {
   const parts = [];
   parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 역사 고증 이미지를 생성해주세요`);
   parts.push("원형 그대로의 사실적 복원 상태를 촬영한 장면입니다");
@@ -2091,7 +2131,23 @@ function buildHistoricalKoPrompt(item) {
   parts.push("초고해상도 중형 카메라로 촬영한 듯한 극사실주의 사진");
   parts.push("정오 자연광, 인위적 조명 없음, 맑은 하늘, 자연 그대로의 색감");
   parts.push(ar.ko);
+  return parts.join(". ") + ".";
+}
 
+// 유형 B — 무형문화재 한글
+function buildHistoricalIntangibleKo(item, v, ar) {
+  const parts = [];
+  parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 역사 고증 이미지를 생성해주세요`);
+  parts.push("실제 공연/의식이 펼쳐지는 현장을 포착한 장면입니다");
+  parts.push(`전통 복식을 갖춘 공연자: ${v.style.join(", ")}`);
+  parts.push(`색상: ${v.colors.join(", ")}`);
+  parts.push(`소재: ${v.materials.join(", ")}`);
+  parts.push("절정의 순간, 역동적 움직임, 의상 디테일의 모션 블러를 표현해주세요");
+  parts.push("공연자의 온전한 의례적 동작이 담겨야 합니다");
+  parts.push("전통 마당이나 야외 공간에서 자연광 또는 전통 횃불 조명");
+  parts.push("연출 없는 다큐멘터리 스타일, 역사적으로 정확하게, 현대 요소 배제");
+  parts.push("초고해상도 중형 카메라로 촬영한 듯한 극사실주의 사진");
+  parts.push(ar.ko);
   return parts.join(". ") + ".";
 }
 
