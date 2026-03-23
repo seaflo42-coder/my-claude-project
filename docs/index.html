@@ -2063,6 +2063,37 @@ const SCENE_DIRECTION = {
 };
 
 // ── 역사 고증 전용 프롬프트 빌더 ──
+// 정적 공연 (소리/악기/의례 — 격렬한 움직임 없음)
+const STATIC_PERFORMANCE_IDS = new Set([
+  "pansori","gayageum","geomungo","daegeum","haegeum",
+  "jongmyo-jeryeak","arirang","kkokdugaksi","dado","gwageo"
+]);
+
+function isStaticPerformance(item) {
+  return STATIC_PERFORMANCE_IDS.has(item.id);
+}
+
+// 공연별 성별/복식 지시어
+const COSTUME_OVERRIDE = {
+  "pansori":       { en: "male gwangdae in white jeogori, dark baji, durumagi outer robe, gat hat, holding folding fan", ko: "남성 소리꾼: 흰 저고리, 어두운 바지, 두루마기, 갓, 부채 들고" },
+  "gayageum":      { en: "female performer in jeogori with full chima skirt, traditional hair ornament, seated in formal posture", ko: "여성 연주자: 저고리와 치마, 전통 머리 장식, 정좌 자세" },
+  "geomungo":      { en: "male performer in white jeogori, dark baji, durumagi, seated in formal posture with suldae", ko: "남성 연주자: 흰 저고리, 바지, 두루마기, 정좌 자세로 술대 들고" },
+  "daegeum":       { en: "male performer in white jeogori and baji, seated or standing with bamboo flute", ko: "남성 연주자: 흰 저고리와 바지, 대금을 든 자세" },
+  "haegeum":       { en: "performer in jeogori and baji, seated with haegeum and horsehair bow", ko: "연주자: 저고리와 바지, 해금과 활대를 든 좌식 자세" },
+  "buchaechum":    { en: "female dancers in jeogori with chima skirt, flower-decorated fans, traditional hair ornament", ko: "여성 무용수: 저고리와 치마, 꽃부채, 전통 머리 장식" },
+  "ganggangsullae":{ en: "female dancers in white jeogori with chima skirt, hair ribbons", ko: "여성 무용수: 흰 저고리와 치마, 댕기" },
+  "seungmu":       { en: "dancer in white jangsam robe and gogkal hood, long flowing sleeves", ko: "무용수: 흰 장삼, 고깔, 긴 소매" },
+  "cheoyongmu":    { en: "five male dancers in obang-saek colored robes with cheoyong masks", ko: "다섯 남성 무용수: 오방색 의상과 처용 탈" },
+  "samulnori":     { en: "male percussionists in white hanbok with colored sashes, sangmo ribbon hats", ko: "남성 연주자: 흰 한복에 색동 띠, 상모" },
+  "nongak":        { en: "male and female performers in white hanbok with colored sashes, sangmo ribbon hats, farming flags", ko: "남녀 연주자: 흰 한복에 색동 띠, 상모, 농기" },
+  "janggu":        { en: "performer in white hanbok with colored sash, holding gungchae and yeolchae sticks", ko: "연주자: 흰 한복에 색동 띠, 궁채와 열채" },
+  "ssireum":       { en: "male wrestlers bare-chested wearing satba loincloth belt", ko: "남성 씨름꾼: 맨몸에 샅바" },
+  "hahoe-mask-dance":  { en: "male performers in hanbok wearing hahoe wooden masks", ko: "남성 공연자: 한복에 하회 나무탈" },
+  "bongsan-mask-dance": { en: "performers in colorful hanbok wearing bongsan paper masks", ko: "공연자: 색동 한복에 봉산 종이탈" },
+  "jultagi":       { en: "male performer in hanbok with satgat hat on tightrope, holding fan", ko: "남성 공연자: 한복에 삿갓, 줄 위에서 부채 들고" },
+  "geune":         { en: "female player in jeogori with chima skirt on swing, hair ribbon flowing", ko: "여성: 저고리와 치마 차림으로 그네 위, 댕기 날리며" },
+};
+
 // 무형문화재 판별 (공연/의식/놀이/기술 계열)
 function isIntangible(item) {
   return isPerformance(item)
@@ -2105,21 +2136,42 @@ function buildHistoricalTangibleEn(item, v, ar) {
 // 유형 B — 무형문화재 (공연/의식/놀이)
 function buildHistoricalIntangibleEn(item, v, ar) {
   const parts = [];
-  // 1. 유산 식별 + 공연 문맥
+  const isStatic = isStaticPerformance(item);
+  const costume = COSTUME_OVERRIDE[item.id];
+
+  // 1. 유산 식별
   parts.push(`${item.nameEn} performance, ${item.eraEn}, Korean cultural heritage`);
-  // 2. 공연자 + 복식
-  const stylesEn = v.style.map(s => translateToEn(s)).join(", ");
+
+  // 2. 공연자 + 성별 고증 복식
+  if (costume) {
+    parts.push(costume.en);
+  } else {
+    const stylesEn = v.style.map(s => translateToEn(s)).join(", ");
+    parts.push(`performers in traditional costume, ${stylesEn}`);
+  }
+  parts.push("historically accurate gender-appropriate traditional costume");
+
+  // 3. 시각 디테일
   const colorsEn = v.colors.map(c => translateToEn(c)).join(", ");
   const materialsEn = v.materials.map(m => translateToEn(m)).join(", ");
-  parts.push(`performers in traditional costume, ${stylesEn}`);
   parts.push(`${colorsEn}, ${materialsEn}`);
-  // 3. 역동적 움직임
-  parts.push("dynamic movement, caught in peak action moment");
-  parts.push("performers in full ritual motion, motion blur on costume details");
-  // 4. 현장감
+
+  // 4. 움직임 — 동적/정적 분기
+  if (isStatic) {
+    parts.push("intense vocal or musical expression, powerful stillness");
+    parts.push("emotional intensity in face and posture, subtle movement only");
+    parts.push("no exaggerated movement, caught in moment of deep expression");
+  } else {
+    parts.push("dynamic movement, caught in peak action moment");
+    parts.push("performers in full ritual motion, motion blur on costume details");
+    parts.push("energy and rhythm visible");
+  }
+
+  // 5. 현장감
   parts.push("captured during actual performance");
   parts.push("outdoor madang courtyard setting, natural daylight or traditional torchlight");
-  // 5. 고증 + 다큐멘터리
+
+  // 6. 고증 + 다큐멘터리
   parts.push("candid documentary style, historically accurate, no modern elements");
   parts.push("National Geographic photography");
   parts.push("shot on Phase One IQ4 150MP");
@@ -2157,14 +2209,34 @@ function buildHistoricalTangibleKo(item, v, ar) {
 
 // 유형 B — 무형문화재 한글
 function buildHistoricalIntangibleKo(item, v, ar) {
+  const isStatic = isStaticPerformance(item);
+  const costume = COSTUME_OVERRIDE[item.id];
+
   const parts = [];
   parts.push(`${item.era} 시대 한국 문화유산 "${item.name}"의 역사 고증 이미지를 생성해주세요`);
   parts.push("실제 공연/의식이 펼쳐지는 현장을 포착한 장면입니다");
-  parts.push(`전통 복식을 갖춘 공연자: ${v.style.join(", ")}`);
+
+  // 성별 고증 복식
+  if (costume) {
+    parts.push(costume.ko);
+  } else {
+    parts.push(`전통 복식을 갖춘 공연자: ${v.style.join(", ")}`);
+  }
+  parts.push("역사적으로 정확한 성별 맞춤 전통 복식");
+
   parts.push(`색상: ${v.colors.join(", ")}`);
   parts.push(`소재: ${v.materials.join(", ")}`);
-  parts.push("절정의 순간, 역동적 움직임, 의상 디테일의 모션 블러를 표현해주세요");
-  parts.push("공연자의 온전한 의례적 동작이 담겨야 합니다");
+
+  // 동적/정적 분기
+  if (isStatic) {
+    parts.push("강렬한 소리/연주 표현, 고요한 힘, 미세한 움직임만 표현해주세요");
+    parts.push("얼굴과 자세에서 감정의 깊이가 드러나야 합니다");
+    parts.push("과장된 동작 없이, 깊은 몰입의 순간을 포착해주세요");
+  } else {
+    parts.push("절정의 순간, 역동적 움직임, 의상 디테일의 모션 블러를 표현해주세요");
+    parts.push("공연자의 온전한 의례적 동작, 에너지와 장단이 보여야 합니다");
+  }
+
   parts.push("전통 마당이나 야외 공간에서 자연광 또는 전통 횃불 조명");
   parts.push("연출 없는 다큐멘터리 스타일, 역사적으로 정확하게, 현대 요소 배제");
   parts.push("초고해상도 중형 카메라로 촬영한 듯한 극사실주의 사진");
