@@ -269,12 +269,15 @@ body::before {
 
 /* ── 카테고리 탭 ── */
 .category-tabs {
-  display: flex;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 8px;
+  justify-content: start;
   margin-bottom: var(--space-6);
-  flex-wrap: wrap;
 }
 .cat-tab {
+  white-space: nowrap;
+  flex-shrink: 0;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
@@ -876,6 +879,18 @@ details[open] .advanced-summary::before { content: '▾ '; }
   font-family: var(--font-display);
   margin-bottom: var(--space-4);
   color: var(--color-ink);
+}
+
+/* ── 데스크탑 카테고리 탭 ── */
+@media (min-width: 768px) {
+  .category-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    scrollbar-width: none;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
 }
 
 /* ── 반응형 ── */
