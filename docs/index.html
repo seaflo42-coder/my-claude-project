@@ -881,6 +881,47 @@ details[open] .advanced-summary::before { content: '▾ '; }
   color: var(--color-ink);
 }
 
+/* ── 표현 방식 카드 ── */
+.option-card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: var(--color-border);
+}
+.option-card .expr-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-size: var(--size-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+.option-card { position: relative; }
+
+/* ── 표현 방식 전용 옵션 ── */
+.expr-options { margin-bottom: var(--space-6); }
+.expr-opt-group { margin-bottom: var(--space-4); }
+.expr-opt-group label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+.expr-opt-group select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--size-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
 /* ── 데스크탑 카테고리 탭 ── */
 @media (min-width: 768px) {
   .category-tabs {
@@ -928,7 +969,8 @@ details[open] .advanced-summary::before { content: '▾ '; }
         <span class="step-dot" id="dot2"></span>
         <span class="step-dot" id="dot3"></span>
         <span class="step-dot" id="dot4"></span>
-        <span class="step-label" id="stepLabel"><strong>Step 1/4</strong> · 유산 선택</span>
+        <span class="step-dot" id="dot5"></span>
+        <span class="step-label" id="stepLabel"><strong>Step 1/5</strong> · 유산 선택</span>
       </div>
       <div class="selection-badges" id="selectionBadges"></div>
     </div>
@@ -976,13 +1018,23 @@ details[open] .advanced-summary::before { content: '▾ '; }
     <div class="option-grid" id="sceneGrid"></div>
   </div>
 
-  <!-- ========== STEP 3: 프롬프트 설정 ========== -->
+  <!-- ========== STEP 3: 표현 방식 선택 ========== -->
   <div class="section" id="step3">
     <div class="step-nav">
       <button class="back-link" onclick="goStep(2)" data-i18n="back_scene">← 씬 타입으로</button>
       <button class="back-link reset-link" onclick="resetAndGoStep1()" data-i18n="start_over">↺ 처음으로</button>
     </div>
-    <div class="section-title" data-i18n="step3_title">프롬프트를 다듬어보세요</div>
+    <div class="section-title" data-i18n="step3_expr_title">어떻게 표현할까요?</div>
+    <div class="option-grid" id="exprGrid"></div>
+  </div>
+
+  <!-- ========== STEP 4: 세부 설정 ========== -->
+  <div class="section" id="step4">
+    <div class="step-nav">
+      <button class="back-link" onclick="goStep(3)" data-i18n="back_expr">← 표현 방식으로</button>
+      <button class="back-link reset-link" onclick="resetAndGoStep1()" data-i18n="start_over">↺ 처음으로</button>
+    </div>
+    <div class="section-title" data-i18n="step4_title">프롬프트를 다듬어보세요</div>
 
     <!-- 자유 입력 -->
     <div class="setting-group">
@@ -1116,10 +1168,10 @@ details[open] .advanced-summary::before { content: '▾ '; }
     </div>
   </div>
 
-  <!-- ========== STEP 4: 결과 ========== -->
-  <div class="section" id="step4">
+  <!-- ========== STEP 5: 결과 ========== -->
+  <div class="section" id="step5">
     <div class="step-nav">
-      <button class="back-link" onclick="goStep(3)" data-i18n="back_settings">← 설정으로</button>
+      <button class="back-link" onclick="goStep(4)" data-i18n="back_settings">← 설정으로</button>
       <button class="back-link reset-link" onclick="resetAndGoStep1()" data-i18n="start_over">↺ 처음으로</button>
     </div>
     <div class="section-title" id="resultTitle">생성된 프롬프트</div>
@@ -1136,7 +1188,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
 
     <div class="btn-row" style="justify-content:center;">
       <button class="btn btn-primary" onclick="resetAndGoStep1()" data-i18n="btn_restart">처음부터 다시</button>
-      <button class="btn btn-secondary" onclick="goStep(3)" data-i18n="btn_regen">설정 바꿔서 다시 생성</button>
+      <button class="btn btn-secondary" onclick="goStep(4)" data-i18n="btn_regen">설정 바꿔서 다시 생성</button>
     </div>
   </div>
 
@@ -1186,9 +1238,28 @@ const I18N = {
   scene_historical_sub: { ko: "원형 그대로의 사실적 재현", en: "Photorealistic historical restoration" },
   scene_example_prefix: { ko: "예: ", en: "e.g. " },
 
-  // Step 3
-  step3_title:        { ko: "프롬프트를 다듬어보세요", en: "Refine your prompt" },
+  // Step 3 (표현 방식)
+  step3_expr_title:   { ko: "어떻게 표현할까요?", en: "Choose your style" },
   back_scene:         { ko: "← 씬 타입으로", en: "← Back to Scene" },
+  back_expr:          { ko: "← 표현 방식으로", en: "← Back to Style" },
+  expr_realistic:     { ko: "사실적 사진", en: "Realistic Photo" },
+  expr_realistic_sub: { ko: "현실감 있는 사진 스타일", en: "Photorealistic style" },
+  expr_editorial:     { ko: "에디토리얼", en: "Editorial" },
+  expr_editorial_sub: { ko: "패션 매거진 감성", en: "Fashion magazine aesthetic" },
+  expr_isometric:     { ko: "3D Isometric", en: "3D Isometric" },
+  expr_isometric_sub: { ko: "3D 미니어처 디오라마", en: "Miniature diorama" },
+  expr_ink:           { ko: "수묵화", en: "Ink Wash" },
+  expr_ink_sub:       { ko: "전통 수묵화 스타일", en: "Traditional ink painting" },
+  expr_minhwa:        { ko: "민화 스타일", en: "Minhwa" },
+  expr_minhwa_sub:    { ko: "조선 민화 감성", en: "Joseon folk art" },
+  expr_ceramic:       { ko: "청자/백자 아트", en: "Celadon / Porcelain" },
+  expr_ceramic_sub:   { ko: "고려청자·조선백자 미감", en: "Goryeo celadon · Joseon porcelain" },
+  expr_recommend:     { ko: "추천", en: "Recommend" },
+  expr_disabled_tip:  { ko: "역사 고증에는 사용 불가", en: "Not available for historical mode" },
+  expr_example_prefix:{ ko: "예: ", en: "e.g. " },
+
+  // Step 4 (세부 설정)
+  step4_title:        { ko: "프롬프트를 다듬어보세요", en: "Refine your prompt" },
   label_free_input:   { ko: '자유 입력 <span style="color:var(--color-ink-soft);font-weight:400;font-size:var(--size-xs)">— 원하는 분위기나 상황을 자유롭게 적어주세요</span>', en: 'Custom input <span style="color:var(--color-ink-soft);font-weight:400;font-size:var(--size-xs)">— describe the mood or scene you want</span>' },
   label_mood:         { ko: "고증 감도", en: "Select mood" },
   label_aspect:       { ko: "종횡비", en: "Aspect ratio" },
@@ -1232,8 +1303,9 @@ const I18N = {
   // 스텝 이름
   step_name_1:        { ko: "유산 선택", en: "Heritage" },
   step_name_2:        { ko: "씬 타입", en: "Scene" },
-  step_name_3:        { ko: "프롬프트 설정", en: "Settings" },
-  step_name_4:        { ko: "결과 확인", en: "Result" },
+  step_name_3:        { ko: "표현 방식", en: "Style" },
+  step_name_4:        { ko: "세부 설정", en: "Settings" },
+  step_name_5:        { ko: "결과 확인", en: "Result" },
 };
 
 function t(key) {
@@ -1280,9 +1352,9 @@ function applyLang() {
 
   // 스텝 라벨 업데이트
   if (typeof currentStep !== "undefined") {
-    const names = ["", t("step_name_1"), t("step_name_2"), t("step_name_3"), t("step_name_4")];
+    const names = ["", t("step_name_1"), t("step_name_2"), t("step_name_3"), t("step_name_4"), t("step_name_5")];
     const label = document.getElementById("stepLabel");
-    if (label) label.innerHTML = `<strong>Step ${currentStep}/4</strong> · ${names[currentStep]}`;
+    if (label) label.innerHTML = `<strong>Step ${currentStep}/5</strong> · ${names[currentStep]}`;
   }
 
   // 감도 버튼
@@ -2323,6 +2395,7 @@ const ERA_CONTEXT = {
 // ══════════════════════════════════════════════
 let selectedHeritage = null;
 let selectedScene = null;
+let selectedExpression = "realistic";
 let selectedSensitivity = "editorial";
 let generatedPrompts = [];
 let currentCategory = "전체";
@@ -2760,6 +2833,79 @@ function buildBooster(sceneId, sensitivity) {
   return [...tokens].join(", ");
 }
 
+// ── 표현 방식별 프롬프트 빌더 (영문) ──
+function buildExpressionPrompt(item, sceneId, exprId) {
+  const v = item.visual;
+  const arSelect = document.getElementById("aspectRatio");
+  const ar = arSelect ? ASPECT_RATIOS.find(a => a.id === arSelect.value) : ASPECT_RATIOS[0];
+
+  if (exprId === "isometric") {
+    const view = document.getElementById("isoView")?.value || "classic isometric angle";
+    const detail = document.getElementById("isoDetail")?.value || "mid poly, balanced detail";
+    const light = document.getElementById("isoLight")?.value || "soft ambient occlusion, diffused lighting";
+    const color = document.getElementById("isoColor")?.value || "dancheong color palette (red, blue, green, gold)";
+    return `3D isometric view of ${item.nameEn}, ${item.eraEn} architecture, ${view}, ${detail}, ${light}, ${color}, miniature diorama aesthetic, clean background, Blender render quality, octane render --ar 1:1`;
+  }
+
+  if (exprId === "ink") {
+    const density = document.getElementById("inkDensity")?.value || "medium ink intensity, balanced contrast";
+    const space = document.getElementById("inkSpace")?.value || "generous negative space, minimalist composition";
+    const color = document.getElementById("inkColor")?.value || "monochrome ink wash, no color";
+    return `${item.nameEn} in traditional Korean ink wash painting style (수묵화), ${density}, ${space}, ${color}, rice paper texture, traditional Asian art, calligraphic composition --ar 4:5`;
+  }
+
+  if (exprId === "minhwa") {
+    const type = document.getElementById("minhwaType")?.value || "flower and bird painting, peony, phoenix, crane motifs";
+    const color = document.getElementById("minhwaColor")?.value || "traditional five colors (red, blue, yellow, white, black)";
+    const bg = document.getElementById("minhwaBg")?.value || "white background, flat composition";
+    return `${item.nameEn} in Korean Minhwa folk art style, flat perspective, bold outlines, ${color}, ${type}, ${bg}, Joseon Dynasty folk painting, hand-painted texture, rice paper surface --ar 4:5`;
+  }
+
+  if (exprId === "ceramic") {
+    const style = document.getElementById("ceramicStyle")?.value || "Goryeo celadon aesthetic, jade green glaze, crackle texture";
+    const pattern = document.getElementById("ceramicPattern")?.value || "inlaid design, crane and cloud motif";
+    return `${item.nameEn} reimagined in ${style}, ${pattern}, serene refined atmosphere, monochromatic jade tones, ethereal misty quality --ar 16:9`;
+  }
+
+  // fallback
+  return buildEnPrompt(item, sceneId, "editorial", "");
+}
+
+// ── 표현 방식별 프롬프트 빌더 (한글) ──
+function buildExpressionKoPrompt(item, sceneId, exprId) {
+  const ar = (() => { const s = document.getElementById("aspectRatio"); return s ? ASPECT_RATIOS.find(a => a.id === s.value) : ASPECT_RATIOS[0]; })();
+
+  if (exprId === "isometric") {
+    const viewEl = document.getElementById("isoView"); const viewLabel = viewEl?.selectedOptions[0]?.text || "클래식 45도";
+    const detailEl = document.getElementById("isoDetail"); const detailLabel = detailEl?.selectedOptions[0]?.text || "미드";
+    const lightEl = document.getElementById("isoLight"); const lightLabel = lightEl?.selectedOptions[0]?.text || "소프트";
+    const colorEl = document.getElementById("isoColor"); const colorLabel = colorEl?.selectedOptions[0]?.text || "단청 컬러";
+    return `${item.era} 시대 한국 문화유산 "${item.name}"의 3D 아이소메트릭 뷰 이미지를 생성해주세요. ${viewLabel} 뷰, ${detailLabel} 디테일, ${lightLabel} 조명, ${colorLabel} 색감으로 표현합니다. 미니어처 디오라마 느낌, 깔끔한 배경, 블렌더 렌더 품질. ${ar.ko}`;
+  }
+
+  if (exprId === "ink") {
+    const densityEl = document.getElementById("inkDensity"); const densityLabel = densityEl?.selectedOptions[0]?.text || "중묵";
+    const spaceEl = document.getElementById("inkSpace"); const spaceLabel = spaceEl?.selectedOptions[0]?.text || "여백 많이";
+    const colorEl = document.getElementById("inkColor"); const colorLabel = colorEl?.selectedOptions[0]?.text || "흑백만";
+    return `${item.era} 시대 한국 문화유산 "${item.name}"을 전통 수묵화 스타일로 그려주세요. ${densityLabel} 농도, ${spaceLabel} 구도, ${colorLabel} 표현입니다. 화선지 질감, 붓의 흐름이 느껴지는 서예적 구성. ${ar.ko}`;
+  }
+
+  if (exprId === "minhwa") {
+    const typeEl = document.getElementById("minhwaType"); const typeLabel = typeEl?.selectedOptions[0]?.text || "화조도";
+    const colorEl = document.getElementById("minhwaColor"); const colorLabel = colorEl?.selectedOptions[0]?.text || "전통 오방색";
+    const bgEl = document.getElementById("minhwaBg"); const bgLabel = bgEl?.selectedOptions[0]?.text || "여백";
+    return `${item.era} 시대 한국 문화유산 "${item.name}"을 조선 민화 스타일로 그려주세요. ${typeLabel} 유형, ${colorLabel} 색채, ${bgLabel} 배경입니다. 평면적 구도, 굵은 윤곽선, 손으로 그린 질감, 화선지 표면. ${ar.ko}`;
+  }
+
+  if (exprId === "ceramic") {
+    const styleEl = document.getElementById("ceramicStyle"); const styleLabel = styleEl?.selectedOptions[0]?.text || "고려 청자";
+    const patternEl = document.getElementById("ceramicPattern"); const patternLabel = patternEl?.selectedOptions[0]?.text || "상감 문양";
+    return `${item.era} 시대 한국 문화유산 "${item.name}"을 ${styleLabel} 미감으로 재해석해주세요. ${patternLabel}, 고요하고 정제된 분위기, 옥빛 단색 톤, 안개 같은 몽환적 질감. ${ar.ko}`;
+  }
+
+  return buildKoPrompt(item, sceneId, "editorial", "");
+}
+
 function getAdvancedSettings() {
   const camera = document.getElementById("advCamera")?.value || "";
   const lens = document.getElementById("advLens")?.value || "";
@@ -2838,7 +2984,11 @@ function buildEnPrompt(item, sceneId, sensitivity, freeText) {
   if (adv.season) parts.push(adv.season);
   if (adv.time) parts.push(adv.time);
   if (adv.extra) parts.push(translateFreeText(adv.extra));
-  // 9. 품질 부스터
+  // 9. 에디토리얼 표현 방식 추가 프롬프트
+  if (selectedExpression === "editorial") {
+    parts.push("Vogue editorial photography, fashion magazine aesthetic, high fashion lighting, professional studio quality, art directed composition");
+  }
+  // 10. 품질 부스터
   parts.push(buildBooster(sceneId, sensitivity));
 
   return parts.join(", ") + " " + ar.mj;
@@ -3058,6 +3208,140 @@ function renderSceneTypes() {
   }).join("");
 }
 
+// ══════════════════════════════════════════════
+// 표현 방식 (Step 3)
+// ══════════════════════════════════════════════
+
+const EXPRESSION_TYPES = [
+  { id: "realistic", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="22" height="18" rx="2"/><circle cx="14" cy="14" r="4"/><circle cx="14" cy="14" r="1.5"/><path d="M7 8h2"/></svg>` },
+  { id: "editorial", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="20" height="22" rx="1"/><line x1="8" y1="8" x2="20" y2="8"/><line x1="8" y1="12" x2="15" y2="12"/><rect x="8" y="15" width="12" height="6" rx="1"/></svg>` },
+  { id: "isometric", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14 4L24 10V18L14 24L4 18V10L14 4Z"/><path d="M14 12L24 6"/><path d="M14 12L4 6"/><path d="M14 12V24"/></svg>` },
+  { id: "ink", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22C8 18 10 12 11 8C12 5 13 4 14 4C15 4 15.5 5 15 8C14.5 11 13 15 14 15C15 15 17 11 18 8"/><path d="M5 24C8 24 20 24 23 24"/></svg>` },
+  { id: "minhwa", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6C14 6 10 8 10 12C10 14 12 15 14 14C16 13 18 14 18 16C18 19 14 22 14 22"/><path d="M10 18C8 17 6 18 6 20C6 22 8 23 10 22"/><path d="M18 10C20 9 22 10 22 12C22 14 20 15 18 14"/><line x1="14" y1="22" x2="14" y2="25"/><path d="M11 25C12 24 16 24 17 25"/></svg>` },
+  { id: "ceramic", icon: `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6H18C18 6 20 6 20 8C20 10 19 12 18 14C17 16 17 20 18 22H10C11 20 11 16 10 14C9 12 8 10 8 8C8 6 10 6 10 6Z"/><ellipse cx="14" cy="6" rx="4" ry="1"/><ellipse cx="14" cy="22" rx="4" ry="1"/></svg>` }
+];
+
+const EXPR_RECOMMEND = {
+  fashion: ["editorial"],
+  portrait: [],
+  product: [],
+  landscape: ["ink", "ceramic"],
+  night: ["ink", "ceramic"],
+  historical: []
+};
+
+function renderExpressionTypes() {
+  const grid = document.getElementById("exprGrid");
+  const hName = selectedHeritage ? selectedHeritage.name : (currentLang === "en" ? "Heritage" : "유산");
+  const isHistorical = selectedScene === "historical";
+  const recommends = EXPR_RECOMMEND[selectedScene] || [];
+
+  const exampleMap = {
+    realistic: `${t("expr_example_prefix")}${hName}${currentLang === "en" ? " in photorealistic style" : "의 사실적 표현"}`,
+    editorial: `${t("expr_example_prefix")}${hName} Vogue ${currentLang === "en" ? "style" : "스타일"}`,
+    isometric: `${t("expr_example_prefix")}${hName} 3D ${currentLang === "en" ? "model" : "모델"}`,
+    ink: `${t("expr_example_prefix")}${hName}${currentLang === "en" ? " ink wash" : " 수묵 표현"}`,
+    minhwa: `${t("expr_example_prefix")}${hName}${currentLang === "en" ? " folk art" : " 민화 재해석"}`,
+    ceramic: `${t("expr_example_prefix")}${hName}${currentLang === "en" ? " celadon tones" : " 도자 색채"}`
+  };
+
+  grid.innerHTML = EXPRESSION_TYPES.map(ex => {
+    const disabled = isHistorical && ex.id !== "realistic";
+    const recommended = recommends.includes(ex.id);
+    const cls = `option-card${disabled ? " disabled" : ""}${selectedExpression === ex.id ? " selected" : ""}`;
+    const badge = recommended ? `<span class="expr-badge">${t("expr_recommend")}</span>` : "";
+    const tip = disabled ? `<div class="opt-sub" style="color:var(--color-accent-warm);font-size:var(--size-xs)">${t("expr_disabled_tip")}</div>` : "";
+    return `
+    <div class="${cls}" ${disabled ? "" : `onclick="selectExpression('${ex.id}')"`} id="expr-${ex.id}">
+      ${badge}
+      <div class="opt-icon">${ex.icon}</div>
+      <div class="opt-name">${t("expr_" + ex.id)}</div>
+      <div class="opt-sub">${t("expr_" + ex.id + "_sub")}</div>
+      ${tip || `<div class="opt-example">${exampleMap[ex.id]}</div>`}
+    </div>`;
+  }).join("");
+}
+
+function selectExpression(id) {
+  selectedExpression = id;
+  EXPRESSION_TYPES.forEach(ex => {
+    const el = document.getElementById(`expr-${ex.id}`);
+    if (el) el.classList.toggle("selected", ex.id === id);
+  });
+
+  // Step 4 UI 동적 변경
+  applyExpressionToStep4(id);
+
+  setTimeout(() => goStep(4), 250);
+}
+
+function applyExpressionToStep4(exprId) {
+  const freeGroup = document.getElementById("freeInput")?.closest(".setting-group");
+  const sensGroup = document.getElementById("sensitivityOptions")?.closest(".setting-group");
+  const advToggle = document.querySelector(".advanced-toggle");
+  const exprOpts = document.getElementById("exprOptions");
+
+  // 기존 전용 옵션 제거
+  if (exprOpts) exprOpts.remove();
+
+  const isPhoto = exprId === "realistic" || exprId === "editorial";
+
+  // 사실적 사진 / 에디토리얼: 기존 감도+고급설정 표시
+  if (isPhoto) {
+    if (freeGroup) freeGroup.style.display = "";
+    if (sensGroup) sensGroup.style.display = "";
+    if (advToggle) advToggle.style.display = "";
+    return;
+  }
+
+  // 나머지 표현: 감도 숨기고 전용 옵션 표시
+  if (freeGroup) freeGroup.style.display = "none";
+  if (sensGroup) sensGroup.style.display = "none";
+  if (advToggle) advToggle.style.display = "none";
+
+  const optDiv = document.createElement("div");
+  optDiv.id = "exprOptions";
+  optDiv.className = "expr-options";
+
+  if (exprId === "isometric") {
+    optDiv.innerHTML = `
+      <div class="expr-opt-group"><label>${t("iso_view") || "뷰 앵글"}</label>
+        <select id="isoView"><option value="classic isometric angle" selected>${currentLang==="en"?"Classic 45°":"클래식 45도"}</option><option value="top-down orthographic view">${currentLang==="en"?"Top-down":"탑다운"}</option><option value="side-profile isometric">${currentLang==="en"?"Side view":"사이드뷰"}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_detail") || "디테일 레벨"}</label>
+        <select id="isoDetail"><option value="low poly, minimal detail">${currentLang==="en"?"Simple":"심플"}</option><option value="mid poly, balanced detail" selected>${currentLang==="en"?"Mid":"미드"}</option><option value="high poly, ultra detailed">${currentLang==="en"?"High-poly":"하이폴리"}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_light") || "조명"}</label>
+        <select id="isoLight"><option value="soft ambient occlusion, diffused lighting" selected>${currentLang==="en"?"Soft":"소프트"}</option><option value="dramatic rim lighting, strong shadows">${currentLang==="en"?"Dramatic":"드라마틱"}</option><option value="night scene, atmospheric glow">${currentLang==="en"?"Night":"야간"}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_color") || "색감"}</label>
+        <select id="isoColor"><option value="dancheong color palette (red, blue, green, gold)" selected>${currentLang==="en"?"Dancheong":"단청 컬러"}</option><option value="monochromatic, grayscale">${currentLang==="en"?"Monotone":"모노톤"}</option><option value="soft pastel tones">${currentLang==="en"?"Pastel":"파스텔"}</option><option value="vibrant saturated colors">${currentLang==="en"?"Vivid":"비비드"}</option></select></div>`;
+  } else if (exprId === "ink") {
+    optDiv.innerHTML = `
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Ink density":"먹의 농도"}</label>
+        <select id="inkDensity"><option value="light ink wash, diluted ink, subtle tones">${currentLang==="en"?"Light (담묵)":"담묵"}</option><option value="medium ink intensity, balanced contrast" selected>${currentLang==="en"?"Medium (중묵)":"중묵"}</option><option value="bold ink strokes, strong contrast, deep blacks">${currentLang==="en"?"Bold (농묵)":"농묵"}</option></select></div>
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Whitespace":"여백 처리"}</label>
+        <select id="inkSpace"><option value="generous negative space, minimalist composition" selected>${currentLang==="en"?"Generous space":"여백 많이"}</option><option value="detailed composition, filled frame">${currentLang==="en"?"Filled frame":"꽉 채우기"}</option></select></div>
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Color":"채색 여부"}</label>
+        <select id="inkColor"><option value="monochrome ink wash, no color" selected>${currentLang==="en"?"Monochrome":"흑백만"}</option><option value="light color wash, traditional Korean color accent">${currentLang==="en"?"Light color (담채화)":"담채화"}</option></select></div>`;
+  } else if (exprId === "minhwa") {
+    optDiv.innerHTML = `
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Minhwa type":"민화 유형"}</label>
+        <select id="minhwaType"><option value="flower and bird painting, peony, phoenix, crane motifs" selected>${currentLang==="en"?"Hwajodo (花鳥圖)":"화조도"}</option><option value="tiger and magpie, folk humor, bold strokes">${currentLang==="en"?"Tiger & Magpie":"호랑이/까치"}</option><option value="landscape in folk style, geometric mountains">${currentLang==="en"?"Sansudo (山水圖)":"산수도"}</option></select></div>
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Color palette":"색채"}</label>
+        <select id="minhwaColor"><option value="traditional five colors (red, blue, yellow, white, black)" selected>${currentLang==="en"?"Traditional Obangsaek":"전통 오방색"}</option><option value="modern color reinterpretation, vivid flat colors">${currentLang==="en"?"Modern reinterpretation":"현대 해석"}</option></select></div>
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Background":"배경"}</label>
+        <select id="minhwaBg"><option value="white background, flat composition" selected>${currentLang==="en"?"White space":"여백"}</option><option value="decorative pattern backdrop, traditional motifs">${currentLang==="en"?"Pattern backdrop":"패턴 배경"}</option></select></div>`;
+  } else if (exprId === "ceramic") {
+    optDiv.innerHTML = `
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Ceramic style":"도자 스타일"}</label>
+        <select id="ceramicStyle"><option value="Goryeo celadon aesthetic, jade green glaze, crackle texture" selected>${currentLang==="en"?"Goryeo Celadon":"고려 청자"}</option><option value="Joseon white porcelain, pure white glaze, moonjar aesthetic">${currentLang==="en"?"Joseon Baekja":"조선 백자"}</option></select></div>
+      <div class="expr-opt-group"><label>${currentLang==="en"?"Pattern":"문양"}</label>
+        <select id="ceramicPattern"><option value="inlaid design, crane and cloud motif" selected>${currentLang==="en"?"Sanggam inlay":"상감 문양"}</option><option value="lotus pattern, celadon blue accent">${currentLang==="en"?"Lotus pattern":"연꽃 문양"}</option><option value="plain glaze, no decoration, pure form">${currentLang==="en"?"Plain (민무늬)":"민무늬"}</option></select></div>`;
+  }
+
+  const step4 = document.getElementById("step4");
+  const firstGroup = step4.querySelector(".setting-group");
+  if (firstGroup) step4.insertBefore(optDiv, firstGroup);
+}
+
 function selectScene(id) {
   selectedScene = id;
   SCENE_TYPES.forEach(s => document.getElementById(`scene-${s.id}`).classList.toggle("selected", s.id === id));
@@ -3083,9 +3367,9 @@ function selectScene(id) {
       notice.id = "historicalNotice";
       notice.style.cssText = "padding:var(--space-4) var(--space-6);background:var(--color-accent-light);border:1px solid var(--color-accent);border-radius:var(--radius-lg);color:var(--color-accent);font-size:var(--size-sm);margin-bottom:var(--space-6);line-height:1.6";
       notice.innerHTML = t("historical_notice");
-      const step3 = document.getElementById("step3");
-      const firstGroup = step3.querySelector(".setting-group");
-      if (firstGroup) step3.insertBefore(notice, firstGroup);
+      const step4 = document.getElementById("step4");
+      const firstGroup = step4.querySelector(".setting-group");
+      if (firstGroup) step4.insertBefore(notice, firstGroup);
     }
     notice.style.display = "";
   } else if (notice) {
@@ -3101,8 +3385,15 @@ function selectScene(id) {
     }
   }
 
-  // 자동으로 Step 3 이동
-  setTimeout(() => goStep(3), 250);
+  // 역사 고증 → step4(사실적 사진 자동 선택), 나머지 → step3(표현 방식)
+  if (isHistorical) {
+    selectedExpression = "realistic";
+    applyExpressionToStep4("realistic");
+    setTimeout(() => goStep(4), 250);
+  } else {
+    renderExpressionTypes();
+    setTimeout(() => goStep(3), 250);
+  }
 }
 
 function selectSensitivity(val) {
@@ -3116,8 +3407,8 @@ function selectSensitivity(val) {
 // ══════════════════════════════════════════════
 
 let currentStep = 1;
-function getStepNames() { return ["", t("step_name_1"), t("step_name_2"), t("step_name_3"), t("step_name_4")]; }
-const STEP_NAMES = ["", "유산 선택", "씬 타입", "프롬프트 설정", "결과 확인"]; // fallback
+function getStepNames() { return ["", t("step_name_1"), t("step_name_2"), t("step_name_3"), t("step_name_4"), t("step_name_5")]; }
+const STEP_NAMES = ["", "유산 선택", "씬 타입", "표현 방식", "세부 설정", "결과 확인"]; // fallback
 
 function goStep(n) {
   const isBack = n < currentStep;
@@ -3141,7 +3432,7 @@ function goStep(n) {
   currentStep = n;
 
   // 스텝 인디케이터 업데이트
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const dot = document.getElementById(`dot${i}`);
     dot.classList.remove("active", "done");
     if (i < n) dot.classList.add("done");
@@ -3149,7 +3440,7 @@ function goStep(n) {
   }
   const stepNames = getStepNames();
   document.getElementById("stepLabel").innerHTML =
-    `<strong>Step ${n}/4</strong> · ${stepNames[n]}`;
+    `<strong>Step ${n}/5</strong> · ${stepNames[n]}`;
 
   // 선택값 뱃지 업데이트
   updateBadges(n);
@@ -3163,12 +3454,16 @@ function updateBadges(step) {
   if (step >= 2 && selectedHeritage) {
     html += `<span class="sel-badge">${selectedHeritage.name}</span>`;
   }
+  if (step >= 4 && selectedExpression && selectedScene !== "historical") {
+    html += `<span class="sel-badge">${t("expr_" + selectedExpression)}</span>`;
+  }
   badges.innerHTML = html;
 }
 
 function resetAndGoStep1() {
   selectedHeritage = null;
   selectedScene = null;
+  selectedExpression = "realistic";
   selectedSensitivity = "editorial";
   document.querySelectorAll(".heritage-card").forEach(c => c.classList.remove("selected"));
   document.querySelectorAll(".sens-btn").forEach(b => b.classList.toggle("active", b.dataset.val === "editorial"));
@@ -3182,6 +3477,8 @@ function resetAndGoStep1() {
   if (sensGroup) sensGroup.style.display = "";
   if (advToggle) advToggle.style.display = "";
   if (notice) notice.style.display = "none";
+  const exprOpts = document.getElementById("exprOptions");
+  if (exprOpts) exprOpts.remove();
   goStep(1);
 }
 
@@ -3233,16 +3530,24 @@ function generatePrompts() {
     </div>
   </div>`;
 
-  // 역사 고증 모드 분기
+  // 표현 방식 + 역사 고증 모드 분기
   const isHistorical = selectedScene === "historical";
-  const promptEn = isHistorical
-    ? buildHistoricalEnPrompt(item)
-    : buildEnPrompt(item, selectedScene, selectedSensitivity, freeText);
-  const promptKo = isHistorical
-    ? buildHistoricalKoPrompt(item)
-    : buildKoPrompt(item, selectedScene, selectedSensitivity, freeText);
+  const expr = selectedExpression;
+  let promptEn, promptKo;
 
-  const headerLabel = isHistorical ? `${sceneName}` : `${sceneName} · ${sensLabel}`;
+  if (isHistorical) {
+    promptEn = buildHistoricalEnPrompt(item);
+    promptKo = buildHistoricalKoPrompt(item);
+  } else if (expr === "realistic" || expr === "editorial") {
+    promptEn = buildEnPrompt(item, selectedScene, selectedSensitivity, freeText);
+    promptKo = buildKoPrompt(item, selectedScene, selectedSensitivity, freeText);
+  } else {
+    promptEn = buildExpressionPrompt(item, selectedScene, expr);
+    promptKo = buildExpressionKoPrompt(item, selectedScene, expr);
+  }
+
+  const exprLabel = t("expr_" + expr) || expr;
+  const headerLabel = isHistorical ? `${sceneName}` : (expr === "realistic" || expr === "editorial") ? `${sceneName} · ${sensLabel}` : `${sceneName} · ${exprLabel}`;
 
   generatedPrompts.push({
     scene: sceneName,
@@ -3284,7 +3589,7 @@ function generatePrompts() {
   </div>`;
 
   area.innerHTML = html;
-  goStep(4);
+  goStep(5);
 }
 
 function switchPromptTab(lang, btn) {
