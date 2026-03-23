@@ -268,6 +268,56 @@ body::before {
   color: #fff;
 }
 
+/* ── 온보딩 ── */
+.onboarding {
+  background: var(--color-ground-deep);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+.onboarding h2 {
+  font-family: var(--font-display);
+  font-size: var(--size-lg);
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-3) 0;
+}
+.onboarding p {
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  color: var(--color-ink-soft);
+  line-height: 1.7;
+  margin: 0 0 var(--space-4) 0;
+}
+.onboarding-examples {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+.onboarding-thumb {
+  flex-shrink: 0;
+  width: 180px;
+}
+.onboarding-thumb .thumb-img {
+  width: 180px;
+  height: 120px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-ghost);
+  font-size: var(--size-xs);
+  margin-bottom: var(--space-2);
+}
+.onboarding-thumb .thumb-label {
+  font-size: var(--size-xs);
+  color: var(--color-ink-soft);
+}
+
 /* ── 검색창 ── */
 .search-box {
   position: relative;
@@ -670,6 +720,59 @@ details[open] .advanced-summary::before { content: '▾ '; }
 }
 .copy-btn:hover { background: var(--color-ink); color: var(--color-surface); border-color: var(--color-ink); }
 .copy-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+.nano-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nano-link:hover { border-color: var(--color-ink); color: var(--color-ink); }
+
+/* ── 고증 설명 레이어 ── */
+.heritage-explain {
+  margin-top: var(--space-4);
+  background: var(--color-accent-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.heritage-explain summary {
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  list-style: none;
+}
+.heritage-explain summary::before { content: "▸ "; }
+.heritage-explain[open] summary::before { content: "▾ "; }
+.heritage-explain summary::-webkit-details-marker { display: none; }
+.heritage-explain .explain-body {
+  padding: 0 var(--space-4) var(--space-4);
+  font-size: var(--size-xs);
+  color: var(--color-accent);
+  line-height: 1.8;
+}
+.heritage-explain .explain-body .explain-item {
+  margin-bottom: var(--space-2);
+}
+.heritage-explain .explain-body .explain-label {
+  font-weight: 600;
+}
+.heritage-explain .explain-body .explain-arrow {
+  margin-top: var(--space-3);
+  font-style: italic;
+  opacity: 0.85;
+}
 
 /* ── 프롬프트 탭 ── */
 .prompt-tabs {
@@ -789,6 +892,20 @@ details[open] .advanced-summary::before { content: '▾ '; }
 
   <!-- ========== STEP 1: 문화유산 선택 ========== -->
   <div class="section visible" id="step1">
+    <div class="onboarding">
+      <h2>문화유산으로 AI 이미지를</h2>
+      <p>국가유산청 고증 데이터 기반으로 AI 이미지 프롬프트를 자동 생성해요.<br>유산 선택 → 씬 설정 → 프롬프트 완성</p>
+      <div class="onboarding-examples">
+        <div class="onboarding-thumb">
+          <div class="thumb-img">AI 생성 이미지</div>
+          <div class="thumb-label">숭례문 · 패션/브랜드</div>
+        </div>
+        <div class="onboarding-thumb">
+          <div class="thumb-img">AI 생성 이미지</div>
+          <div class="thumb-label">경복궁 근정전 · 시네마틱</div>
+        </div>
+      </div>
+    </div>
     <div class="section-title">어떤 문화유산의 이미지를 만들고 싶으세요?</div>
 
     <div class="category-tabs" id="categoryTabs"></div>
@@ -2873,8 +2990,10 @@ function generatePrompts() {
           <div class="prompt-label">한글 — 나노바나나(Gemini) 등에 사용</div>
           <div class="prompt-text" id="prompt-ko">${promptKo}</div>
           <button class="copy-btn" onclick="copyPrompt('prompt-ko', this)">복사</button>
+          <a class="nano-link" href="https://gemini.google.com" target="_blank" rel="noopener">🍌 나노바나나에서 생성</a>
         </div>
       </div>
+      ${buildExplainLayer(item)}
     </div>
   </div>`;
 
@@ -2887,6 +3006,47 @@ function switchPromptTab(lang, btn) {
   document.querySelectorAll(".prompt-panel").forEach(p => p.classList.remove("active"));
   btn.classList.add("active");
   document.getElementById(`promptPanel-${lang}`).classList.add("active");
+}
+
+function buildExplainLayer(item) {
+  const v = item.visual;
+  const eraDesc = ERA_CONTEXT[item.era] || "";
+  // 핵심 양식 2-3개 선택
+  const topStyles = v.style.slice(0, 3);
+  // 양식별 간단 설명 생성
+  const styleExplains = {
+    "팔작지붕": "조선 궁궐 건축의 대표 양식, 권위와 격식의 상징",
+    "맞배지붕": "간결한 직선미, 서원과 사찰에 주로 사용",
+    "겹처마": "이중 처마로 건물의 격을 높이는 구조",
+    "공포": "지붕 하중을 분산하는 정교한 목조 구조",
+    "기단": "건물을 높이 올려 권위를 부여하는 석조 기초",
+    "단청 오방색": "목조 건물 보호와 벽사의 의미를 담은 전통 채색",
+    "항마촉지인": "부처가 악마를 항복시킨 깨달음의 순간을 상징",
+    "광배": "부처의 신성한 빛을 표현하는 후광 장식",
+    "연화대좌": "연꽃 위 좌대, 불교의 청정함을 상징",
+    "상감기법": "표면을 파고 다른 재료를 채워넣는 고려 고유 기법",
+    "비색": "고려청자 특유의 비취색, 세계적으로 유일한 색감",
+    "소리꾼": "판소리의 주 공연자, 한 사람이 서사를 노래로 풀어냄",
+    "고수": "북으로 장단을 맞추며 추임새를 넣는 반주자",
+    "하회탈": "양반 사회를 풍자하는 한국 대표 나무 가면",
+    "저고리": "한복 상의, 짧고 단정한 한국 전통 윗옷",
+    "치마": "한복 하의, 풍성한 주름의 감싸는 치마",
+    "색동": "오방색 줄무늬 원단, 축복과 행운의 의미",
+  };
+
+  let styleHtml = topStyles.map(s => {
+    const desc = styleExplains[s] || "프롬프트의 시각적 사실감을 높이는 요소";
+    return `<div class="explain-item"><span class="explain-label">${s}</span> — ${desc}</div>`;
+  }).join("");
+
+  return `<details class="heritage-explain">
+    <summary>이 프롬프트에 담긴 고증 정보</summary>
+    <div class="explain-body">
+      <div class="explain-item"><span class="explain-label">${item.era}시대</span>${eraDesc ? " — " + eraDesc : ""}</div>
+      ${styleHtml}
+      <div class="explain-arrow">→ 이 요소들이 고증된 배경과 분위기를 만들어요</div>
+    </div>
+  </details>`;
 }
 
 
