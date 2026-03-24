@@ -979,7 +979,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
         <span class="step-dot" id="dot3"></span>
         <span class="step-dot" id="dot4"></span>
         <span class="step-dot" id="dot5"></span>
-        <span class="step-label" id="stepLabel"><strong>Step 1/5</strong> · 유산 선택</span>
+        <span class="step-label" id="stepLabel"><strong>Step 1/5</strong> · Heritage</span>
       </div>
       <div class="selection-badges" id="selectionBadges"></div>
     </div>
@@ -992,12 +992,12 @@ details[open] .advanced-summary::before { content: '▾ '; }
       <p data-i18n="onboarding_desc">국가유산청 고증 데이터 기반으로 AI 이미지 프롬프트를 자동 생성해요.<br>유산 선택 → 씬 설정 → 프롬프트 완성</p>
       <div class="onboarding-examples">
         <div class="onboarding-thumb">
-          <div class="thumb-img">AI 생성 이미지</div>
-          <div class="thumb-label">숭례문 · 패션/브랜드</div>
+          <div class="thumb-img" data-i18n="onboard_thumb">AI 생성 이미지</div>
+          <div class="thumb-label" data-i18n="onboard_ex1">숭례문 · 패션/브랜드</div>
         </div>
         <div class="onboarding-thumb">
-          <div class="thumb-img">AI 생성 이미지</div>
-          <div class="thumb-label">경복궁 근정전 · 시네마틱</div>
+          <div class="thumb-img" data-i18n="onboard_thumb">AI 생성 이미지</div>
+          <div class="thumb-label" data-i18n="onboard_ex2">경복궁 근정전 · 시네마틱</div>
         </div>
       </div>
     </div>
@@ -1464,6 +1464,17 @@ const I18N = {
   result_tab_en_sub:  { ko: "Midjourney, Stable Diffusion 등에 사용", en: "For Midjourney, Stable Diffusion, etc." },
   result_tab_ko_sub:  { ko: "나노바나나(Gemini) 등에 사용", en: "For NanoBanana (Gemini), etc." },
   nano_link:          { ko: "🍌 나노바나나에서 생성", en: "🍌 Generate on NanoBanana" },
+
+  // 다운로드
+  dl_label_en:        { ko: "영문", en: "English" },
+  dl_label_ko:        { ko: "한글", en: "Korean" },
+  dl_suffix_txt:      { ko: "_프롬프트.txt", en: "_prompt.txt" },
+  dl_suffix_json:     { ko: "_프롬프트.json", en: "_prompt.json" },
+
+  // 온보딩 예시
+  onboard_thumb:      { ko: "AI 생성 이미지", en: "AI Generated Image" },
+  onboard_ex1:        { ko: "숭례문 · 패션/브랜드", en: "Sungnyemun · Fashion/Brand" },
+  onboard_ex2:        { ko: "경복궁 근정전 · 시네마틱", en: "Gyeongbokgung · Cinematic" },
 };
 
 function t(key) {
@@ -1509,6 +1520,7 @@ function applyLang() {
   if (typeof renderSceneTypes === "function" && document.getElementById("sceneGrid")) renderSceneTypes();
   if (typeof renderExpressionTypes === "function" && document.getElementById("exprGrid")) renderExpressionTypes();
   if (typeof renderHeritage === "function") renderHeritage();
+  if (typeof updateBadges === "function" && typeof currentStep !== "undefined") updateBadges(currentStep);
 
   // 스텝 라벨 업데이트
   if (typeof currentStep !== "undefined") {
@@ -1824,6 +1836,191 @@ const HERITAGE_DB = [
   {id:"changgyeonggung-greenhouse",name:"창경궁 대온실",nameEn:"Changgyeonggung Palace Large Greenhouse",type:"사적",category:"건축",era:"대한제국",eraEn:"Korean Empire (1909)",location:"서울 종로구",desc:"한국 최초의 서양식 온실. 철골과 유리로 지은 근대 건축물로 대한제국의 개화 상징.",visual:{style:["iron and glass greenhouse","Victorian conservatory style","tropical plants inside"],colors:["white iron frame","glass transparent","green tropical plants"],materials:["cast iron frame","glass panels","stone base"],atmosphere:"유리와 철골 사이로 쏟아지는 빛 속의 열대 식물, 근대의 온기"}},
   {id:"sotdae",name:"전통 솟대",nameEn:"Sotdae Village Guardian Pole with Bird",type:"민속문화재",category:"생활·풍속",era:"전시대",eraEn:"All Eras",location:"전국",desc:"마을 입구에 세운 긴 장대 위에 새를 얹은 신앙 조형물. 풍요와 마을의 안녕을 기원하는 민간 신앙.",visual:{style:["tall wooden pole","carved bird on top","village entrance marker"],colors:["weathered wood grey-brown","sky blue backdrop","rice paddy green"],materials:["pine wood pole","carved wooden bird"],atmosphere:"마을 어귀 하늘 높이 솟은 나무새가 지키는 평화로운 들녘"}},
 ];
+
+// ── type 한→영 매핑 ──
+const TYPE_EN = {
+  "국보": "National Treasure",
+  "국보/세계유산": "National Treasure / World Heritage",
+  "국보/세계기록유산": "National Treasure / Memory of the World",
+  "보물": "Treasure",
+  "사적": "Historic Site",
+  "사적/세계유산": "Historic Site / World Heritage",
+  "명승": "Scenic Site",
+  "명승/문화경관": "Scenic Site / Cultural Landscape",
+  "명승/생태관광지": "Scenic Site / Ecotourism",
+  "천연기념물 제336호": "Natural Monument No. 336",
+  "천연기념물 제443호": "Natural Monument No. 443",
+  "천연기념물 제526호": "Natural Monument No. 526",
+  "천연기념물/국가지질공원": "Natural Monument / National Geopark",
+  "천연기념물/보호림": "Natural Monument / Protected Forest",
+  "천연기념물/생물권보전지역": "Natural Monument / Biosphere Reserve",
+  "국가무형문화재": "National Intangible Cultural Heritage",
+  "국가무형유산": "National Intangible Heritage",
+  "무형문화재": "Intangible Cultural Heritage",
+  "무형유산": "Intangible Heritage",
+  "무형유산/세계유산": "Intangible Heritage / World Heritage",
+  "유네스코 무형문화유산": "UNESCO Intangible Cultural Heritage",
+  "국가민속문화재": "National Folk Cultural Heritage",
+  "민속문화재": "Folk Cultural Heritage",
+  "중요민속문화재": "Important Folk Cultural Heritage",
+  "문화유산": "Cultural Heritage",
+  "문화경관": "Cultural Landscape",
+  "세계유산": "World Heritage",
+  "세계문화유산": "World Cultural Heritage",
+  "세계기록유산": "Memory of the World",
+  "세계유산/람사르습지": "World Heritage / Ramsar Wetland",
+  "세계유산/문화경관": "World Heritage / Cultural Landscape",
+  "세계유산/사적": "World Heritage / Historic Site",
+  "세계자연유산/국립공원": "World Natural Heritage / National Park",
+  "국립공원": "National Park",
+  "국립공원 제1호": "National Park No. 1",
+  "국립공원/명승": "National Park / Scenic Site",
+  "자연유산": "Natural Heritage",
+  "자연경관/관광명소": "Natural Landscape / Tourist Attraction",
+  "생태유산/비무장지대": "Ecological Heritage / DMZ",
+  "궁중회화": "Court Painting",
+  "민화": "Minhwa (Folk Painting)",
+  "군사문화": "Military Culture",
+  "군사유산": "Military Heritage",
+  "전통공예품": "Traditional Craft",
+  "전통놀이": "Traditional Game",
+  "전통생활도구": "Traditional Tool",
+  "전통식품": "Traditional Food",
+  "전통음식": "Traditional Cuisine",
+  "생활공예": "Daily Craft",
+  "생활문화": "Living Culture",
+  "세시풍속": "Seasonal Custom",
+  "설화/무형유산": "Folklore / Intangible Heritage",
+};
+
+// ── location 한→영 매핑 ──
+const LOCATION_EN = {
+  "서울특별시": "Seoul",
+  "서울": "Seoul",
+  "서울 종로구": "Jongno-gu, Seoul",
+  "서울 종로·중구·성북": "Jongno · Jung-gu · Seongbuk, Seoul",
+  "서울 중구": "Jung-gu, Seoul",
+  "서울 중구 정동": "Jeong-dong, Jung-gu, Seoul",
+  "서울 서대문구": "Seodaemun-gu, Seoul",
+  "서울 종묘": "Jongmyo, Seoul",
+  "서울 종로구 탑골공원": "Tapgol Park, Jongno-gu, Seoul",
+  "서울 전국": "Seoul & Nationwide",
+  "서울 봉원사 등": "Bongwonsa Temple, Seoul",
+  "서울 진관사 등": "Jingwansa Temple, Seoul",
+  "서울·경기": "Seoul · Gyeonggi",
+  "서울 (다수 해외 소장)": "Seoul (many abroad)",
+  "서울대 규장각 등": "Kyujanggak, Seoul Nat'l Univ.",
+  "경기도 수원시": "Suwon, Gyeonggi",
+  "경기도 광주시": "Gwangju, Gyeonggi",
+  "경기도 구리시": "Guri, Gyeonggi",
+  "경복궁·창덕궁": "Gyeongbokgung · Changdeokgung",
+  "경상북도 경주": "Gyeongju, Gyeongsang",
+  "경상북도 경주시": "Gyeongju, Gyeongsang",
+  "경상북도 경주 국립경주박물관": "Gyeongju Nat'l Museum",
+  "경상북도 경주 남산": "Namsan, Gyeongju",
+  "경상북도 안동시": "Andong, Gyeongsang",
+  "경상북도 영주": "Yeongju, Gyeongsang",
+  "경상북도 영주시": "Yeongju, Gyeongsang",
+  "경상북도 울릉군": "Ulleung-gun, Gyeongsang",
+  "경상남도": "South Gyeongsang",
+  "경상남도 합천군": "Hapcheon, Gyeongsang",
+  "경상남도 합천 해인사": "Haeinsa, Hapcheon",
+  "경상남도 양산시": "Yangsan, Gyeongsang",
+  "경상남도 김해·합천": "Gimhae · Hapcheon, Gyeongsang",
+  "경상남·북도": "Gyeongsang Province",
+  "경북 안동": "Andong, Gyeongsang",
+  "충청남도": "South Chungcheong",
+  "충청남도 공주": "Gongju, Chungcheong",
+  "충청남도 공주시": "Gongju, Chungcheong",
+  "충청남도 부여군": "Buyeo, Chungcheong",
+  "충청남도 논산": "Nonsan, Chungcheong",
+  "충청남도 서산": "Seosan, Chungcheong",
+  "충청남도 서천군": "Seocheon, Chungcheong",
+  "충청남도 아산시": "Asan, Chungcheong",
+  "충청남도 태안군": "Taean, Chungcheong",
+  "충청북도 보은": "Boeun, Chungcheong",
+  "충청북도 청주 (프랑스 국립도서관 소장)": "Cheongju (held at BnF, France)",
+  "전라남도": "South Jeolla",
+  "전라남도 강진": "Gangjin, Jeolla",
+  "전라남도 구례": "Gurye, Jeolla",
+  "전라남도 구례군": "Gurye, Jeolla",
+  "전라남도 나주시": "Naju, Jeolla",
+  "전라남도 담양군": "Damyang, Jeolla",
+  "전라남도 보성군": "Boseong, Jeolla",
+  "전라남도 순천": "Suncheon, Jeolla",
+  "전라남도 순천시": "Suncheon, Jeolla",
+  "전라남도 해남": "Haenam, Jeolla",
+  "전라남도 화순": "Hwasun, Jeolla",
+  "전라남도·전라북도·경상남도": "Jeolla · Gyeongsang",
+  "전라북도 전주시": "Jeonju, Jeolla",
+  "전라북도 고창군": "Gochang, Jeolla",
+  "전라북도 김제": "Gimje, Jeolla",
+  "전라북도 남원": "Namwon, Jeolla",
+  "전라북도 익산시": "Iksan, Jeolla",
+  "전라북도 정읍시": "Jeongeup, Jeolla",
+  "강원도 강릉시": "Gangneung, Gangwon",
+  "강원도 고성군": "Goseong, Gangwon",
+  "강원도 속초·인제": "Sokcho · Inje, Gangwon",
+  "강원도 평창": "Pyeongchang, Gangwon",
+  "강원도 평창·대관령·태백": "Pyeongchang · Taebaek, Gangwon",
+  "강원도·경기도 접경지역": "Gangwon · Gyeonggi border region",
+  "부산광역시 금정구": "Geumjeong-gu, Busan",
+  "울산광역시 울주군": "Ulju-gun, Ulsan",
+  "제주": "Jeju",
+  "제주특별자치도": "Jeju",
+  "제주특별자치도 전역": "Jeju (entire island)",
+  "제주 서귀포시 안덕면": "Andeok, Seogwipo, Jeju",
+  "제주 서귀포시 중문": "Jungmun, Seogwipo, Jeju",
+  "제주 서귀포시 표선면": "Pyoseon, Seogwipo, Jeju",
+  "국립중앙박물관": "National Museum of Korea",
+  "서울 국립중앙박물관": "National Museum of Korea, Seoul",
+  "국립경주박물관": "Gyeongju National Museum",
+  "국립고궁박물관": "National Palace Museum of Korea",
+  "국립공주박물관": "Gongju National Museum",
+  "국립김해박물관": "Gimhae National Museum",
+  "국립민속박물관": "National Folk Museum of Korea",
+  "국립부여박물관": "Buyeo National Museum",
+  "간송미술관": "Kansong Art Museum",
+  "간송미술관 소장": "Kansong Art Museum collection",
+  "삼성미술관 리움": "Leeum Museum of Art",
+  "고려대학교 박물관": "Korea Univ. Museum",
+  "전쟁기념관": "War Memorial of Korea",
+  "해군사관학교박물관": "Naval Academy Museum",
+  "해남 녹우당": "Nokudang, Haenam",
+  "일본 소장": "Collection in Japan",
+  "일본 덴리대학교": "Tenri Univ., Japan",
+  "남포시 강서구역": "Nampho, North Korea",
+  "양강도 (북한)": "Yanggang Province (North Korea)",
+  "국내 모사본": "Domestic replica",
+  "기상청": "Korea Meteorological Administration",
+  "각지 소장": "Various collections",
+  "전국": "Nationwide",
+  "전국 농촌": "Nationwide (rural)",
+  "전국 마을": "Nationwide (villages)",
+  "전국 장터": "Nationwide (markets)",
+  "전국 한옥": "Nationwide (hanok)",
+  "전국 해안": "Nationwide (coastal)",
+  "전국 논": "Nationwide (rice paddies)",
+  "전국 논밭": "Nationwide (farmland)",
+  "전국 개울가": "Nationwide (streams)",
+  "전국 교방": "Nationwide (gyobang)",
+  "전국 (울진·안동·경주 등)": "Uljin · Andong · Gyeongju area",
+  "전국 (원주·남원)": "Wonju · Namwon",
+  "전주, 전국": "Jeonju & Nationwide",
+  "순창, 전국": "Sunchang & Nationwide",
+  "궁궐": "Royal palaces",
+  "궁중": "Royal court",
+  "궁궐·사대부가": "Palaces · Noble houses",
+  "궁궐·성균관": "Palaces · Seonggyungwan",
+  "군영": "Military camps",
+  "한옥": "Hanok (traditional houses)",
+  "사찰·사대부가": "Temples · Noble houses",
+  "강·호수": "Rivers · Lakes",
+};
+
+// 영문 표시 헬퍼
+function tType(type) { return currentLang === "en" ? (TYPE_EN[type] || type) : type; }
+function tLocation(loc) { return currentLang === "en" ? (LOCATION_EN[loc] || loc) : loc; }
 
 // 씬 타입 옵션
 const SCENE_TYPES = [
@@ -3315,12 +3512,12 @@ function renderHeritage() {
   } else {
     grid.innerHTML = visible.map(h => `
       <div class="heritage-card ${selectedHeritage?.id===h.id?'selected':''}" onclick="selectHeritage('${h.id}')">
-        <span class="card-type">${h.type}</span>
-        <div class="card-name">${currentLang === "en" ? h.name + " " + h.nameEn : h.name}</div>
-        <div class="card-name-en">${currentLang === "en" ? "" : h.nameEn}</div>
+        <span class="card-type">${tType(h.type)}</span>
+        <div class="card-name">${currentLang === "en" ? h.nameEn : h.name}</div>
+        <div class="card-name-en">${currentLang === "en" ? h.name : h.nameEn}</div>
         <div class="card-meta">
-          <span class="card-era">${h.era}</span>
-          <span class="card-era">${h.location}</span>
+          <span class="card-era">${currentLang === "en" ? h.eraEn : h.era}</span>
+          <span class="card-era">${tLocation(h.location)}</span>
         </div>
         <div class="card-desc">${h.desc}</div>
       </div>
@@ -3616,7 +3813,7 @@ function updateBadges(step) {
   const badges = document.getElementById("selectionBadges");
   let html = "";
   if (step >= 2 && selectedHeritage) {
-    html += `<span class="sel-badge">${selectedHeritage.name}</span>`;
+    html += `<span class="sel-badge">${currentLang === "en" ? selectedHeritage.nameEn : selectedHeritage.name}</span>`;
   }
   if (step >= 4 && selectedExpression && selectedScene !== "historical") {
     html += `<span class="sel-badge">${t("expr_" + selectedExpression)}</span>`;
@@ -3670,7 +3867,7 @@ function generatePrompts() {
   html += `<div class="result-block">
     <div class="result-header">
       <h3>📋 ${currentLang === "en" ? item.nameEn : item.name} ${t("result_heritage_info")}</h3>
-      <span class="tag">${item.type} · ${item.era}</span>
+      <span class="tag">${tType(item.type)} · ${currentLang === "en" ? item.eraEn : item.era}</span>
     </div>
     <div class="result-body">
       <p style="margin-bottom:1rem;color:var(--color-ink-soft);font-size:0.9rem;">${item.desc}</p>
@@ -3826,20 +4023,23 @@ function copyPrompt(id, btn) {
 
 function downloadTxt() {
   if (!selectedHeritage || generatedPrompts.length === 0) return;
-  let txt = `${selectedHeritage.name} (${selectedHeritage.nameEn})\n`;
-  txt += `${selectedHeritage.type} | ${selectedHeritage.era} | ${selectedHeritage.category}\n`;
+  const hName = currentLang === "en" ? `${selectedHeritage.nameEn} (${selectedHeritage.name})` : `${selectedHeritage.name} (${selectedHeritage.nameEn})`;
+  const hType = tType(selectedHeritage.type);
+  const hEra = currentLang === "en" ? selectedHeritage.eraEn : selectedHeritage.era;
+  let txt = `${hName}\n`;
+  txt += `${hType} | ${hEra} | ${selectedHeritage.category}\n`;
   txt += "=".repeat(60) + "\n\n";
 
   for (const p of generatedPrompts) {
-    txt += `[${p.scene} · ${p.sensitivity} — 영문]\n${p.promptEn}\n\n`;
-    txt += `[${p.scene} · ${p.sensitivity} — 한글]\n${p.promptKo}\n\n`;
+    txt += `[${p.scene} · ${p.sensitivity} — ${t("dl_label_en")}]\n${p.promptEn}\n\n`;
+    txt += `[${p.scene} · ${p.sensitivity} — ${t("dl_label_ko")}]\n${p.promptKo}\n\n`;
     txt += "-".repeat(40) + "\n\n";
   }
 
   const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${selectedHeritage.name}_프롬프트.txt`;
+  a.download = `${currentLang === "en" ? selectedHeritage.nameEn : selectedHeritage.name}${t("dl_suffix_txt")}`;
   a.click();
 }
 
@@ -3859,7 +4059,7 @@ function downloadJson() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${selectedHeritage.name}_프롬프트.json`;
+  a.download = `${currentLang === "en" ? selectedHeritage.nameEn : selectedHeritage.name}${t("dl_suffix_json")}`;
   a.click();
 }
 
