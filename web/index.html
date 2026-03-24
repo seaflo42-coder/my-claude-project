@@ -269,15 +269,18 @@ body::before {
 
 /* ── 카테고리 탭 ── */
 .category-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
   gap: 8px;
-  justify-content: start;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   margin-bottom: var(--space-6);
 }
+.category-tabs::-webkit-scrollbar { display: none; }
 .cat-tab {
+  flex-shrink: 0 !important;
   white-space: nowrap;
-  flex-shrink: 0;
   text-align: center;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
@@ -382,6 +385,22 @@ body::before {
   font-size: var(--size-sm);
   grid-column: 1 / -1;
 }
+.empty-state .empty-emoji { font-size: var(--size-xl); margin-bottom: var(--space-3); }
+.empty-state .empty-main { font-size: var(--size-base); font-weight: 500; color: var(--color-ink-mid); margin-bottom: var(--space-2); }
+.empty-state .empty-sub { font-size: var(--size-sm); color: var(--color-ink-soft); margin-bottom: var(--space-6); }
+.empty-state .btn-go-all {
+  display: inline-block;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+.empty-state .btn-go-all:hover { background: var(--color-accent); }
 
 /* ── 더보기 버튼 ── */
 .load-more-wrap {
@@ -921,18 +940,6 @@ details[open] .advanced-summary::before { content: '▾ '; }
   font-size: var(--size-sm);
   background: var(--color-surface);
   color: var(--color-ink);
-}
-
-/* ── 데스크탑 카테고리 탭 ── */
-@media (min-width: 768px) {
-  .category-tabs {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 8px;
-    scrollbar-width: none;
-  }
-  .category-tabs::-webkit-scrollbar { display: none; }
 }
 
 /* ── 반응형 ── */
@@ -3142,7 +3149,20 @@ function renderHeritage() {
   const items = getFilteredItems();
   const visible = items.slice(0, visibleCount);
   const grid = document.getElementById("heritageGrid");
-  if (items.length === 0) {
+  if (items.length === 0 && !searchQuery && currentCategory !== "전체") {
+    const catLabel = t(CAT_I18N_KEYS[currentCategory] || "cat_all");
+    const totalCount = HERITAGE_DB.length;
+    const allLabel = currentLang === "en" ? "View All" : "전체 보기";
+    const mainMsg = currentLang === "en" ? "Coming soon 🙏" : "곧 추가될 예정이에요 🙏";
+    const subMsg = currentLang === "en"
+      ? `Explore ${totalCount} heritage items now`
+      : `현재 전체 유산 ${totalCount}개를 만나보세요`;
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-main">${mainMsg}</div>
+      <div class="empty-sub">${subMsg}</div>
+      <button class="btn-go-all" onclick="filterCategory('전체')">${allLabel}</button>
+    </div>`;
+  } else if (items.length === 0) {
     grid.innerHTML = `<div class="empty-state">${t("empty_state")}</div>`;
   } else {
     grid.innerHTML = visible.map(h => `
