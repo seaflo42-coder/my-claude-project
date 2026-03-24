@@ -150,6 +150,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   gap: var(--space-3);
 }
 .step-dots {
@@ -949,7 +950,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
   .heritage-grid { grid-template-columns: 1fr; }
   .option-grid { grid-template-columns: 1fr 1fr; }
   .container { padding: var(--space-4); }
-  .step-bar-inner { flex-wrap: wrap; }
+  .step-bar-inner { flex-wrap: nowrap; }
   .step-label { font-size: var(--size-xs); }
 }
 </style>
@@ -1009,7 +1010,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
     </div>
     <div class="heritage-grid" id="heritageGrid"></div>
     <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
-      <button class="load-more-btn" onclick="loadMore()">더보기</button>
+      <button class="load-more-btn" onclick="loadMore()" data-i18n="btn_load_more">더보기</button>
       <div class="item-count" id="itemCount"></div>
     </div>
 
@@ -1047,7 +1048,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
     <!-- 자유 입력 -->
     <div class="setting-group">
       <label class="setting-label" data-i18n="label_free_input">자유 입력 <span style="color:var(--color-ink-soft);font-weight:400;font-size:var(--size-xs)">— 원하는 분위기나 상황을 자유롭게 적어주세요</span></label>
-      <textarea id="freeInput" class="free-input" rows="3" placeholder="예: 비 오는 날 고즈넉한 풍경, 봄 벚꽃이 흩날리는 장면..."></textarea>
+      <textarea id="freeInput" class="free-input" rows="3" placeholder="예: 비 오는 날 고즈넉한 풍경, 봄 벚꽃이 흩날리는 장면..." data-i18n-ph="free_input_ph"></textarea>
     </div>
 
     <!-- 감도 선택 -->
@@ -1071,11 +1072,11 @@ details[open] .advanced-summary::before { content: '▾ '; }
       <label class="setting-label" data-i18n="label_aspect">종횡비</label>
       <div class="aspect-ratio-options">
         <select id="aspectRatio" class="aspect-select">
-          <option value="1:1">1:1 정방형</option>
-          <option value="4:5">4:5 세로 (인스타그램)</option>
-          <option value="2:3" selected>2:3 포트레이트</option>
-          <option value="16:9">16:9 가로 (와이드)</option>
-          <option value="9:16">9:16 모바일</option>
+          <option value="1:1" data-i18n="ar_square">1:1 정방형</option>
+          <option value="4:5" data-i18n="ar_portrait45">4:5 세로 (인스타그램)</option>
+          <option value="2:3" selected data-i18n="ar_portrait23">2:3 포트레이트</option>
+          <option value="16:9" data-i18n="ar_wide">16:9 가로 (와이드)</option>
+          <option value="9:16" data-i18n="ar_mobile">9:16 모바일</option>
         </select>
         <div class="aspect-preview" id="aspectPreview">
           <div class="aspect-box" id="aspectBox"></div>
@@ -1090,81 +1091,81 @@ details[open] .advanced-summary::before { content: '▾ '; }
         <div class="adv-item">
           <label>카메라 앵글</label>
           <select id="advCamera">
-            <option value="">자동</option>
-            <option value="eye level shot, natural perspective">아이레벨 (Eye Level)</option>
-            <option value="low angle shot, looking up, powerful stance">로우앵글 (Low Angle)</option>
-            <option value="high angle shot, overhead perspective">하이앵글 (High Angle)</option>
-            <option value="bird's eye view, aerial perspective, top down">항공뷰 (Bird's Eye)</option>
-            <option value="dutch angle, tilted frame, dramatic tension">더치앵글 (Dutch Angle)</option>
-            <option value="over the shoulder shot, POV perspective">숄더샷 (Over the Shoulder)</option>
-            <option value="extreme close-up, macro detail, intricate textures, microscopic details">익스트림 클로즈업</option>
-            <option value="close-up shot, subject isolation">클로즈업 (Close-up)</option>
-            <option value="medium shot, waist up framing">미디엄샷 (Medium Shot)</option>
-            <option value="full body shot, head to toe">풀샷 (Full Shot)</option>
-            <option value="wide shot, environmental context">와이드샷 (Wide Shot)</option>
-            <option value="extreme wide shot, vast landscape">익스트림 와이드</option>
-            <option value="worm's eye view, extreme low angle, dramatic upward perspective">웜홀뷰 (Worm's Eye)</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="eye level shot, natural perspective" data-i18n="opt_eye_level">아이레벨 (Eye Level)</option>
+            <option value="low angle shot, looking up, powerful stance" data-i18n="opt_low_angle">로우앵글 (Low Angle)</option>
+            <option value="high angle shot, overhead perspective" data-i18n="opt_high_angle">하이앵글 (High Angle)</option>
+            <option value="bird's eye view, aerial perspective, top down" data-i18n="opt_birds_eye">항공뷰 (Bird's Eye)</option>
+            <option value="dutch angle, tilted frame, dramatic tension" data-i18n="opt_dutch">더치앵글 (Dutch Angle)</option>
+            <option value="over the shoulder shot, POV perspective" data-i18n="opt_shoulder">숄더샷 (Over the Shoulder)</option>
+            <option value="extreme close-up, macro detail, intricate textures, microscopic details" data-i18n="opt_extreme_cu">익스트림 클로즈업</option>
+            <option value="close-up shot, subject isolation" data-i18n="opt_closeup">클로즈업 (Close-up)</option>
+            <option value="medium shot, waist up framing" data-i18n="opt_medium">미디엄샷 (Medium Shot)</option>
+            <option value="full body shot, head to toe" data-i18n="opt_full">풀샷 (Full Shot)</option>
+            <option value="wide shot, environmental context" data-i18n="opt_wide">와이드샷 (Wide Shot)</option>
+            <option value="extreme wide shot, vast landscape" data-i18n="opt_extreme_wide">익스트림 와이드</option>
+            <option value="worm's eye view, extreme low angle, dramatic upward perspective" data-i18n="opt_worms_eye">웜홀뷰 (Worm's Eye)</option>
           </select>
         </div>
         <div class="adv-item">
           <label>렌즈</label>
           <select id="advLens">
-            <option value="">자동</option>
-            <option value="wide angle 24mm">광각 24mm</option>
-            <option value="standard 50mm">표준 50mm</option>
-            <option value="telephoto 85mm">인물 85mm</option>
-            <option value="telephoto 200mm">망원 200mm</option>
-            <option value="macro lens">매크로</option>
-            <option value="tilt-shift lens">틸트시프트</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="wide angle 24mm" data-i18n="opt_24mm">광각 24mm</option>
+            <option value="standard 50mm" data-i18n="opt_50mm">표준 50mm</option>
+            <option value="telephoto 85mm" data-i18n="opt_85mm">인물 85mm</option>
+            <option value="telephoto 200mm" data-i18n="opt_200mm">망원 200mm</option>
+            <option value="macro lens" data-i18n="opt_macro">매크로</option>
+            <option value="tilt-shift lens" data-i18n="opt_tiltshift">틸트시프트</option>
           </select>
         </div>
         <div class="adv-item">
           <label>피사계심도</label>
           <select id="advDof">
-            <option value="">자동</option>
-            <option value="shallow depth of field, f/1.4 aperture, bokeh background, subject isolation">아웃포커스 강하게</option>
-            <option value="moderate depth of field, f/2.8 aperture, soft background blur">아웃포커스 보통</option>
-            <option value="deep depth of field, f/11 aperture, everything in focus, sharp background">전체 선명하게</option>
-            <option value="tilt-shift effect, selective focus, miniature effect">앞뒤 모두 흐림</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="shallow depth of field, f/1.4 aperture, bokeh background, subject isolation" data-i18n="opt_dof_strong">아웃포커스 강하게</option>
+            <option value="moderate depth of field, f/2.8 aperture, soft background blur" data-i18n="opt_dof_normal">아웃포커스 보통</option>
+            <option value="deep depth of field, f/11 aperture, everything in focus, sharp background" data-i18n="opt_dof_sharp">전체 선명하게</option>
+            <option value="tilt-shift effect, selective focus, miniature effect" data-i18n="opt_dof_both">앞뒤 모두 흐림</option>
           </select>
         </div>
         <div class="adv-item">
           <label>조명</label>
           <select id="advLighting">
-            <option value="">자동</option>
-            <option value="golden hour warm sunlight">골든아워</option>
-            <option value="soft diffused overcast light">흐린 날 확산광</option>
-            <option value="dramatic side lighting with deep shadows">드라마틱 사이드</option>
-            <option value="soft moonlight">달빛</option>
-            <option value="warm candlelight and lantern glow">촛불/등불</option>
-            <option value="bright midday sunlight">한낮 직사광</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="golden hour warm sunlight" data-i18n="opt_golden">골든아워</option>
+            <option value="soft diffused overcast light" data-i18n="opt_overcast">흐린 날 확산광</option>
+            <option value="dramatic side lighting with deep shadows" data-i18n="opt_dramatic">드라마틱 사이드</option>
+            <option value="soft moonlight" data-i18n="opt_moonlight">달빛</option>
+            <option value="warm candlelight and lantern glow" data-i18n="opt_candle">촛불/등불</option>
+            <option value="bright midday sunlight" data-i18n="opt_midday">한낮 직사광</option>
           </select>
         </div>
         <div class="adv-item">
           <label>계절</label>
           <select id="advSeason">
-            <option value="">자동</option>
-            <option value="spring with cherry blossoms">봄 (벚꽃)</option>
-            <option value="lush green summer">여름 (녹음)</option>
-            <option value="autumn with red and golden foliage">가을 (단풍)</option>
-            <option value="winter with snow">겨울 (눈)</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="spring with cherry blossoms" data-i18n="opt_spring">봄 (벚꽃)</option>
+            <option value="lush green summer" data-i18n="opt_summer">여름 (녹음)</option>
+            <option value="autumn with red and golden foliage" data-i18n="opt_autumn">가을 (단풍)</option>
+            <option value="winter with snow" data-i18n="opt_winter">겨울 (눈)</option>
           </select>
         </div>
         <div class="adv-item">
           <label>시간대</label>
           <select id="advTime">
-            <option value="">자동</option>
-            <option value="early morning dawn">새벽</option>
-            <option value="morning">아침</option>
-            <option value="midday">한낮</option>
-            <option value="golden hour sunset">해질녘</option>
-            <option value="blue hour twilight">블루아워</option>
-            <option value="night">밤</option>
+            <option value="" data-i18n="opt_auto">자동</option>
+            <option value="early morning dawn" data-i18n="opt_dawn">새벽</option>
+            <option value="morning" data-i18n="opt_morning">아침</option>
+            <option value="midday" data-i18n="opt_noon">한낮</option>
+            <option value="golden hour sunset" data-i18n="opt_sunset">해질녘</option>
+            <option value="blue hour twilight" data-i18n="opt_bluehour">블루아워</option>
+            <option value="night" data-i18n="opt_night">밤</option>
           </select>
         </div>
         <div class="adv-item adv-full">
           <label>추가 디렉션</label>
-          <input type="text" id="advExtra" placeholder="예: 안개가 자욱한, 사람이 없는, 축제 분위기..." class="free-input" style="height:auto;">
+          <input type="text" id="advExtra" placeholder="예: 안개가 자욱한, 사람이 없는, 축제 분위기..." data-i18n-ph="adv_extra_ph" class="free-input" style="height:auto;">
         </div>
       </div>
     </details>
@@ -1182,7 +1183,7 @@ details[open] .advanced-summary::before { content: '▾ '; }
       <button class="back-link" onclick="goStep(4)" data-i18n="back_settings">← 설정으로</button>
       <button class="back-link reset-link" onclick="resetAndGoStep1()" data-i18n="start_over">↺ 처음으로</button>
     </div>
-    <div class="section-title" id="resultTitle">생성된 프롬프트</div>
+    <div class="section-title" id="resultTitle" data-i18n="result_title_suffix">생성된 프롬프트</div>
 
     <div class="results-area" id="resultsArea"></div>
 
@@ -1314,6 +1315,155 @@ const I18N = {
   step_name_3:        { ko: "표현 방식", en: "Style" },
   step_name_4:        { ko: "세부 설정", en: "Settings" },
   step_name_5:        { ko: "결과 확인", en: "Result" },
+
+  // placeholder
+  free_input_ph:      { ko: "예: 비 오는 날 고즈넉한 풍경, 봄 벚꽃이 흩날리는 장면...", en: "e.g. Serene rainy day, spring cherry blossoms drifting..." },
+  adv_extra_ph:       { ko: "예: 안개가 자욱한, 사람이 없는, 축제 분위기...", en: "e.g. Misty, empty, festive mood..." },
+
+  // 더보기 / 카운터
+  btn_load_more:      { ko: "더보기", en: "Load more" },
+  count_showing:      { ko: "개 표시 중", en: " shown" },
+  count_total:        { ko: "개", en: " items" },
+  count_total_prefix: { ko: "전체 ", en: "Total " },
+
+  // 빈 카테고리
+  empty_coming_soon:  { ko: "곧 추가될 예정이에요 🙏", en: "Coming soon 🙏" },
+  empty_browse_all:   { ko: "개를 만나보세요", en: " items to explore" },
+  empty_browse_prefix:{ ko: "현재 전체 유산 ", en: "Browse all " },
+  btn_view_all:       { ko: "전체 보기", en: "View All" },
+
+  // 종횡비
+  ar_square:          { ko: "1:1 정방형", en: "1:1 Square" },
+  ar_portrait45:      { ko: "4:5 세로 (인스타그램)", en: "4:5 Vertical (Instagram)" },
+  ar_portrait23:      { ko: "2:3 포트레이트", en: "2:3 Portrait" },
+  ar_wide:            { ko: "16:9 가로 (와이드)", en: "16:9 Wide (Landscape)" },
+  ar_mobile:          { ko: "9:16 모바일", en: "9:16 Mobile" },
+
+  // 고급설정 옵션 — 카메라
+  opt_auto:           { ko: "자동", en: "Auto" },
+  opt_eye_level:      { ko: "아이레벨 (Eye Level)", en: "Eye Level" },
+  opt_low_angle:      { ko: "로우앵글 (Low Angle)", en: "Low Angle" },
+  opt_high_angle:     { ko: "하이앵글 (High Angle)", en: "High Angle" },
+  opt_birds_eye:      { ko: "항공뷰 (Bird's Eye)", en: "Bird's Eye View" },
+  opt_dutch:          { ko: "더치앵글 (Dutch Angle)", en: "Dutch Angle" },
+  opt_shoulder:       { ko: "숄더샷 (Over the Shoulder)", en: "Over the Shoulder" },
+  opt_extreme_cu:     { ko: "익스트림 클로즈업", en: "Extreme Close-up" },
+  opt_closeup:        { ko: "클로즈업 (Close-up)", en: "Close-up" },
+  opt_medium:         { ko: "미디엄샷 (Medium Shot)", en: "Medium Shot" },
+  opt_full:           { ko: "풀샷 (Full Shot)", en: "Full Shot" },
+  opt_wide:           { ko: "와이드샷 (Wide Shot)", en: "Wide Shot" },
+  opt_extreme_wide:   { ko: "익스트림 와이드", en: "Extreme Wide" },
+  opt_worms_eye:      { ko: "웜홀뷰 (Worm's Eye)", en: "Worm's Eye View" },
+
+  // 고급설정 옵션 — 렌즈
+  opt_24mm:           { ko: "광각 24mm", en: "Wide 24mm" },
+  opt_50mm:           { ko: "표준 50mm", en: "Standard 50mm" },
+  opt_85mm:           { ko: "인물 85mm", en: "Portrait 85mm" },
+  opt_200mm:          { ko: "망원 200mm", en: "Telephoto 200mm" },
+  opt_macro:          { ko: "매크로", en: "Macro" },
+  opt_tiltshift:      { ko: "틸트시프트", en: "Tilt-shift" },
+
+  // 고급설정 옵션 — 피사계심도
+  opt_dof_strong:     { ko: "아웃포커스 강하게", en: "Strong bokeh" },
+  opt_dof_normal:     { ko: "아웃포커스 보통", en: "Moderate bokeh" },
+  opt_dof_sharp:      { ko: "전체 선명하게", en: "Deep focus (all sharp)" },
+  opt_dof_both:       { ko: "앞뒤 모두 흐림", en: "Front & rear blur" },
+
+  // 고급설정 옵션 — 조명
+  opt_golden:         { ko: "골든아워", en: "Golden hour" },
+  opt_overcast:       { ko: "흐린 날 확산광", en: "Overcast diffused" },
+  opt_dramatic:       { ko: "드라마틱 사이드", en: "Dramatic side light" },
+  opt_moonlight:      { ko: "달빛", en: "Moonlight" },
+  opt_candle:         { ko: "촛불/등불", en: "Candlelight / Lantern" },
+  opt_midday:         { ko: "한낮 직사광", en: "Midday direct sun" },
+
+  // 고급설정 옵션 — 계절
+  opt_spring:         { ko: "봄 (벚꽃)", en: "Spring (cherry blossom)" },
+  opt_summer:         { ko: "여름 (녹음)", en: "Summer (lush green)" },
+  opt_autumn:         { ko: "가을 (단풍)", en: "Autumn (foliage)" },
+  opt_winter:         { ko: "겨울 (눈)", en: "Winter (snow)" },
+
+  // 고급설정 옵션 — 시간대
+  opt_dawn:           { ko: "새벽", en: "Dawn" },
+  opt_morning:        { ko: "아침", en: "Morning" },
+  opt_noon:           { ko: "한낮", en: "Noon" },
+  opt_sunset:         { ko: "해질녘", en: "Sunset" },
+  opt_bluehour:       { ko: "블루아워", en: "Blue hour" },
+  opt_night:          { ko: "밤", en: "Night" },
+
+  // SCENE_TYPES example
+  scene_fashion_ex:   { ko: " 앞 패션 컬렉션", en: " fashion collection" },
+  scene_portrait_ex:  { ko: "과 함께한 인물", en: " portrait encounter" },
+  scene_product_ex:   { ko: " 안의 제품 구성", en: " product composition" },
+  scene_landscape_ex: { ko: "의 원형 풍경", en: " original landscape" },
+  scene_night_ex:     { ko: "의 야간 조명", en: " night illumination" },
+  scene_historical_ex:{ ko: "의 고증 복원", en: " historical restoration" },
+
+  // 표현 방식 세부 옵션 — 3D Isometric
+  iso_view:           { ko: "뷰 타입", en: "View type" },
+  iso_classic45:      { ko: "클래식 45도", en: "Classic 45°" },
+  iso_topdown:        { ko: "탑다운", en: "Top-down" },
+  iso_sideview:       { ko: "사이드뷰", en: "Side view" },
+  iso_detail:         { ko: "디테일", en: "Detail" },
+  iso_simple:         { ko: "심플", en: "Simple" },
+  iso_mid:            { ko: "미드", en: "Mid" },
+  iso_hipoly:         { ko: "하이폴리", en: "High-poly" },
+  iso_light:          { ko: "조명", en: "Light" },
+  iso_soft:           { ko: "소프트", en: "Soft" },
+  iso_dramatic:       { ko: "드라마틱", en: "Dramatic" },
+  iso_night:          { ko: "야간", en: "Night" },
+  iso_color:          { ko: "색상", en: "Color" },
+  iso_dancheong:      { ko: "단청 컬러", en: "Dancheong" },
+  iso_mono:           { ko: "모노톤", en: "Monotone" },
+  iso_pastel:         { ko: "파스텔", en: "Pastel" },
+  iso_vivid:          { ko: "비비드", en: "Vivid" },
+
+  // 표현 방식 세부 옵션 — 수묵화
+  ink_density:        { ko: "농도", en: "Density" },
+  ink_light:          { ko: "담묵", en: "Light ink" },
+  ink_medium:         { ko: "중묵", en: "Medium ink" },
+  ink_heavy:          { ko: "농묵", en: "Heavy ink" },
+  ink_space:          { ko: "여백", en: "White space" },
+  ink_space_lots:     { ko: "여백 많이", en: "Generous space" },
+  ink_space_fill:     { ko: "꽉 채우기", en: "Fill canvas" },
+  ink_color:          { ko: "채색", en: "Coloring" },
+  ink_bw:             { ko: "흑백만", en: "B&W only" },
+  ink_tint:           { ko: "담채화", en: "Light wash" },
+
+  // 표현 방식 세부 옵션 — 민화
+  minhwa_type:        { ko: "유형", en: "Type" },
+  minhwa_bird:        { ko: "화조도", en: "Bird & flower" },
+  minhwa_tiger:       { ko: "호랑이/까치", en: "Tiger & magpie" },
+  minhwa_landscape:   { ko: "산수도", en: "Landscape" },
+  minhwa_color:       { ko: "색감", en: "Color tone" },
+  minhwa_traditional: { ko: "전통 오방색", en: "Traditional five-color" },
+  minhwa_modern:      { ko: "현대 해석", en: "Modern reinterpretation" },
+  minhwa_bg:          { ko: "배경", en: "Background" },
+  minhwa_blank:       { ko: "여백", en: "Blank space" },
+  minhwa_pattern:     { ko: "패턴 배경", en: "Pattern background" },
+
+  // 표현 방식 세부 옵션 — 청자/백자
+  ceramic_style:      { ko: "스타일", en: "Style" },
+  ceramic_celadon:    { ko: "고려 청자", en: "Goryeo celadon" },
+  ceramic_porcelain:  { ko: "조선 백자", en: "Joseon porcelain" },
+  ceramic_pattern:    { ko: "문양", en: "Pattern" },
+  ceramic_inlay:      { ko: "상감 문양", en: "Inlay pattern" },
+  ceramic_lotus:      { ko: "연꽃 문양", en: "Lotus pattern" },
+  ceramic_plain:      { ko: "민무늬", en: "Plain (no pattern)" },
+
+  // 결과 페이지
+  result_title_suffix:{ ko: " — 생성된 프롬프트", en: " — Generated Prompt" },
+  result_heritage_info:{ ko: "고증 정보", en: "Heritage Info" },
+  result_era:         { ko: "시대", en: "Era" },
+  result_style:       { ko: "양식 · 구조", en: "Style · Structure" },
+  result_palette:     { ko: "색상 팔레트", en: "Color palette" },
+  result_material:    { ko: "재질 · 소재", en: "Material · Texture" },
+  result_mood_label:  { ko: "고증", en: "Historical" },
+  result_tab_ko:      { ko: "한글", en: "Korean" },
+  result_tab_en:      { ko: "English", en: "English" },
+  result_tab_en_sub:  { ko: "Midjourney, Stable Diffusion 등에 사용", en: "For Midjourney, Stable Diffusion, etc." },
+  result_tab_ko_sub:  { ko: "나노바나나(Gemini) 등에 사용", en: "For NanoBanana (Gemini), etc." },
+  nano_link:          { ko: "🍌 나노바나나에서 생성", en: "🍌 Generate on NanoBanana" },
 };
 
 function t(key) {
@@ -1357,6 +1507,8 @@ function applyLang() {
   // 동적 요소 재렌더링
   if (typeof renderCategories === "function") renderCategories();
   if (typeof renderSceneTypes === "function" && document.getElementById("sceneGrid")) renderSceneTypes();
+  if (typeof renderExpressionTypes === "function" && document.getElementById("exprGrid")) renderExpressionTypes();
+  if (typeof renderHeritage === "function") renderHeritage();
 
   // 스텝 라벨 업데이트
   if (typeof currentStep !== "undefined") {
@@ -1675,12 +1827,12 @@ const HERITAGE_DB = [
 
 // 씬 타입 옵션
 const SCENE_TYPES = [
-  { id: "fashion",    name: "패션/브랜드",     sub: "유산을 런웨이 배경으로",       example: " 앞 패션 컬렉션" },
-  { id: "portrait",   name: "인물/포트레이트", sub: "인물과 유산의 시간적 교감",   example: "과 함께한 인물" },
-  { id: "product",    name: "제품 사진",       sub: "유산 공간 속 오브제",         example: " 안의 제품 구성" },
-  { id: "landscape",  name: "풍경",           sub: "고증된 공간의 전경",           example: "의 원형 풍경" },
-  { id: "night",      name: "야경",           sub: "밤의 유산, 빛과 어둠",         example: "의 야간 조명" },
-  { id: "historical", name: "역사 고증",       sub: "원형 그대로의 사실적 재현",   example: "의 고증 복원" },
+  { id: "fashion",    nameKey: "scene_fashion",    subKey: "scene_fashion_sub",    exKey: "scene_fashion_ex" },
+  { id: "portrait",   nameKey: "scene_portrait",   subKey: "scene_portrait_sub",   exKey: "scene_portrait_ex" },
+  { id: "product",    nameKey: "scene_product",    subKey: "scene_product_sub",    exKey: "scene_product_ex" },
+  { id: "landscape",  nameKey: "scene_landscape",  subKey: "scene_landscape_sub",  exKey: "scene_landscape_ex" },
+  { id: "night",      nameKey: "scene_night",      subKey: "scene_night_sub",      exKey: "scene_night_ex" },
+  { id: "historical", nameKey: "scene_historical", subKey: "scene_historical_sub", exKey: "scene_historical_ex" },
 ];
 
 // 씬 타입 SVG 아이콘 (단선 라인 드로잉, 32x32)
@@ -1696,19 +1848,19 @@ const SCENE_ICONS = {
 // 감도 옵션
 const SENSITIVITIES = {
   editorial: {
-    label: "에디토리얼",
+    labelKey: "sens_editorial",
     promptEn: "Vogue editorial, 85mm lens, shallow depth of field, dramatic lighting, high fashion photography",
     promptKo: "보그 에디토리얼 감성, 85mm 렌즈, 얕은 심도, 드라마틱한 조명, 하이패션 사진",
     colorGrade: { fashion: "desaturated color grading", portrait: "warm film tone color grading", product: "teal and orange color grading", landscape: "soft pastel color grading", night: "cool desaturated color grading" }
   },
   cinematic: {
-    label: "시네마틱",
+    labelKey: "sens_cinematic",
     promptEn: "cinematic composition, anamorphic lens flare, depth of field, shot on ARRI Alexa, dramatic chiaroscuro lighting, movie still from art house film",
     promptKo: "시네마틱 구도, 아나모픽 렌즈 플레어, 깊은 심도, ARRI Alexa 촬영, 키아로스쿠로 조명, 아트하우스 영화 스틸컷 느낌",
     colorGrade: { fashion: "desaturated color grading", portrait: "warm film tone color grading", product: "teal and orange color grading", landscape: "teal and orange color grading", night: "teal and orange color grading" }
   },
   campaign: {
-    label: "캠페인",
+    labelKey: "sens_campaign",
     promptEn: "advertising campaign, commercial photography, clean composition, studio-quality retouching",
     promptKo: "광고 캠페인, 커머셜 포토그래피, 깔끔한 구도, 스튜디오급 리터칭",
     colorGrade: { fashion: "vibrant commercial color grading", portrait: "warm natural color grading", product: "clean neutral color grading", landscape: "vivid saturated color grading", night: "dramatic contrast color grading" }
@@ -2241,11 +2393,11 @@ function translateToEn(text) {
 
 // ── 종횡비 옵션 ──
 const ASPECT_RATIOS = [
-  { id: "1:1",  label: "1:1 정방형", mj: "--ar 1:1", ko: "종횡비 1:1 정방형" },
-  { id: "4:5",  label: "4:5 세로 (인스타그램)", mj: "--ar 4:5", ko: "종횡비 4:5 세로 (인스타그램)" },
-  { id: "2:3",  label: "2:3 포트레이트", mj: "--ar 2:3", ko: "종횡비 2:3 포트레이트" },
-  { id: "16:9", label: "16:9 가로 (와이드)", mj: "--ar 16:9", ko: "종횡비 16:9 와이드" },
-  { id: "9:16", label: "9:16 모바일", mj: "--ar 9:16", ko: "종횡비 9:16 모바일" },
+  { id: "1:1",  labelKey: "ar_square",    mj: "--ar 1:1", ko: "종횡비 1:1 정방형" },
+  { id: "4:5",  labelKey: "ar_portrait45",mj: "--ar 4:5", ko: "종횡비 4:5 세로 (인스타그램)" },
+  { id: "2:3",  labelKey: "ar_portrait23",mj: "--ar 2:3", ko: "종횡비 2:3 포트레이트" },
+  { id: "16:9", labelKey: "ar_wide",      mj: "--ar 16:9", ko: "종횡비 16:9 와이드" },
+  { id: "9:16", labelKey: "ar_mobile",    mj: "--ar 9:16", ko: "종횡비 9:16 모바일" },
 ];
 
 // ── 자유입력 재구성 함수 ──
@@ -3150,17 +3302,13 @@ function renderHeritage() {
   const visible = items.slice(0, visibleCount);
   const grid = document.getElementById("heritageGrid");
   if (items.length === 0 && !searchQuery && currentCategory !== "전체") {
-    const catLabel = t(CAT_I18N_KEYS[currentCategory] || "cat_all");
     const totalCount = HERITAGE_DB.length;
-    const allLabel = currentLang === "en" ? "View All" : "전체 보기";
-    const mainMsg = currentLang === "en" ? "Coming soon 🙏" : "곧 추가될 예정이에요 🙏";
-    const subMsg = currentLang === "en"
-      ? `Explore ${totalCount} heritage items now`
-      : `현재 전체 유산 ${totalCount}개를 만나보세요`;
+    const mainMsg = t("empty_coming_soon");
+    const subMsg = `${t("empty_browse_prefix")}${totalCount}${t("empty_browse_all")}`;
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-main">${mainMsg}</div>
       <div class="empty-sub">${subMsg}</div>
-      <button class="btn-go-all" onclick="filterCategory('전체')">${allLabel}</button>
+      <button class="btn-go-all" onclick="filterCategory('전체')">${t("btn_view_all")}</button>
     </div>`;
   } else if (items.length === 0) {
     grid.innerHTML = `<div class="empty-state">${t("empty_state")}</div>`;
@@ -3183,10 +3331,10 @@ function renderHeritage() {
   const countEl = document.getElementById("itemCount");
   if (items.length > visibleCount) {
     wrap.style.display = "block";
-    countEl.textContent = `${visibleCount} / ${items.length}개 표시 중`;
+    countEl.textContent = `${visibleCount} / ${items.length}${t("count_showing")}`;
   } else {
     wrap.style.display = items.length > 0 ? "block" : "none";
-    countEl.textContent = items.length > 0 ? `전체 ${items.length}개` : "";
+    countEl.textContent = items.length > 0 ? `${t("count_total_prefix")}${items.length}${t("count_total")}` : "";
     wrap.querySelector(".load-more-btn").style.display = items.length > visibleCount ? "inline-block" : "none";
   }
 }
@@ -3214,19 +3362,14 @@ function selectHeritage(id) {
 function renderSceneTypes() {
   const grid = document.getElementById("sceneGrid");
   const hName = selectedHeritage ? selectedHeritage.name : (currentLang === "en" ? "Heritage" : "유산");
-  grid.innerHTML = SCENE_TYPES.map(s => {
-    const nameKey = `scene_${s.id}`;
-    const subKey = `scene_${s.id}_sub`;
-    const name = t(nameKey) !== nameKey ? t(nameKey) : s.name;
-    const sub = t(subKey) !== subKey ? t(subKey) : s.sub;
-    return `
+  grid.innerHTML = SCENE_TYPES.map(s => `
     <div class="option-card" onclick="selectScene('${s.id}')" id="scene-${s.id}">
       <div class="opt-icon">${SCENE_ICONS[s.id] || ""}</div>
-      <div class="opt-name">${name}</div>
-      <div class="opt-sub">${sub}</div>
-      <div class="opt-example">${t("scene_example_prefix")}${hName}${s.example}</div>
-    </div>`;
-  }).join("");
+      <div class="opt-name">${t(s.nameKey)}</div>
+      <div class="opt-sub">${t(s.subKey)}</div>
+      <div class="opt-example">${t("scene_example_prefix")}${hName}${t(s.exKey)}</div>
+    </div>`
+  ).join("");
 }
 
 // ══════════════════════════════════════════════
@@ -3326,36 +3469,36 @@ function applyExpressionToStep4(exprId) {
 
   if (exprId === "isometric") {
     optDiv.innerHTML = `
-      <div class="expr-opt-group"><label>${t("iso_view") || "뷰 앵글"}</label>
-        <select id="isoView"><option value="classic isometric angle" selected>${currentLang==="en"?"Classic 45°":"클래식 45도"}</option><option value="top-down orthographic view">${currentLang==="en"?"Top-down":"탑다운"}</option><option value="side-profile isometric">${currentLang==="en"?"Side view":"사이드뷰"}</option></select></div>
-      <div class="expr-opt-group"><label>${t("iso_detail") || "디테일 레벨"}</label>
-        <select id="isoDetail"><option value="low poly, minimal detail">${currentLang==="en"?"Simple":"심플"}</option><option value="mid poly, balanced detail" selected>${currentLang==="en"?"Mid":"미드"}</option><option value="high poly, ultra detailed">${currentLang==="en"?"High-poly":"하이폴리"}</option></select></div>
-      <div class="expr-opt-group"><label>${t("iso_light") || "조명"}</label>
-        <select id="isoLight"><option value="soft ambient occlusion, diffused lighting" selected>${currentLang==="en"?"Soft":"소프트"}</option><option value="dramatic rim lighting, strong shadows">${currentLang==="en"?"Dramatic":"드라마틱"}</option><option value="night scene, atmospheric glow">${currentLang==="en"?"Night":"야간"}</option></select></div>
-      <div class="expr-opt-group"><label>${t("iso_color") || "색감"}</label>
-        <select id="isoColor"><option value="dancheong color palette (red, blue, green, gold)" selected>${currentLang==="en"?"Dancheong":"단청 컬러"}</option><option value="monochromatic, grayscale">${currentLang==="en"?"Monotone":"모노톤"}</option><option value="soft pastel tones">${currentLang==="en"?"Pastel":"파스텔"}</option><option value="vibrant saturated colors">${currentLang==="en"?"Vivid":"비비드"}</option></select></div>`;
+      <div class="expr-opt-group"><label>${t("iso_view")}</label>
+        <select id="isoView"><option value="classic isometric angle" selected>${t("iso_classic45")}</option><option value="top-down orthographic view">${t("iso_topdown")}</option><option value="side-profile isometric">${t("iso_sideview")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_detail")}</label>
+        <select id="isoDetail"><option value="low poly, minimal detail">${t("iso_simple")}</option><option value="mid poly, balanced detail" selected>${t("iso_mid")}</option><option value="high poly, ultra detailed">${t("iso_hipoly")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_light")}</label>
+        <select id="isoLight"><option value="soft ambient occlusion, diffused lighting" selected>${t("iso_soft")}</option><option value="dramatic rim lighting, strong shadows">${t("iso_dramatic")}</option><option value="night scene, atmospheric glow">${t("iso_night")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("iso_color")}</label>
+        <select id="isoColor"><option value="dancheong color palette (red, blue, green, gold)" selected>${t("iso_dancheong")}</option><option value="monochromatic, grayscale">${t("iso_mono")}</option><option value="soft pastel tones">${t("iso_pastel")}</option><option value="vibrant saturated colors">${t("iso_vivid")}</option></select></div>`;
   } else if (exprId === "ink") {
     optDiv.innerHTML = `
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Ink density":"먹의 농도"}</label>
-        <select id="inkDensity"><option value="light ink wash, diluted ink, subtle tones">${currentLang==="en"?"Light (담묵)":"담묵"}</option><option value="medium ink intensity, balanced contrast" selected>${currentLang==="en"?"Medium (중묵)":"중묵"}</option><option value="bold ink strokes, strong contrast, deep blacks">${currentLang==="en"?"Bold (농묵)":"농묵"}</option></select></div>
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Whitespace":"여백 처리"}</label>
-        <select id="inkSpace"><option value="generous negative space, minimalist composition" selected>${currentLang==="en"?"Generous space":"여백 많이"}</option><option value="detailed composition, filled frame">${currentLang==="en"?"Filled frame":"꽉 채우기"}</option></select></div>
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Color":"채색 여부"}</label>
-        <select id="inkColor"><option value="monochrome ink wash, no color" selected>${currentLang==="en"?"Monochrome":"흑백만"}</option><option value="light color wash, traditional Korean color accent">${currentLang==="en"?"Light color (담채화)":"담채화"}</option></select></div>`;
+      <div class="expr-opt-group"><label>${t("ink_density")}</label>
+        <select id="inkDensity"><option value="light ink wash, diluted ink, subtle tones">${t("ink_light")}</option><option value="medium ink intensity, balanced contrast" selected>${t("ink_medium")}</option><option value="bold ink strokes, strong contrast, deep blacks">${t("ink_heavy")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("ink_space")}</label>
+        <select id="inkSpace"><option value="generous negative space, minimalist composition" selected>${t("ink_space_lots")}</option><option value="detailed composition, filled frame">${t("ink_space_fill")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("ink_color")}</label>
+        <select id="inkColor"><option value="monochrome ink wash, no color" selected>${t("ink_bw")}</option><option value="light color wash, traditional Korean color accent">${t("ink_tint")}</option></select></div>`;
   } else if (exprId === "minhwa") {
     optDiv.innerHTML = `
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Minhwa type":"민화 유형"}</label>
-        <select id="minhwaType"><option value="flower and bird painting, peony, phoenix, crane motifs" selected>${currentLang==="en"?"Hwajodo (花鳥圖)":"화조도"}</option><option value="tiger and magpie, folk humor, bold strokes">${currentLang==="en"?"Tiger & Magpie":"호랑이/까치"}</option><option value="landscape in folk style, geometric mountains">${currentLang==="en"?"Sansudo (山水圖)":"산수도"}</option></select></div>
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Color palette":"색채"}</label>
-        <select id="minhwaColor"><option value="traditional five colors (red, blue, yellow, white, black)" selected>${currentLang==="en"?"Traditional Obangsaek":"전통 오방색"}</option><option value="modern color reinterpretation, vivid flat colors">${currentLang==="en"?"Modern reinterpretation":"현대 해석"}</option></select></div>
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Background":"배경"}</label>
-        <select id="minhwaBg"><option value="white background, flat composition" selected>${currentLang==="en"?"White space":"여백"}</option><option value="decorative pattern backdrop, traditional motifs">${currentLang==="en"?"Pattern backdrop":"패턴 배경"}</option></select></div>`;
+      <div class="expr-opt-group"><label>${t("minhwa_type")}</label>
+        <select id="minhwaType"><option value="flower and bird painting, peony, phoenix, crane motifs" selected>${t("minhwa_bird")}</option><option value="tiger and magpie, folk humor, bold strokes">${t("minhwa_tiger")}</option><option value="landscape in folk style, geometric mountains">${t("minhwa_landscape")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("minhwa_color")}</label>
+        <select id="minhwaColor"><option value="traditional five colors (red, blue, yellow, white, black)" selected>${t("minhwa_traditional")}</option><option value="modern color reinterpretation, vivid flat colors">${t("minhwa_modern")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("minhwa_bg")}</label>
+        <select id="minhwaBg"><option value="white background, flat composition" selected>${t("minhwa_blank")}</option><option value="decorative pattern backdrop, traditional motifs">${t("minhwa_pattern")}</option></select></div>`;
   } else if (exprId === "ceramic") {
     optDiv.innerHTML = `
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Ceramic style":"도자 스타일"}</label>
-        <select id="ceramicStyle"><option value="Goryeo celadon aesthetic, jade green glaze, crackle texture" selected>${currentLang==="en"?"Goryeo Celadon":"고려 청자"}</option><option value="Joseon white porcelain, pure white glaze, moonjar aesthetic">${currentLang==="en"?"Joseon Baekja":"조선 백자"}</option></select></div>
-      <div class="expr-opt-group"><label>${currentLang==="en"?"Pattern":"문양"}</label>
-        <select id="ceramicPattern"><option value="inlaid design, crane and cloud motif" selected>${currentLang==="en"?"Sanggam inlay":"상감 문양"}</option><option value="lotus pattern, celadon blue accent">${currentLang==="en"?"Lotus pattern":"연꽃 문양"}</option><option value="plain glaze, no decoration, pure form">${currentLang==="en"?"Plain (민무늬)":"민무늬"}</option></select></div>`;
+      <div class="expr-opt-group"><label>${t("ceramic_style")}</label>
+        <select id="ceramicStyle"><option value="Goryeo celadon aesthetic, jade green glaze, crackle texture" selected>${t("ceramic_celadon")}</option><option value="Joseon white porcelain, pure white glaze, moonjar aesthetic">${t("ceramic_porcelain")}</option></select></div>
+      <div class="expr-opt-group"><label>${t("ceramic_pattern")}</label>
+        <select id="ceramicPattern"><option value="inlaid design, crane and cloud motif" selected>${t("ceramic_inlay")}</option><option value="lotus pattern, celadon blue accent">${t("ceramic_lotus")}</option><option value="plain glaze, no decoration, pure form">${t("ceramic_plain")}</option></select></div>`;
   }
 
   const step4 = document.getElementById("step4");
@@ -3514,37 +3657,39 @@ function generatePrompts() {
   const freeText = document.getElementById("freeInput")?.value?.trim() || "";
   generatedPrompts = [];
 
-  document.getElementById("resultTitle").textContent = currentLang === "en" ? `${item.name} ${item.nameEn} — Your Prompt` : `${item.name} — 생성된 프롬프트`;
+  document.getElementById("resultTitle").textContent = currentLang === "en" ? `${item.nameEn}${t("result_title_suffix")}` : `${item.name}${t("result_title_suffix")}`;
 
   const area = document.getElementById("resultsArea");
   let html = "";
-  const sceneName = SCENE_TYPES.find(s => s.id === selectedScene)?.name || "";
-  const sensLabel = SENSITIVITIES[selectedSensitivity]?.label || "";
+  const sceneObj = SCENE_TYPES.find(s => s.id === selectedScene);
+  const sceneName = sceneObj ? t(sceneObj.nameKey) : "";
+  const sensObj = SENSITIVITIES[selectedSensitivity];
+  const sensLabel = sensObj ? t(sensObj.labelKey) : "";
 
   // 고증 상세 정보
   html += `<div class="result-block">
     <div class="result-header">
-      <h3>📋 ${item.name} 고증 정보</h3>
+      <h3>📋 ${currentLang === "en" ? item.nameEn : item.name} ${t("result_heritage_info")}</h3>
       <span class="tag">${item.type} · ${item.era}</span>
     </div>
     <div class="result-body">
       <p style="margin-bottom:1rem;color:var(--color-ink-soft);font-size:0.9rem;">${item.desc}</p>
       <div class="detail-grid">
         <div class="detail-item">
-          <div class="label">시대</div>
-          <div class="value">${item.era} (${item.eraEn})</div>
+          <div class="label">${t("result_era")}</div>
+          <div class="value">${currentLang === "en" ? `${item.eraEn} (${item.era})` : `${item.era} (${item.eraEn})`}</div>
           ${ERA_CONTEXT[item.era] ? `<div class="value" style="margin-top:0.3rem;font-size:0.78rem;color:var(--color-ink-soft)">${ERA_CONTEXT[item.era]}</div>` : ""}
         </div>
         <div class="detail-item">
-          <div class="label">양식 · 구조</div>
+          <div class="label">${t("result_style")}</div>
           <div class="tag-list">${item.visual.style.map(s => `<span class="mini-tag">${s}</span>`).join("")}</div>
         </div>
         <div class="detail-item">
-          <div class="label">색상 팔레트</div>
+          <div class="label">${t("result_palette")}</div>
           <div class="tag-list">${item.visual.colors.map(c => `<span class="mini-tag">${c}</span>`).join("")}</div>
         </div>
         <div class="detail-item">
-          <div class="label">재질 · 소재</div>
+          <div class="label">${t("result_material")}</div>
           <div class="tag-list">${item.visual.materials.map(m => `<span class="mini-tag">${m}</span>`).join("")}</div>
         </div>
       </div>
@@ -3572,7 +3717,7 @@ function generatePrompts() {
 
   generatedPrompts.push({
     scene: sceneName,
-    sensitivity: isHistorical ? "고증" : sensLabel,
+    sensitivity: isHistorical ? t("result_mood_label") : sensLabel,
     promptEn: promptEn,
     promptKo: promptKo
   });
@@ -3587,22 +3732,22 @@ function generatePrompts() {
     </div>
     <div class="result-body">
       <div class="prompt-tabs">
-        <button class="prompt-tab ${enActive}" onclick="switchPromptTab('en', this)">English</button>
-        <button class="prompt-tab ${koActive}" onclick="switchPromptTab('ko', this)">한글</button>
+        <button class="prompt-tab ${enActive}" onclick="switchPromptTab('en', this)">${t("result_tab_en")}</button>
+        <button class="prompt-tab ${koActive}" onclick="switchPromptTab('ko', this)">${t("result_tab_ko")}</button>
       </div>
       <div id="promptPanel-en" class="prompt-panel ${enActive}">
         <div class="prompt-box">
-          <div class="prompt-label">English — Midjourney, Stable Diffusion 등에 사용</div>
+          <div class="prompt-label">${t("result_tab_en")} — ${t("result_tab_en_sub")}</div>
           <div class="prompt-text" id="prompt-en">${promptEn}</div>
           <button class="copy-btn" onclick="copyPrompt('prompt-en', this)">${t("btn_copy")}</button>
         </div>
       </div>
       <div id="promptPanel-ko" class="prompt-panel ${koActive}">
         <div class="prompt-box">
-          <div class="prompt-label">한글 — 나노바나나(Gemini) 등에 사용</div>
+          <div class="prompt-label">${t("result_tab_ko")} — ${t("result_tab_ko_sub")}</div>
           <div class="prompt-text" id="prompt-ko">${promptKo}</div>
           <button class="copy-btn" onclick="copyPrompt('prompt-ko', this)">${t("btn_copy")}</button>
-          <a class="nano-link" href="https://gemini.google.com" target="_blank" rel="noopener">🍌 나노바나나에서 생성</a>
+          <a class="nano-link" href="https://gemini.google.com" target="_blank" rel="noopener">${t("nano_link")}</a>
         </div>
       </div>
       ${buildExplainLayer(item)}
